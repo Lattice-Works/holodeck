@@ -181,7 +181,7 @@ const HeaderNav = ({ logout } :Props) => (
       <AppHeaderSubWrapper>
         <BrandLink to={Routes.EXPLORE}>
           <Logo src={logo} role="presentation" />
-          <span>Top Utilizers</span>
+          <span>Holodeck</span>
         </BrandLink>
         <div>
           <DisplayName>{getDisplayName()}</DisplayName>
