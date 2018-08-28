@@ -1,8 +1,8 @@
 {
-  "name": "top-utilizers",
+  "name": "holodeck",
   "version": "0.0.0",
-  "homepage": "https://github.com/Lattice-Works/top-utilizers",
-  "description": "An OpenLattice top utilizers data exploration app",
+  "homepage": "https://github.com/Lattice-Works/holodeck",
+  "description": "An OpenLattice data exploration app",
   "author": {
     "name": "OpenLattice, Inc.",
     "email": "support@openlattice.com",
@@ -16,10 +16,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Lattice-Works/top-utilizers.git"
+    "url": "git+https://github.com/Lattice-Works/holodeck.git"
   },
   "bugs": {
-    "url": "https://github.com/Lattice-Works/top-utilizers/issues"
+    "url": "https://github.com/Lattice-Works/holodeck/issues"
   },
   "license": "Apache-2.0",
   "dependencies": {
