@@ -15,7 +15,7 @@ import * as Routes from '../../core/router/Routes';
 const AppHeaderWrapper = styled.header`
   align-items: center;
   justify-content: space-between;
-  padding: 13px 170px;
+  padding: 13px 30px;
   background-color: #fefefe;
   border-bottom: 1px solid #e6e6eb;
   display: flex;
@@ -25,7 +25,6 @@ const AppHeaderWrapper = styled.header`
 
 const AppHeaderSubWrapper = styled.div`
   width: 100%;
-  max-width: 960px;
   margin: 0 auto;
   display: flex;
   flex-direction: row;
@@ -77,8 +76,7 @@ const Logo = styled.img`
 
 const StyledNavWrapper = styled.div`
   width: 100%;
-  max-width: 960px;
-  margin: 0 auto;
+  margin: 0 30px;
   display: flex;
   flex-direction: row;
   align-self: flex-start;
@@ -94,7 +92,7 @@ const StyledNavLink = styled(NavLink).attrs({
   width: auto;
   height: auto;
   padding-bottom: 10px;
-  margin: 0 5px -13px 5px;
+  margin: 0 10px -43px 10px;
   font-family: 'Open Sans', sans-serif;
   font-size: 12px;
   font-weight: normal;
@@ -137,13 +135,6 @@ const StyledNavLink = styled(NavLink).attrs({
   }
 `;
 
-const StyledIcon = styled.div`
-  margin-right: 10px;
-  height: 16px;
-  width: 16px;
-  display: inline-block;
-`;
-
 const LogoutButton = styled(BasicButton)`
   width: 108px;
   height: 29px;
@@ -151,27 +142,27 @@ const LogoutButton = styled(BasicButton)`
   padding: 0;
 `;
 
-const NavButton = ({ path, label }) => {
-//  const url = window.location.hash.includes(path) ? selectedIcon : defaultIcon;
-
-  return (
-    <StyledNavLink to={path} name={path}>
-      <StyledIcon />
-      <span>{label}</span>
-    </StyledNavLink>
-  );
+type NavButtonProps = {
+  path :string,
+  label :string
 };
 
-type Props = {
-  logout :() => void
-}
+const NavButton = ({ path, label } :NavButtonProps) => (
+  <StyledNavLink to={path} name={path}>
+    <span>{label}</span>
+  </StyledNavLink>
+);
 
 const getDisplayName = () => {
   const userInfo = AuthUtils.getUserInfo();
   return (userInfo.email && userInfo.email.length > 0) ? userInfo.email : '';
 };
 
-const HeaderNav = ({ logout } :Props) => (
+type HeaderNavProps = {
+  logout :() => void
+}
+
+const HeaderNav = ({ logout } :HeaderNavProps) => (
   <div>
     <AppHeaderWrapper>
       <AppHeaderSubWrapper>
@@ -179,21 +170,19 @@ const HeaderNav = ({ logout } :Props) => (
           <Logo src={logo} role="presentation" />
           <span>Holodeck</span>
         </BrandLink>
+        <StyledNavWrapper>
+          <NavButton
+              path={Routes.EXPLORE}
+              label="Explore" />
+          <NavButton
+              path={Routes.TOP_UTILIZERS}
+              label="Top Utilizers" />
+        </StyledNavWrapper>
         <div>
           <DisplayName>{getDisplayName()}</DisplayName>
           <LogoutButton onClick={logout}>Log Out</LogoutButton>
         </div>
       </AppHeaderSubWrapper>
-    </AppHeaderWrapper>
-    <AppHeaderWrapper>
-      <StyledNavWrapper>
-        <NavButton
-            path={Routes.EXPLORE}
-            label="Explore" />
-        <NavButton
-            path={Routes.TOP_UTILIZERS}
-            label="Top Utilizers" />
-      </StyledNavWrapper>
     </AppHeaderWrapper>
   </div>
 );
