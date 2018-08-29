@@ -82,7 +82,7 @@ const StyledNavWrapper = styled.div`
   display: flex;
   flex-direction: row;
   align-self: flex-start;
-  justify-content: space-between;
+  justify-content: flex-start;
 `;
 
 const StyledNavLink = styled(NavLink).attrs({
@@ -94,7 +94,7 @@ const StyledNavLink = styled(NavLink).attrs({
   width: auto;
   height: auto;
   padding-bottom: 10px;
-  margin-bottom: -13px;
+  margin: 0 5px -13px 5px;
   font-family: 'Open Sans', sans-serif;
   font-size: 12px;
   font-weight: normal;
@@ -153,10 +153,6 @@ const LogoutButton = styled(BasicButton)`
 
 const NavButton = ({ path, label }) => {
 //  const url = window.location.hash.includes(path) ? selectedIcon : defaultIcon;
-  const ButtonWrapper = styled(StyledNavLink).attrs({
-    to: path,
-    name: path
-  })``;
 
   return (
     <StyledNavLink to={path} name={path}>
@@ -193,7 +189,10 @@ const HeaderNav = ({ logout } :Props) => (
       <StyledNavWrapper>
         <NavButton
             path={Routes.EXPLORE}
-            label="Default Link" />
+            label="Explore" />
+        <NavButton
+            path={Routes.TOP_UTILIZERS}
+            label="Top Utilizers" />
       </StyledNavWrapper>
     </AppHeaderWrapper>
   </div>

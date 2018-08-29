@@ -11,7 +11,8 @@ import { Redirect, Route, Switch } from 'react-router';
 import { bindActionCreators } from 'redux';
 
 import HeaderNav from '../../components/nav/HeaderNav';
-import StyledButton from '../../components/buttons/StyledButton';
+import ExploreContainer from '../explore/ExploreContainer';
+import TopUtilizersContainer from '../toputilizers/TopUtilizersContainer';
 import * as Routes from '../../core/router/Routes';
 
 const { logout } = AuthActionFactory;
@@ -48,19 +49,14 @@ type Props = {
   };
 };
 
-const HelloWorldComponent = () => (
-  <div>
-    Hello, World!
-  </div>
-);
-
 const AppContainer = ({ actions } :Props) => (
   <AppWrapper>
     <HeaderNav logout={actions.logout} />
     <AppBodyWrapper>
       <Switch>
-        <Route path={Routes.ROOT} component={HelloWorldComponent} />
-        <Redirect to={Routes.ROOT} />
+        <Route path={Routes.EXPLORE} component={ExploreContainer} />
+        <Route path={Routes.TOP_UTILIZERS} component={TopUtilizersContainer} />
+        <Redirect to={Routes.EXPLORE} />
       </Switch>
     </AppBodyWrapper>
   </AppWrapper>
