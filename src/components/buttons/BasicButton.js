@@ -8,6 +8,7 @@ const BasicButton = styled.button`
   font-family: 'Open Sans', sans-serif;
   padding: 12px 35px;
   font-size: 14px;
+  justify-content: center;
 
   &:hover:enabled {
     background-color: #dcdce7;
