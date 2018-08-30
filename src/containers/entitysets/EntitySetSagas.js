@@ -13,7 +13,7 @@ import {
 function* searchEntitySetsWorker(action :SequenceAction) :Generator<*, *, *> {
   try {
     yield put(searchEntitySets.request(action.id));
-    const results = yield call(SearchApi.getEntitySets, action.value);
+    const results = yield call(SearchApi.searchEntitySetMetaData, action.value);
     yield put(searchEntitySets.success(action.id, results));
   }
   catch (error) {

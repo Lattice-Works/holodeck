@@ -34,8 +34,9 @@ const AppBodyWrapper = styled.div`
   display: flex;
   flex: 1 0 auto;
   flex-direction: column;
-  padding: 30px 170px;
-  margin: 0 auto;
+  margin: 45px;
+  background: #ffffff;
+  max-height: fit-content;
 `;
 
 /*
@@ -51,8 +52,8 @@ type Props = {
 
 const AppContainer = ({ actions } :Props) => (
   <AppWrapper>
-    <HeaderNav logout={actions.logout} />
     <AppBodyWrapper>
+      <HeaderNav logout={actions.logout} />
       <Switch>
         <Route path={Routes.EXPLORE} component={ExploreContainer} />
         <Route path={Routes.TOP_UTILIZERS} component={TopUtilizersContainer} />

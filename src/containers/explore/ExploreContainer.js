@@ -4,11 +4,13 @@
 
 import React from 'react';
 
+import { ComponentWrapper } from '../../components/layout/Layout';
+
 export default class ExploreContainer extends React.Component {
 
   render() {
     return (
-      <div>explore component goes here</div>
+      <ComponentWrapper>explore component goes here</ComponentWrapper>
     );
   }
 }
