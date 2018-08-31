@@ -35,7 +35,6 @@ const AppBodyWrapper = styled.div`
   flex: 1 0 auto;
   flex-direction: column;
   margin: 45px;
-  background: #ffffff;
   max-height: fit-content;
 `;
 

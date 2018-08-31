@@ -27,10 +27,10 @@ function reducer(state :Immutable.Map<> = INITIAL_STATE, action :Object) {
 
     case searchEntitySets.case(action.type): {
       return searchEntitySets.reducer(state, action, {
-        REQUEST: state.set(IS_LOADING_ENTITY_SETS, true).set(ENTITY_SET_SEARCH_RESULTS, Immutable.List()),
-        SUCCESS: state.set(ENTITY_SET_SEARCH_RESULTS, Immutable.fromJS(action.value)),
-        FAILURE: state.set(ENTITY_SET_SEARCH_RESULTS, Immutable.List()),
-        FINALLY: state.set(IS_LOADING_ENTITY_SETS, false)
+        REQUEST: () => state.set(IS_LOADING_ENTITY_SETS, true).set(ENTITY_SET_SEARCH_RESULTS, Immutable.List()),
+        SUCCESS: () => state.set(ENTITY_SET_SEARCH_RESULTS, Immutable.fromJS(action.value.hits)),
+        FAILURE: () => state.set(ENTITY_SET_SEARCH_RESULTS, Immutable.List()),
+        FINALLY: () => state.set(IS_LOADING_ENTITY_SETS, false)
       });
     }
 
