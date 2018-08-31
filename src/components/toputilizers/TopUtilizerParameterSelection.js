@@ -21,7 +21,8 @@ import { DATE_FORMAT } from '../../utils/constants/DateTimeConstants';
 type Props = {
   selectedEntitySet :?Immutable.Map<*, *>,
   neighborTypes :Immutable.List<*>,
-  deselectEntitySet :() => void
+  deselectEntitySet :() => void,
+  getTopUtilizers :() => void
 };
 
 type State = {
@@ -71,6 +72,8 @@ const DatePickerWrapper = styled.div`
   width: 100%;
 `;
 
+const DEFAULT_NUM_RESULTS = 100;
+
 export default class TopUtilizerParameterSelection extends React.Component<Props, State> {
 
   constructor(props :Props) {
@@ -82,12 +85,31 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
     };
   }
 
-  handleSearchParameterChange = (e :SyntheticEvent) => {
-    this.setState({ searchParameter: e.target.value });
+  searchTopUtilizers = () => {
+    const { getTopUtilizers, selectedEntitySet } = this.props;
+    const { selectedNeighborTypes } = this.state;
+    const entitySetId = selectedEntitySet.get('id');
+
+    const filters = selectedNeighborTypes.map(selectedType => ({
+      associationTypeId: selectedType.assocId,
+      neighborTypeIds: [selectedType.neighborId],
+      utilizerIsSrc: selectedType.src
+    }));
+
+    getTopUtilizers({
+      entitySetId,
+      numResults: DEFAULT_NUM_RESULTS,
+      filters
+    });
+
   }
 
   render() {
-    const { selectedEntitySet, deselectEntitySet, neighborTypes } = this.props;
+    const {
+      selectedEntitySet,
+      deselectEntitySet,
+      neighborTypes
+    } = this.props;
     const { selectedNeighborTypes, startDate, endDate } = this.state;
     const entitySetTitle = selectedEntitySet.get('title');
     return (
@@ -138,7 +160,7 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
               <DropdownButton fullSize title="Filter properties" options={[]} />
             </InputGroup>
             <InputGroup>
-              <InfoButton fullSize>Find Top Utilizers</InfoButton>
+              <InfoButton onClick={this.searchTopUtilizers} fullSize>Find Top Utilizers</InfoButton>
             </InputGroup>
           </InputRow>
         </ComponentWrapper>

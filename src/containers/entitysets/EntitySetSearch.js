@@ -16,10 +16,12 @@ import EntitySetCard from '../../components/cards/EntitySetCard';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { ENTITY_SETS, STATE } from '../../utils/constants/StateConstants';
 import { ComponentWrapper, HeaderComponentWrapper } from '../../components/layout/Layout';
+import * as Routes from '../../core/router/Routes';
 import * as EntitySetActionFactory from './EntitySetActionFactory';
 import * as TopUtilizersActionFactory from '../toputilizers/TopUtilizersActionFactory';
 
 type Props = {
+  history :string[],
   isLoadingEntitySets :boolean,
   entitySetSearchResults :Immutable.List<*>,
   actions :{
@@ -128,6 +130,10 @@ class EntitySetSearch extends React.Component<Props, State> {
     ));
   }
 
+  routeToManage = () => {
+    this.props.history.push(Routes.MANAGE);
+  }
+
   render() {
     return (
       <div>
@@ -136,7 +142,8 @@ class EntitySetSearch extends React.Component<Props, State> {
             <Title>Select a dataset to search</Title>
             <Subtitle>
               Choose a dataset you want to find to utilizers in. If you
-              don't see the dataset you're looking for, check <StyledLink>Data Management</StyledLink>
+              don't see the dataset you're looking for,
+              check <StyledLink onClick={this.routeToManage}>Data Management</StyledLink>
             </Subtitle>
             <StyledInput
                 value={this.state.searchTerm}
