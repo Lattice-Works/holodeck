@@ -8,12 +8,14 @@ import TopUtilizerParameterSelection from '../../components/toputilizers/TopUtil
 import { STATE, ENTITY_SETS, TOP_UTILIZERS } from '../../utils/constants/StateConstants';
 import { ComponentWrapper, HeaderComponentWrapper } from '../../components/layout/Layout';
 import * as EntitySetActionFactory from '../entitysets/EntitySetActionFactory';
+import * as TopUtilizersActionFactory from './TopUtilizersActionFactory';
 
 type Props = {
   selectedEntitySet :Immutable.Map<*, *>,
   neighborTypes :Immutable.List<*>,
   actions :{
-    selectEntitySet :(entitySet? :Immutable.Map<*, *>) => void
+    selectEntitySet :(entitySet? :Immutable.Map<*, *>) => void,
+    getTopUtilizers :() => void
   }
 };
 
@@ -35,6 +37,7 @@ class TopUtilizersContainer extends React.Component<Props> {
               <TopUtilizerParameterSelection
                   selectedEntitySet={selectedEntitySet}
                   neighborTypes={neighborTypes}
+                  getTopUtilizers={actions.getTopUtilizers}
                   deselectEntitySet={() => actions.selectEntitySet()} />
             ) : <EntitySetSearch />
         }
@@ -57,6 +60,10 @@ function mapDispatchToProps(dispatch :Function) :Object {
 
   Object.keys(EntitySetActionFactory).forEach((action :string) => {
     actions[action] = EntitySetActionFactory[action];
+  });
+
+  Object.keys(TopUtilizersActionFactory).forEach((action :string) => {
+    actions[action] = TopUtilizersActionFactory[action];
   });
 
   return {

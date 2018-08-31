@@ -92,7 +92,7 @@ const StyledNavLink = styled(NavLink).attrs({
   width: auto;
   height: auto;
   padding-bottom: 10px;
-  margin: 0 10px -43px 10px;
+  margin: 0 15px -43px 15px;
   font-family: 'Open Sans', sans-serif;
   font-size: 12px;
   font-weight: normal;
@@ -173,10 +173,16 @@ const HeaderNav = ({ logout } :HeaderNavProps) => (
         <StyledNavWrapper>
           <NavButton
               path={Routes.EXPLORE}
-              label="Explore" />
+              label="Data Explorer" />
           <NavButton
               path={Routes.TOP_UTILIZERS}
               label="Top Utilizers" />
+          <NavButton
+              path={Routes.REPORTS}
+              label="Reports" />
+          <NavButton
+              path={Routes.MANAGE}
+              label="Data Management" />
         </StyledNavWrapper>
         <div>
           <DisplayName>{getDisplayName()}</DisplayName>

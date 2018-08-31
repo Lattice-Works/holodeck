@@ -11,7 +11,9 @@ import { Redirect, Route, Switch } from 'react-router';
 import { bindActionCreators } from 'redux';
 
 import HeaderNav from '../../components/nav/HeaderNav';
+import DataManagementContainer from '../manage/DataManagementContainer';
 import ExploreContainer from '../explore/ExploreContainer';
+import ReportsContainer from '../reports/ReportsContainer';
 import TopUtilizersContainer from '../toputilizers/TopUtilizersContainer';
 import * as Routes from '../../core/router/Routes';
 
@@ -55,6 +57,8 @@ const AppContainer = ({ actions } :Props) => (
       <HeaderNav logout={actions.logout} />
       <Switch>
         <Route path={Routes.EXPLORE} component={ExploreContainer} />
+        <Route path={Routes.MANAGE} component={DataManagementContainer} />
+        <Route path={Routes.REPORTS} component={ReportsContainer} />
         <Route path={Routes.TOP_UTILIZERS} component={TopUtilizersContainer} />
         <Redirect to={Routes.EXPLORE} />
       </Switch>

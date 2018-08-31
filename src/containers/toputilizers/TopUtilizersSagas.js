@@ -15,8 +15,9 @@ import {
 function* getTopUtilizersWorker(action :SequenceAction) {
   try {
     yield put(getTopUtilizers.request(action.id));
+    const { entitySetId, numResults, filters } = action.value;
 
-    const topUtilizers = yield call(AnalysisApi.getTopUtilizers, action.value);
+    const topUtilizers = yield call(AnalysisApi.getTopUtilizers, entitySetId, numResults, filters);
     yield put(getTopUtilizers.success(action.id, topUtilizers));
   }
   catch (error) {
