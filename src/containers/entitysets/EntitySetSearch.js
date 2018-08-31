@@ -5,16 +5,11 @@
 import React from 'react';
 import Immutable from 'immutable';
 import styled from 'styled-components';
-import { Redirect, Route, Switch, withRouter } from 'react-router-dom';
+import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { DatePicker } from '@atlaskit/datetime-picker';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDatabase } from '@fortawesome/pro-solid-svg-icons';
 
-import BackNavButton from '../../components/buttons/BackNavButton';
-import InfoButton from '../../components/buttons/InfoButton';
-import DropdownButton from '../../components/buttons/DropdownButton';
 import StyledInput from '../../components/controls/StyledInput';
 import StyledLink from '../../components/controls/StyledLink';
 import EntitySetCard from '../../components/cards/EntitySetCard';
@@ -22,6 +17,7 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import { ENTITY_SETS, STATE } from '../../utils/constants/StateConstants';
 import { ComponentWrapper, HeaderComponentWrapper } from '../../components/layout/Layout';
 import * as EntitySetActionFactory from './EntitySetActionFactory';
+import * as TopUtilizersActionFactory from '../toputilizers/TopUtilizersActionFactory';
 
 type Props = {
   isLoadingEntitySets :boolean,
@@ -32,7 +28,8 @@ type Props = {
       start :number,
       maxHits :number
     }) => void,
-    selectEntitySet :(entitySet? :Immutable.Map<*, *>) => void
+    selectEntitySet :(entitySet? :Immutable.Map<*, *>) => void,
+    getNeighborTypes :(id :string) => void
   }
 };
 
@@ -111,6 +108,12 @@ class EntitySetSearch extends React.Component<Props, State> {
     }, 500);
   }
 
+  handleSelect = (entitySet) => {
+    const { actions } = this.props;
+    actions.selectEntitySet(entitySet);
+    actions.getNeighborTypes(entitySet.get('id'));
+  }
+
   renderResults = () => {
     const { isLoadingEntitySets, entitySetSearchResults, actions } = this.props;
     if (isLoadingEntitySets) {
@@ -121,7 +124,7 @@ class EntitySetSearch extends React.Component<Props, State> {
       <EntitySetCard
           key={entitySetObj.getIn(['entitySet', 'id'])}
           entitySet={entitySetObj.get('entitySet', Immutable.Map())}
-          onClick={() => actions.selectEntitySet(entitySetObj.get('entitySet', Immutable.Map()))} />
+          onClick={() => this.handleSelect(entitySetObj.get('entitySet', Immutable.Map()))} />
     ));
   }
 
@@ -163,6 +166,10 @@ function mapDispatchToProps(dispatch :Function) :Object {
 
   Object.keys(EntitySetActionFactory).forEach((action :string) => {
     actions[action] = EntitySetActionFactory[action];
+  });
+
+  Object.keys(TopUtilizersActionFactory).forEach((action :string) => {
+    actions[action] = TopUtilizersActionFactory[action];
   });
 
   return {

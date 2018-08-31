@@ -11,6 +11,7 @@ import * as EntitySetActionFactory from '../entitysets/EntitySetActionFactory';
 
 type Props = {
   selectedEntitySet :Immutable.Map<*, *>,
+  neighborTypes :Immutable.List<*>,
   actions :{
     selectEntitySet :(entitySet? :Immutable.Map<*, *>) => void
   }
@@ -19,7 +20,12 @@ type Props = {
 class TopUtilizersContainer extends React.Component<Props> {
 
   render() {
-    const { actions, entitySetSearchResults, selectedEntitySet } = this.props;
+    const {
+      actions,
+      entitySetSearchResults,
+      neighborTypes,
+      selectedEntitySet
+    } = this.props;
 
     return (
       <div>
@@ -28,6 +34,7 @@ class TopUtilizersContainer extends React.Component<Props> {
             ? (
               <TopUtilizerParameterSelection
                   selectedEntitySet={selectedEntitySet}
+                  neighborTypes={neighborTypes}
                   deselectEntitySet={() => actions.selectEntitySet()} />
             ) : <EntitySetSearch />
         }
@@ -38,8 +45,10 @@ class TopUtilizersContainer extends React.Component<Props> {
 
 function mapStateToProps(state :Immutable.Map<*, *>) :Object {
   const entitySets = state.get(STATE.ENTITY_SETS);
+  const topUtilizers = state.get(STATE.TOP_UTILIZERS);
   return {
-    selectedEntitySet: entitySets.get(ENTITY_SETS.SELECTED_ENTITY_SET)
+    selectedEntitySet: entitySets.get(ENTITY_SETS.SELECTED_ENTITY_SET),
+    neighborTypes: topUtilizers.get(TOP_UTILIZERS.NEIGHBOR_TYPES)
   };
 }
 
