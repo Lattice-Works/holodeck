@@ -16,12 +16,16 @@ import BackNavButton from '../../components/buttons/BackNavButton';
 import InfoButton from '../../components/buttons/InfoButton';
 import DropdownButton from '../../components/buttons/DropdownButton';
 import StyledInput from '../../components/controls/StyledInput';
+import StyledLink from '../../components/controls/StyledLink';
+import EntitySetCard from '../../components/cards/EntitySetCard';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import { ENTITY_SETS, STATE } from '../../utils/constants/StateConstants';
+import { ComponentWrapper, HeaderComponentWrapper } from '../../components/layout/Layout';
 import * as EntitySetActionFactory from './EntitySetActionFactory';
 
 type Props = {
+  isLoadingEntitySets :boolean,
   entitySetSearchResults :Immutable.List<*>,
-  selectedEntitySet :?Immutable.Map<*, *>,
   actions :{
     searchEntitySets :({
       searchTerm :string,
@@ -36,12 +40,26 @@ type State = {
   temp :boolean
 };
 
+const HeaderContainer = styled(HeaderComponentWrapper)`
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+`;
+
+const HeaderContent = styled.div`
+  width: 560px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 50px 0;
+`;
+
 const Title = styled.div`
   font-size: 20px;
   font-weight: 600;
   display: flex;
   flex-direction: row;
-  margin: 15px 0 40px 0;
 
   span {
     margin-left: 20px;
@@ -51,33 +69,21 @@ const Title = styled.div`
       margin-left: 10px;
     }
   }
-
 `;
 
-const InputRow = styled.div`
+const Subtitle = styled.div`
+  font-family: 'Open Sans', sans-serif;
+  font-size: 14px;
+  text-align: center;
+  color: #8e929b;
+  margin: 15px 0 50px 0;
+`;
+
+const ResultsContainer = styled(ComponentWrapper)`
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
-  margin-top: 30px;
-`;
-
-const InputGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-end;
-  width: ${props => (props.fullSize ? '100%' : '24%')};
-`;
-
-const InputLabel = styled.span`
-  color: #8e929b;
-  margin-bottom: 10px;
-  font-size: 14px;
-  font-weight: 600;
-`;
-
-const DatePickerWrapper = styled.div`
-  width: 100%;
+  flex-wrap: wrap;
+  justify-content: center;
 `;
 
 class EntitySetSearch extends React.Component<Props, State> {
@@ -85,63 +91,60 @@ class EntitySetSearch extends React.Component<Props, State> {
   constructor(props :Props) {
     super(props);
     this.state = {
-      searchParameter: '',
-      startDate: '',
-      endDate: ''
+      searchTerm: ''
     };
+
+    this.searchTimeout = null;
   }
 
-  renderParameterSelection = () => {
-    const { selectedEntitySet } = this.props;
-    const { searchParameter, startDate, endDate } = this.state;
-    const entitySetTitle = selectedEntitySet.get('title');
-    return (
-      <div>
-        <BackNavButton onClick={() => this.props.actions.selectEntitySet()}>Back to dataset selection</BackNavButton>
-        <Title>
-          <div>Search</div>
-          <span><FontAwesomeIcon icon={faDatabase} /></span>
-          <span>{entitySetTitle}</span>
-        </Title>
-        <InputRow>
-          <InputGroup fullSize>
-            <InputLabel>Search Parameter</InputLabel>
-            <StyledInput value={searchParameter} onChange={this.handleSearchParameterChange} />
-          </InputGroup>
-        </InputRow>
-        <InputRow>
-          <InputGroup>
-            <InputLabel>Date Range Start</InputLabel>
-            <DatePickerWrapper>
-              <DatePicker value={startDate} onChange={date => this.setState({ startDate: date })} />
-            </DatePickerWrapper>
-          </InputGroup>
-          <InputGroup>
-            <InputLabel>Date Range End</InputLabel>
-            <DatePickerWrapper>
-              <DatePicker value={endDate} onChange={date => this.setState({ endDate: date })} />
-            </DatePickerWrapper>
-          </InputGroup>
-          <InputGroup>
-            <DropdownButton fullSize title="Filter properties" options={[]} />
-          </InputGroup>
-          <InputGroup>
-            <InfoButton fullSize>Find Top Utilizers</InfoButton>
-          </InputGroup>
-        </InputRow>
-      </div>
-    );
+  handleInputChange = (e :SyntheticEvent) => {
+    this.setState({ searchTerm: e.target.value });
+
+    clearTimeout(this.searchTimeout);
+
+    this.searchTimeout = setTimeout(() => {
+      this.props.actions.searchEntitySets({
+        searchTerm: this.state.searchTerm,
+        start: 0,
+        maxHits: 10
+      })
+    }, 500);
   }
 
-  handleSearchParameterChange = (e :SyntheticEvent) => {
-    this.setState({ searchParameter: e.target.value });
+  renderResults = () => {
+    const { isLoadingEntitySets, entitySetSearchResults, actions } = this.props;
+    if (isLoadingEntitySets) {
+      return <LoadingSpinner />;
+    }
+
+    return entitySetSearchResults.map(entitySetObj => (
+      <EntitySetCard
+          key={entitySetObj.getIn(['entitySet', 'id'])}
+          entitySet={entitySetObj.get('entitySet', Immutable.Map())}
+          onClick={() => actions.selectEntitySet(entitySetObj.get('entitySet', Immutable.Map()))} />
+    ));
   }
 
   render() {
-    const { selectedEntitySet } = this.props;
     return (
       <div>
-        {selectedEntitySet ? this.renderParameterSelection() : null}
+        <HeaderContainer>
+          <HeaderContent>
+            <Title>Select a dataset to search</Title>
+            <Subtitle>
+              Choose a dataset you want to find to utilizers in. If you
+              don't see the dataset you're looking for, check <StyledLink>Data Management</StyledLink>
+            </Subtitle>
+            <StyledInput
+                value={this.state.searchTerm}
+                placeholder="Search"
+                icon={faDatabase}
+                onChange={this.handleInputChange} />
+          </HeaderContent>
+        </HeaderContainer>
+        <ResultsContainer>
+          {this.renderResults()}
+        </ResultsContainer>
       </div>
     );
   }
@@ -151,7 +154,7 @@ function mapStateToProps(state :Immutable.Map<*, *>) :Object {
   const entitySets = state.get(STATE.ENTITY_SETS);
   return {
     entitySetSearchResults: entitySets.get(ENTITY_SETS.ENTITY_SET_SEARCH_RESULTS),
-    selectedEntitySet: entitySets.get(ENTITY_SETS.SELECTED_ENTITY_SET)
+    isLoadingEntitySets: entitySets.get(ENTITY_SETS.IS_LOADING_ENTITY_SETS)
   };
 }
 

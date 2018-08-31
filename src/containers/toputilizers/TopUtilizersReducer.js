@@ -24,10 +24,10 @@ function reducer(state :Immutable.Map<> = INITIAL_STATE, action :Object) {
 
     case getTopUtilizers.case(action.type): {
       return getTopUtilizers.reducer(state, action, {
-        REQUEST: state.set(IS_LOADING_TOP_UTILIZERS, true).set(TOP_UTILIZER_RESULTS, Immutable.List()),
-        SUCCESS: state.set(TOP_UTILIZER_RESULTS, Immutable.fromJS(action.value)),
-        FAILURE: state.set(TOP_UTILIZER_RESULTS, Immutable.List()),
-        FINALLY: state.set(IS_LOADING_TOP_UTILIZERS, false)
+        REQUEST: () => state.set(IS_LOADING_TOP_UTILIZERS, true).set(TOP_UTILIZER_RESULTS, Immutable.List()),
+        SUCCESS: () => state.set(TOP_UTILIZER_RESULTS, Immutable.fromJS(action.value)),
+        FAILURE: () => state.set(TOP_UTILIZER_RESULTS, Immutable.List()),
+        FINALLY: () => state.set(IS_LOADING_TOP_UTILIZERS, false)
       });
     }
 
