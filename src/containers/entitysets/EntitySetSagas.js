@@ -27,4 +27,4 @@ function* searchEntitySetsWorker(action :SequenceAction) :Generator<*, *, *> {
 
 export function* searchEntitySetsWatcher() :Generator<*, *, *> {
   yield takeEvery(SEARCH_ENTITY_SETS, searchEntitySetsWorker);
-};
+}
