@@ -6,7 +6,9 @@ export const STATE = {
 export const ENTITY_SETS = {
   ENTITY_SET_SEARCH_RESULTS: 'entitySetSearchResults',
   IS_LOADING_ENTITY_SETS: 'isLoadingEntitySets',
-  SELECTED_ENTITY_SET: 'selectedEntitySet'
+  SELECTED_ENTITY_SET: 'selectedEntitySet',
+  SELECTED_ENTITY_SET_PROPERTY_TYPES: 'selectedEntitySetPropertyTypes',
+  IS_PERSON_TYPE: 'isPersonType'
 };
 
 export const TOP_UTILIZERS = {

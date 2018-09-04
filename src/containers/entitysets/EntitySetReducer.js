@@ -6,20 +6,24 @@ import Immutable from 'immutable';
 
 import { ENTITY_SETS } from '../../utils/constants/StateConstants';
 import {
-  SELECT_ENTITY_SET,
-  searchEntitySets
+  searchEntitySets,
+  selectEntitySet
 } from './EntitySetActionFactory';
 
 const {
   ENTITY_SET_SEARCH_RESULTS,
   IS_LOADING_ENTITY_SETS,
-  SELECTED_ENTITY_SET
+  IS_PERSON_TYPE,
+  SELECTED_ENTITY_SET,
+  SELECTED_ENTITY_SET_PROPERTY_TYPES
 } = ENTITY_SETS;
 
 const INITIAL_STATE :Immutable.Map<> = Immutable.fromJS({
   [IS_LOADING_ENTITY_SETS]: false,
+  [IS_PERSON_TYPE]: false,
   [ENTITY_SET_SEARCH_RESULTS]: Immutable.List(),
-  [SELECTED_ENTITY_SET]: undefined
+  [SELECTED_ENTITY_SET]: undefined,
+  [SELECTED_ENTITY_SET_PROPERTY_TYPES]: Immutable.List()
 });
 
 function reducer(state :Immutable.Map<> = INITIAL_STATE, action :Object) {
@@ -34,8 +38,15 @@ function reducer(state :Immutable.Map<> = INITIAL_STATE, action :Object) {
       });
     }
 
-    case SELECT_ENTITY_SET:
-      return state.set(SELECTED_ENTITY_SET, action.value);
+    case selectEntitySet.case(action.type): {
+      return selectEntitySet.reducer(state, action, {
+        REQUEST: () => state
+          .set(SELECTED_ENTITY_SET, action.value.entitySet)
+          .set(SELECTED_ENTITY_SET_PROPERTY_TYPES, action.value.propertyTypes)
+          .set(IS_PERSON_TYPE, false),
+        SUCCESS: () => state.set(IS_PERSON_TYPE, action.value)
+      });
+    }
 
     default:
       return state;
