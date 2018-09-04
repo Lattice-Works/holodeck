@@ -9,6 +9,7 @@ const BasicButton = styled.button`
   padding: 12px 35px;
   font-size: 14px;
   justify-content: center;
+  text-align: center;
 
   &:hover:enabled {
     background-color: #dcdce7;

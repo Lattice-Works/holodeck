@@ -85,6 +85,8 @@ const ResultsContainer = styled(ComponentWrapper)`
   justify-content: center;
 `;
 
+const MAX_ENTITY_SET_HITS = 24;
+
 class EntitySetSearch extends React.Component<Props, State> {
 
   constructor(props :Props) {
@@ -105,14 +107,16 @@ class EntitySetSearch extends React.Component<Props, State> {
       this.props.actions.searchEntitySets({
         searchTerm: this.state.searchTerm,
         start: 0,
-        maxHits: 10
+        maxHits: MAX_ENTITY_SET_HITS
       })
     }, 500);
   }
 
-  handleSelect = (entitySet) => {
+  handleSelect = (entitySetObj) => {
     const { actions } = this.props;
-    actions.selectEntitySet(entitySet);
+    const entitySet = entitySetObj.get('entitySet', Immutable.Map());
+    const propertyTypes = entitySetObj.get('propertyTypes', Immutable.List());
+    actions.selectEntitySet({ entitySet, propertyTypes });
     actions.getNeighborTypes(entitySet.get('id'));
   }
 
@@ -126,7 +130,7 @@ class EntitySetSearch extends React.Component<Props, State> {
       <EntitySetCard
           key={entitySetObj.getIn(['entitySet', 'id'])}
           entitySet={entitySetObj.get('entitySet', Immutable.Map())}
-          onClick={() => this.handleSelect(entitySetObj.get('entitySet', Immutable.Map()))} />
+          onClick={() => this.handleSelect(entitySetObj)} />
     ));
   }
 

@@ -13,6 +13,7 @@ import { faDatabase } from '@fortawesome/pro-solid-svg-icons';
 import BackNavButton from '../buttons/BackNavButton';
 import InfoButton from '../buttons/InfoButton';
 import DropdownButton from '../buttons/DropdownButton';
+import CheckboxDropdownButton from '../buttons/CheckboxDropdownButton';
 import StyledInput from '../controls/StyledInput';
 import TopUtilizersSelect from './TopUtilizersSelect';
 import { ComponentWrapper, HeaderComponentWrapper } from '../../components/layout/Layout';
@@ -20,6 +21,9 @@ import { DATE_FORMAT } from '../../utils/constants/DateTimeConstants';
 
 type Props = {
   selectedEntitySet :?Immutable.Map<*, *>,
+  selectedEntitySetPropertyTypes :Immutable.List<*>,
+  selectedPropertyTypes :Immutable.List<*>,
+  onPropertyTypeChange :(propertyType :Immutable.Map<*, *>) => void,
   neighborTypes :Immutable.List<*>,
   deselectEntitySet :() => void,
   getTopUtilizers :() => void
@@ -101,14 +105,23 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
       numResults: DEFAULT_NUM_RESULTS,
       filters
     });
+  }
 
+  getPropertyFilterOptions = () => {
+    const { selectedEntitySetPropertyTypes } = this.props;
+    return selectedEntitySetPropertyTypes.map(propertyType => ({
+      label: propertyType.get('title'),
+      value: propertyType
+    })).toArray();
   }
 
   render() {
     const {
       selectedEntitySet,
       deselectEntitySet,
-      neighborTypes
+      neighborTypes,
+      selectedPropertyTypes,
+      onPropertyTypeChange
     } = this.props;
     const { selectedNeighborTypes, startDate, endDate } = this.state;
     const entitySetTitle = selectedEntitySet.get('title');
@@ -157,7 +170,13 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
               </DatePickerWrapper>
             </InputGroup>
             <InputGroup>
-              <DropdownButton fullSize title="Filter properties" options={[]} />
+              <CheckboxDropdownButton
+                  short
+                  fullSize
+                  title="Filter properties"
+                  selected={selectedPropertyTypes}
+                  onChange={onPropertyTypeChange}
+                  options={this.getPropertyFilterOptions()} />
             </InputGroup>
             <InputGroup>
               <InfoButton onClick={this.searchTopUtilizers} fullSize>Find Top Utilizers</InfoButton>
