@@ -1,5 +1,9 @@
 import styled from 'styled-components';
 
+export const FixedWidthWrapper = styled.div`
+  width: ${props => props.width || '960px'};
+`;
+
 export const HeaderComponentWrapper = styled.div`
   width: 100%;
   background-color: #ffffff;

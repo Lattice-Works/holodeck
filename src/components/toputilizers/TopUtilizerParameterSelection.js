@@ -13,10 +13,11 @@ import { faDatabase } from '@fortawesome/pro-solid-svg-icons';
 import BackNavButton from '../buttons/BackNavButton';
 import InfoButton from '../buttons/InfoButton';
 import DropdownButton from '../buttons/DropdownButton';
+import DropdownButtonWrapper from '../buttons/DropdownButtonWrapper';
 import CheckboxDropdownButton from '../buttons/CheckboxDropdownButton';
 import StyledInput from '../controls/StyledInput';
 import TopUtilizersSelect from './TopUtilizersSelect';
-import { ComponentWrapper, HeaderComponentWrapper } from '../../components/layout/Layout';
+import { ComponentWrapper, FixedWidthWrapper, HeaderComponentWrapper } from '../layout/Layout';
 import { DATE_FORMAT } from '../../utils/constants/DateTimeConstants';
 
 type Props = {
@@ -32,6 +33,12 @@ type Props = {
 type State = {
   temp :boolean
 };
+
+const CenteredHeaderWrapper = styled(HeaderComponentWrapper)`
+  display: flex;
+  justify-content: center;
+  padding: 30px 0;
+`;
 
 const Title = styled.div`
   font-size: 20px;
@@ -126,8 +133,8 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
     const { selectedNeighborTypes, startDate, endDate } = this.state;
     const entitySetTitle = selectedEntitySet.get('title');
     return (
-      <HeaderComponentWrapper>
-        <ComponentWrapper>
+      <CenteredHeaderWrapper>
+        <FixedWidthWrapper>
           <BackNavButton onClick={deselectEntitySet}>Back to dataset selection</BackNavButton>
           <Title>
             <div>Search</div>
@@ -182,8 +189,8 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
               <InfoButton onClick={this.searchTopUtilizers} fullSize>Find Top Utilizers</InfoButton>
             </InputGroup>
           </InputRow>
-        </ComponentWrapper>
-      </HeaderComponentWrapper>
+        </FixedWidthWrapper>
+      </CenteredHeaderWrapper>
     );
   }
 }
