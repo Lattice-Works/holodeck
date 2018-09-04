@@ -14,7 +14,6 @@ import EntitySetSearch from '../entitysets/EntitySetSearch';
 import TopUtilizerParameterSelection from '../../components/toputilizers/TopUtilizerParameterSelection';
 import TopUtilizerResults from '../../components/toputilizers/TopUtilizerResults';
 import { STATE, ENTITY_SETS, TOP_UTILIZERS } from '../../utils/constants/StateConstants';
-import { ComponentWrapper, HeaderComponentWrapper } from '../../components/layout/Layout';
 import * as EntitySetActionFactory from '../entitysets/EntitySetActionFactory';
 import * as TopUtilizersActionFactory from './TopUtilizersActionFactory';
 
@@ -64,7 +63,7 @@ class TopUtilizersContainer extends React.Component<Props, State> {
     const { isLoadingResults, isPersonType, results } = this.props;
 
     if (isLoadingResults) {
-      return <LoadingSpinner />
+      return <LoadingSpinner />;
     }
 
     if (results.size) {

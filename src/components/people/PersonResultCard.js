@@ -9,6 +9,7 @@ import { List, Map } from 'immutable';
 import defaultProfileIcon from '../../assets/svg/profile-placeholder-round.svg';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { COUNT_FQN, IMAGE_PREFIX } from '../../utils/constants/DataConstants';
+import { FixedWidthWrapper } from '../layout/Layout';
 import { formatDateList } from '../../utils/FormattingUtils';
 
 const {
@@ -19,8 +20,7 @@ const {
   PICTURE
 } = PROPERTY_TYPES;
 
-const Card = styled.div`
-  width: 960px;
+const Card = styled(FixedWidthWrapper)`
   height: 75px;
   padding: 20px 30px;
   margin: 10px 0;
