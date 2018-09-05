@@ -11,7 +11,9 @@ import { getEntityKeyId } from '../../utils/DataUtils';
 
 type Props = {
   results :List<*>,
-  isPersonType :boolean
+  isPersonType :boolean,
+  entitySetId :string,
+  onSelectEntity :({ entitySetId :string, entityKeyId :string}) => void
 }
 
 const ResultsContainer = styled.div`
@@ -24,16 +26,16 @@ const ResultsContainer = styled.div`
 export default class TopUtilizerResults extends React.Component<Props> {
 
   renderPersonResults = () => {
-    const { results } = this.props;
+    const { entitySetId, onSelectEntity, results } = this.props;
 
     return results.map((person, index) => {
-      const id = getEntityKeyId(person);
+      const entityKeyId = getEntityKeyId(person);
       return (
         <PersonResultCard
-            key={id}
+            key={entityKeyId}
             index={index + 1}
             person={person}
-            onClick={() => console.log(id)} />
+            onClick={() => onSelectEntity({ entitySetId, entityKeyId })} />
       );
     });
   }
