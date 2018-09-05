@@ -84,7 +84,12 @@ export default class TopUtilizerResults extends React.Component<Props, State> {
   }
 
   renderTableResults = () => {
-    const { results, propertyTypes } = this.props;
+    const {
+      entitySetId,
+      onSelectEntity,
+      propertyTypes,
+      results
+    } = this.props;
     let propertyTypeHeaders = List();
     propertyTypeHeaders = propertyTypeHeaders.push(fromJS({
       id: COUNT_FQN,
@@ -97,9 +102,14 @@ export default class TopUtilizerResults extends React.Component<Props, State> {
       propertyTypeHeaders = propertyTypeHeaders.push(fromJS({ id, value }));
     });
 
+    const onSelect = (index, entity) => {
+      const entityKeyId = getEntityKeyId(entity);
+      onSelectEntity({ entitySetId, entityKeyId });
+    };
+
     return (
       <TableWrapper>
-        <DataTable headers={propertyTypeHeaders} data={results} />
+        <DataTable headers={propertyTypeHeaders} data={results} onRowClick={onSelect} />
       </TableWrapper>
     );
   };
