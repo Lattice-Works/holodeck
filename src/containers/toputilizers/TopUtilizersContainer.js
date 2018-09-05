@@ -5,7 +5,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { List, Map } from 'immutable';
-import { Redirect, Route, Switch, withRouter } from 'react-router-dom';
+import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
@@ -26,6 +26,7 @@ type Props = {
   isLoadingResults :boolean,
   results :List<*>,
   actions :{
+    clearTopUtilizers :() => void,
     selectEntitySet :(entitySet? :Map<*, *>) => void,
     loadEntityNeighbors :({ entitySetId :string, entityKeyId :string }) => void,
     getTopUtilizers :() => void
@@ -67,7 +68,8 @@ class TopUtilizersContainer extends React.Component<Props, State> {
       isLoadingResults,
       isPersonType,
       results,
-      selectedEntitySet } = this.props;
+      selectedEntitySet
+    } = this.props;
 
     if (isLoadingResults) {
       return <LoadingSpinner />;
@@ -76,6 +78,7 @@ class TopUtilizersContainer extends React.Component<Props, State> {
     if (results.size) {
       return (
         <TopUtilizerResults
+            onUnmount={actions.clearTopUtilizers}
             results={results}
             isPersonType={isPersonType}
             entitySetId={selectedEntitySet.get('id')}
@@ -109,6 +112,7 @@ class TopUtilizersContainer extends React.Component<Props, State> {
                   getTopUtilizers={actions.getTopUtilizers}
                   onPropertyTypeChange={this.onPropertyTypeChange}
                   deselectEntitySet={() => {
+                    actions.clearTopUtilizers();
                     actions.selectEntitySet({ entitySet: undefined, propertyTypes: List() });
                   }} />
             ) : <EntitySetSearch />
