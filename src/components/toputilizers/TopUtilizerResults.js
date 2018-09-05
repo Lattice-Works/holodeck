@@ -4,17 +4,20 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import { List, Map } from 'immutable';
+import { List, Map, fromJS } from 'immutable';
 
 import PersonResultCard from '../people/PersonResultCard';
 import ButtonToolbar from '../buttons/ButtonToolbar';
+import DataTable from '../data/DataTable';
+import { COUNT_FQN } from '../../utils/constants/DataConstants';
 import { FixedWidthWrapper } from '../layout/Layout';
-import { getEntityKeyId } from '../../utils/DataUtils';
+import { getEntityKeyId, getFqnString } from '../../utils/DataUtils';
 
 type Props = {
   results :List<*>,
   isPersonType :boolean,
   entitySetId :string,
+  propertyTypes :List<*>,
   onSelectEntity :({ entitySetId :string, entityKeyId :string}) => void,
   onUnmount :() => void
 }
@@ -35,6 +38,13 @@ const LeftJustifyWrapper = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
+`;
+
+const TableWrapper = styled.div`
+  border-radius: 5px;
+  background-color: #ffffff;
+  border: 1px solid #e1e1eb;
+  padding: 5px;
 `;
 
 const LAYOUTS = {
@@ -73,6 +83,27 @@ export default class TopUtilizerResults extends React.Component<Props, State> {
     });
   }
 
+  renderTableResults = () => {
+    const { results, propertyTypes } = this.props;
+    let propertyTypeHeaders = List();
+    propertyTypeHeaders = propertyTypeHeaders.push(fromJS({
+      id: COUNT_FQN,
+      value: 'Count'
+    }));
+
+    propertyTypes.forEach((propertyType) => {
+      const id = getFqnString(propertyType.get('type'));
+      const value = propertyType.get('title');
+      propertyTypeHeaders = propertyTypeHeaders.push(fromJS({ id, value }));
+    });
+
+    return (
+      <TableWrapper>
+        <DataTable headers={propertyTypeHeaders} data={results} />
+      </TableWrapper>
+    );
+  };
+
   renderLayoutToolbar = () => {
     const { layout } = this.state;
     const options = [
@@ -86,7 +117,7 @@ export default class TopUtilizerResults extends React.Component<Props, State> {
         value: LAYOUTS.TABLE,
         onClick: () => this.updateLayout(LAYOUTS.TABLE)
       }
-    ]
+    ];
     return (
       <LeftJustifyWrapper>
         <ButtonToolbar options={options} value={layout} />
@@ -96,10 +127,11 @@ export default class TopUtilizerResults extends React.Component<Props, State> {
 
   render() {
     const { isPersonType } = this.props;
-    let resultContent = <div>Results.</div>
-    if (isPersonType) {
-      resultContent = this.renderPersonResults();
-    }
+    const { layout } = this.state;
+
+    const resultContent = (isPersonType && layout === LAYOUTS.PERSON)
+      ? this.renderPersonResults() : this.renderTableResults();
+
     return (
       <ResultsContainer>
         <FixedWidthWrapper>

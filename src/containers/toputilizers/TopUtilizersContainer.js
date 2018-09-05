@@ -68,7 +68,8 @@ class TopUtilizersContainer extends React.Component<Props, State> {
       isLoadingResults,
       isPersonType,
       results,
-      selectedEntitySet
+      selectedEntitySet,
+      selectedEntitySetPropertyTypes
     } = this.props;
 
     if (isLoadingResults) {
@@ -82,6 +83,7 @@ class TopUtilizersContainer extends React.Component<Props, State> {
             results={results}
             isPersonType={isPersonType}
             entitySetId={selectedEntitySet.get('id')}
+            propertyTypes={selectedEntitySetPropertyTypes}
             onSelectEntity={actions.loadEntityNeighbors} />
       );
     }

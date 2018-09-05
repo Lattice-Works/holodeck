@@ -3,6 +3,7 @@
 */
 
 import { Constants } from 'lattice';
+import { isImmutable } from 'immutable';
 
 import { COUNT_FQN } from './constants/DataConstants';
 
@@ -17,7 +18,11 @@ export const getFqnObj = (fqnStr) => {
 };
 
 export const getFqnString = (fqn) => {
-  const { namespace, name } = fqn;
+  let { namespace, name } = fqn;
+  if (isImmutable(fqn)) {
+    namespace = fqn.get('namespace');
+    name = fqn.get('name');
+  }
   return `${namespace}.${name}`;
 };
 
