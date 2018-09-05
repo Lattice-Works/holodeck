@@ -15,6 +15,7 @@ import TopUtilizerParameterSelection from '../../components/toputilizers/TopUtil
 import TopUtilizerResults from '../../components/toputilizers/TopUtilizerResults';
 import { STATE, ENTITY_SETS, TOP_UTILIZERS } from '../../utils/constants/StateConstants';
 import * as EntitySetActionFactory from '../entitysets/EntitySetActionFactory';
+import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 import * as TopUtilizersActionFactory from './TopUtilizersActionFactory';
 
 type Props = {
@@ -26,6 +27,7 @@ type Props = {
   results :List<*>,
   actions :{
     selectEntitySet :(entitySet? :Map<*, *>) => void,
+    loadEntityNeighbors :({ entitySetId :string, entityKeyId :string }) => void,
     getTopUtilizers :() => void
   }
 };
@@ -60,7 +62,12 @@ class TopUtilizersContainer extends React.Component<Props, State> {
   }
 
   renderResults = () => {
-    const { isLoadingResults, isPersonType, results } = this.props;
+    const {
+      actions,
+      isLoadingResults,
+      isPersonType,
+      results,
+      selectedEntitySet } = this.props;
 
     if (isLoadingResults) {
       return <LoadingSpinner />;
@@ -68,7 +75,11 @@ class TopUtilizersContainer extends React.Component<Props, State> {
 
     if (results.size) {
       return (
-        <TopUtilizerResults results={results} isPersonType={isPersonType} />
+        <TopUtilizerResults
+            results={results}
+            isPersonType={isPersonType}
+            entitySetId={selectedEntitySet.get('id')}
+            onSelectEntity={actions.loadEntityNeighbors} />
       );
     }
     return null;
@@ -128,6 +139,10 @@ function mapDispatchToProps(dispatch :Function) :Object {
 
   Object.keys(EntitySetActionFactory).forEach((action :string) => {
     actions[action] = EntitySetActionFactory[action];
+  });
+
+  Object.keys(ExploreActionFactory).forEach((action :string) => {
+    actions[action] = ExploreActionFactory[action];
   });
 
   Object.keys(TopUtilizersActionFactory).forEach((action :string) => {
