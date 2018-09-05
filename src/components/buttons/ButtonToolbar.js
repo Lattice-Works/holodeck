@@ -64,8 +64,7 @@ const ButtonToolbar = ({ options, value } :{ options :SearchOption[], value :str
   <ToolbarWrapper>
     { options.map(option => (
       <StyledButton
-          key={option.path}
-          name={option.path}
+          key={option.value}
           onClick={option.onClick}
           selected={option.value === value}>
         {option.label}
