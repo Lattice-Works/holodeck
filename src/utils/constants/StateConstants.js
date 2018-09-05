@@ -16,7 +16,8 @@ export const TOP_UTILIZERS = {
   IS_LOADING_NEIGHBOR_TYPES: 'isLoadingNeighborTypes',
   IS_LOADING_TOP_UTILIZERS: 'isLoadingTopUtilizers',
   NEIGHBOR_TYPES: 'neighborTypes',
-  TOP_UTILIZER_RESULTS: 'topUtilizerResults'
+  TOP_UTILIZER_RESULTS: 'topUtilizerResults',
+  QUERY_HAS_RUN: 'queryHasRun'
 };
 
 export const EXPLORE = {

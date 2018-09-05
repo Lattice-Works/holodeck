@@ -13,7 +13,8 @@ type Props = {
   results :List<*>,
   isPersonType :boolean,
   entitySetId :string,
-  onSelectEntity :({ entitySetId :string, entityKeyId :string}) => void
+  onSelectEntity :({ entitySetId :string, entityKeyId :string}) => void,
+  onUnmount :() => void
 }
 
 const ResultsContainer = styled.div`
@@ -24,6 +25,11 @@ const ResultsContainer = styled.div`
 `;
 
 export default class TopUtilizerResults extends React.Component<Props> {
+
+  componentWillUnmount() {
+    const { onUnmount } = this.props;
+    onUnmount();
+  }
 
   renderPersonResults = () => {
     const { entitySetId, onSelectEntity, results } = this.props;

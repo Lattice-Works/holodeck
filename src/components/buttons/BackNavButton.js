@@ -6,7 +6,7 @@ import { faChevronLeft } from '@fortawesome/pro-regular-svg-icons';
 const Button = styled.button`
   border: none;
   font-family: 'Open Sans', sans-serif;
-  color: #8045ff;
+  color: #6124e2;
   font-size: 14px;
   font-weight: 600;
   padding: 0;
@@ -21,7 +21,7 @@ const Button = styled.button`
 
   &:hover {
     cursor: pointer;
-    color: #6124e2;
+    color: #361876;
   }
 `;
 
