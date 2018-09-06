@@ -16,6 +16,7 @@ const {
   IS_LOADING_TOP_UTILIZERS,
   NEIGHBOR_TYPES,
   QUERY_HAS_RUN,
+  TOP_UTILIZER_FILTERS,
   TOP_UTILIZER_RESULTS
 } = TOP_UTILIZERS;
 
@@ -24,6 +25,7 @@ const INITIAL_STATE :Map<> = fromJS({
   [IS_LOADING_NEIGHBOR_TYPES]: false,
   [NEIGHBOR_TYPES]: List(),
   [QUERY_HAS_RUN]: false,
+  [TOP_UTILIZER_FILTERS]: List(),
   [TOP_UTILIZER_RESULTS]: List()
 });
 
@@ -41,7 +43,10 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
 
     case getTopUtilizers.case(action.type): {
       return getTopUtilizers.reducer(state, action, {
-        REQUEST: () => state.set(IS_LOADING_TOP_UTILIZERS, true).set(TOP_UTILIZER_RESULTS, List()),
+        REQUEST: () => state
+          .set(IS_LOADING_TOP_UTILIZERS, true)
+          .set(TOP_UTILIZER_RESULTS, List())
+          .set(TOP_UTILIZER_FILTERS, fromJS(action.value)),
         SUCCESS: () => state.set(TOP_UTILIZER_RESULTS, fromJS(action.value)),
         FAILURE: () => state.set(TOP_UTILIZER_RESULTS, List()),
         FINALLY: () => state.set(IS_LOADING_TOP_UTILIZERS, false).set(QUERY_HAS_RUN, true)
@@ -51,7 +56,8 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
     case CLEAR_TOP_UTILIZERS:
       return state
         .set(QUERY_HAS_RUN, false)
-        .set(TOP_UTILIZER_RESULTS, List());
+        .set(TOP_UTILIZER_RESULTS, List())
+        .set(TOP_UTILIZER_FILTERS, List());
 
     default:
       return state;

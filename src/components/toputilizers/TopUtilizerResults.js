@@ -8,9 +8,11 @@ import { List, Map, fromJS } from 'immutable';
 
 import PersonResultCard from '../people/PersonResultCard';
 import ButtonToolbar from '../buttons/ButtonToolbar';
+import BackNavButton from '../buttons/BackNavButton';
 import DataTable from '../data/DataTable';
+import EntityDetails from '../../containers/data/EntityDetails';
 import { COUNT_FQN } from '../../utils/constants/DataConstants';
-import { FixedWidthWrapper } from '../layout/Layout';
+import { FixedWidthWrapper, TableWrapper } from '../layout/Layout';
 import { getEntityKeyId, getFqnString } from '../../utils/DataUtils';
 
 type Props = {
@@ -18,12 +20,13 @@ type Props = {
   isPersonType :boolean,
   entitySetId :string,
   propertyTypes :List<*>,
-  onSelectEntity :({ entitySetId :string, entityKeyId :string}) => void,
+  onSelectEntity :({ entitySetId :string, entity :Map<*, *>}) => void,
   onUnmount :() => void
 }
 
 type State = {
-  layout :string
+  layout :string,
+  exploring :boolean
 }
 
 const ResultsContainer = styled.div`
@@ -40,13 +43,6 @@ const LeftJustifyWrapper = styled.div`
   justify-content: flex-start;
 `;
 
-const TableWrapper = styled.div`
-  border-radius: 5px;
-  background-color: #ffffff;
-  border: 1px solid #e1e1eb;
-  padding: 5px;
-`;
-
 const LAYOUTS = {
   PERSON: 'PERSON',
   TABLE: 'TABLE'
@@ -57,7 +53,8 @@ export default class TopUtilizerResults extends React.Component<Props, State> {
   constructor(props) {
     super(props);
     this.state = {
-      layout: props.isPersonType ? LAYOUTS.PERSON : LAYOUTS.TABLE
+      layout: props.isPersonType ? LAYOUTS.PERSON : LAYOUTS.TABLE,
+      exploring: false
     };
   }
 
@@ -68,28 +65,26 @@ export default class TopUtilizerResults extends React.Component<Props, State> {
 
   updateLayout = layout => this.setState({ layout });
 
-  renderPersonResults = () => {
-    const { entitySetId, onSelectEntity, results } = this.props;
+  onSelect = (index, entity) => {
+    const { entitySetId, onSelectEntity } = this.props;
+    onSelectEntity({ entitySetId, entity });
+    this.setState({ exploring: true });
+  };
 
-    return results.map((person, index) => {
-      const entityKeyId = getEntityKeyId(person);
-      return (
-        <PersonResultCard
-            key={entityKeyId}
-            index={index + 1}
-            person={person}
-            onClick={() => onSelectEntity({ entitySetId, entityKeyId })} />
-      );
-    });
+  renderPersonResults = () => {
+    const { results } = this.props;
+
+    return results.map((person, index) => (
+      <PersonResultCard
+          key={getEntityKeyId(person)}
+          index={index + 1}
+          person={person}
+          onClick={() => this.onSelect(index, person)} />
+    ));
   }
 
   renderTableResults = () => {
-    const {
-      entitySetId,
-      onSelectEntity,
-      propertyTypes,
-      results
-    } = this.props;
+    const { propertyTypes, results } = this.props;
     let propertyTypeHeaders = List();
     propertyTypeHeaders = propertyTypeHeaders.push(fromJS({
       id: COUNT_FQN,
@@ -102,14 +97,9 @@ export default class TopUtilizerResults extends React.Component<Props, State> {
       propertyTypeHeaders = propertyTypeHeaders.push(fromJS({ id, value }));
     });
 
-    const onSelect = (index, entity) => {
-      const entityKeyId = getEntityKeyId(entity);
-      onSelectEntity({ entitySetId, entityKeyId });
-    };
-
     return (
       <TableWrapper>
-        <DataTable headers={propertyTypeHeaders} data={results} onRowClick={onSelect} />
+        <DataTable headers={propertyTypeHeaders} data={results} onRowClick={this.onSelect} />
       </TableWrapper>
     );
   };
@@ -135,17 +125,32 @@ export default class TopUtilizerResults extends React.Component<Props, State> {
     );
   }
 
-  render() {
+  renderTopUtilizerResults = () => {
     const { isPersonType } = this.props;
     const { layout } = this.state;
 
-    const resultContent = (isPersonType && layout === LAYOUTS.PERSON)
-      ? this.renderPersonResults() : this.renderTableResults();
+    return (isPersonType && layout === LAYOUTS.PERSON) ? this.renderPersonResults() : this.renderTableResults();
+  }
+
+  renderEntityDetails = () => {
+    const { isPersonType } = this.props;
+
+    return <EntityDetails isPersonType={isPersonType} withCounts />;
+  }
+
+  render() {
+    const { isPersonType } = this.props;
+    const { exploring } = this.state;
+
+    const resultContent = exploring ? this.renderEntityDetails() : this.renderTopUtilizerResults();
 
     return (
       <ResultsContainer>
         <FixedWidthWrapper>
-          {isPersonType ? this.renderLayoutToolbar() : null}
+          {exploring
+            ? <BackNavButton onClick={() => this.setState({ exploring: false })}>Back to Search Results</BackNavButton>
+            : null}
+          {(isPersonType && !exploring) ? this.renderLayoutToolbar() : null}
           {resultContent}
         </FixedWidthWrapper>
       </ResultsContainer>

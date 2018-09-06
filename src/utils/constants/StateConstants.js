@@ -1,7 +1,14 @@
 export const STATE = {
+  EDM: 'EDM',
   ENTITY_SETS: 'ENTITY_SETS',
-  TOP_UTILIZERS: 'TOP_UTILIZERS',
-  EXPLORE: 'EXPLORE'
+  EXPLORE: 'EXPLORE',
+  TOP_UTILIZERS: 'TOP_UTILIZERS'
+};
+
+export const EDM = {
+  EDM_WAS_LOADED: 'edmWasLoaded',
+  PROPERTY_TYPES_BY_ID: 'propertyTypesById',
+  PROPERTY_TYPES_BY_FQN: 'propertyTypesByFqn'
 };
 
 export const ENTITY_SETS = {
@@ -12,16 +19,17 @@ export const ENTITY_SETS = {
   IS_PERSON_TYPE: 'isPersonType'
 };
 
+export const EXPLORE = {
+  SELECTED_ENTITY: 'selectedEntity',
+  IS_LOADING_ENTITY_NEIGHBORS: 'isLoadingEntityNeighbors',
+  ENTITY_NEIGHBORS_BY_ID: 'entityNeighborsById'
+};
+
 export const TOP_UTILIZERS = {
   IS_LOADING_NEIGHBOR_TYPES: 'isLoadingNeighborTypes',
   IS_LOADING_TOP_UTILIZERS: 'isLoadingTopUtilizers',
+  TOP_UTILIZER_FILTERS: 'topUtilizerFilters',
   NEIGHBOR_TYPES: 'neighborTypes',
   TOP_UTILIZER_RESULTS: 'topUtilizerResults',
   QUERY_HAS_RUN: 'queryHasRun'
-};
-
-export const EXPLORE = {
-  SELECTED_ENTITY_KEY_ID: 'selectedEntityKeyId',
-  IS_LOADING_ENTITY_NEIGHBORS: 'isLoadingEntityNeighbors',
-  ENTITY_NEIGHBORS_BY_ID: 'entityNeighborsById'
 };
