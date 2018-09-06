@@ -3,7 +3,7 @@
 */
 
 import { Constants } from 'lattice';
-import { Map, fromJS, isImmutable } from 'immutable';
+import { List, Map, fromJS, isImmutable } from 'immutable';
 
 import { COUNT_FQN } from './constants/DataConstants';
 import { TOP_UTILIZERS_FILTER } from './constants/TopUtilizerConstants';
@@ -58,5 +58,24 @@ export const getNeighborCountsForFilters = (filters, neighbors) => {
     [COUNT_FQN]: counts.getIn([filter.get(ASSOC_ID), filter.get(NEIGHBOR_ID)]),
     [LABEL]: filter.get(LABEL)
   }));
-
 };
+
+export const groupNeighbors = (neighbors) => {
+  let groupedNeighbors = Map();
+  neighbors.forEach((neighbor) => {
+    const assocId = neighbor.getIn(['associationEntitySet', 'id'], null);
+    const neighborId = neighbor.getIn(['neighborEntitySet', 'id'], null);
+
+    if (assocId && neighborId) {
+      groupedNeighbors = groupedNeighbors.set(
+        assocId,
+        groupedNeighbors.get(assocId, Map()).set(
+          neighborId,
+          groupedNeighbors.getIn([assocId, neighborId], List()).push(neighbor)
+        )
+      );
+    }
+  });
+
+  return groupedNeighbors;
+}

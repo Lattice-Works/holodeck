@@ -4,10 +4,10 @@
 
 import { newRequestSequence } from 'redux-reqseq';
 
-const LOAD_PROPERTY_TYPES :string = 'LOAD_PROPERTY_TYPES';
-const loadPropertyTypes :RequestSequence = newRequestSequence(LOAD_PROPERTY_TYPES);
+const LOAD_EDM :string = 'LOAD_EDM';
+const loadEdm :RequestSequence = newRequestSequence(LOAD_EDM);
 
 export {
-  LOAD_PROPERTY_TYPES,
-  loadPropertyTypes
+  LOAD_EDM,
+  loadEdm
 };
