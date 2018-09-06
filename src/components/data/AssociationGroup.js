@@ -160,8 +160,8 @@ export default class AssociationGroup extends React.Component<Props, State> {
             <Banner secondary>{neighborsById.size}</Banner>
           </HeaderGroup>
           <HideButton onClick={() => this.setState({ hidden: !hidden })}>
-            Hide
-            {hidden ? <UpIcon /> : <DownIcon />}
+            {hidden ? 'Show' : 'Hide'}
+            {hidden ? <DownIcon /> : <UpIcon />}
           </HideButton>
         </Row>
         {
