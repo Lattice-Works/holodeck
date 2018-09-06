@@ -5,6 +5,7 @@
 import { EntityDataModelApi, SearchApi } from 'lattice';
 import { call, put, takeEvery } from 'redux-saga/effects';
 
+import { getEntityKeyId } from '../../utils/DataUtils';
 import {
   LOAD_ENTITY_NEIGHBORS,
   loadEntityNeighbors
@@ -12,10 +13,12 @@ import {
 
 function* loadEntityNeighborsWorker(action :SequenceAction) :Generator<*, *, *> {
   try {
-    const { entitySetId, entityKeyId } = action.value;
+    const { entitySetId, entity } = action.value;
     yield put(loadEntityNeighbors.request(action.id, action.value));
+
+    const entityKeyId = getEntityKeyId(entity);
     const neighbors = yield call(SearchApi.searchEntityNeighbors, entitySetId, entityKeyId);
-    yield put(loadEntityNeighbors.success(action.id, { neighbors, entityKeyId }));
+    yield put(loadEntityNeighbors.success(action.id, { neighbors, entity }));
   }
   catch (error) {
     console.error(error);

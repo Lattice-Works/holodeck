@@ -3,12 +3,14 @@
  */
 
 import React from 'react';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import { List, Map } from 'immutable';
 
 import defaultProfileIcon from '../../assets/svg/profile-placeholder-round.svg';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { COUNT_FQN, IMAGE_PREFIX } from '../../utils/constants/DataConstants';
+import { TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
+import { BLUE } from '../../utils/constants/Colors';
 import { FixedWidthWrapper } from '../layout/Layout';
 import { formatDateList } from '../../utils/FormattingUtils';
 
@@ -20,21 +22,51 @@ const {
   PICTURE
 } = PROPERTY_TYPES;
 
-const Card = styled(FixedWidthWrapper)`
-  height: 75px;
-  padding: 20px 30px;
+const CardWrapper = styled(FixedWidthWrapper)`
   margin: 10px 0;
+  height: ${props => (props.withCounts ? 'fit-content' : '75px')};
   background-color: #ffffff;
   border: 1px solid #e1e1eb;
   border-radius: 5px;
   display: flex;
+  flex-direction: column;
+
+  &:hover {
+    ${(props) => {
+      if (!props.disabled) {
+        return css`
+          cursor: pointer;
+          box-shadow: 0 5px 15px 0 rgba(0, 0, 0, 0.07);
+        `;
+      }
+      return '';
+    }}
+  }
+`;
+
+const Card = styled(FixedWidthWrapper)`
+  padding: 20px 30px;
+  display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+`;
 
-  &:hover {
-    cursor: pointer;
-    box-shadow: 0 5px 15px 0 rgba(0, 0, 0, 0.07);
+const CountCard = styled(Card)`
+  border-top: 1px solid #e6e6eb;
+  padding-left: 155px;
+  flex-direction: column;
+`;
+
+const CountRow = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 10px 0;
+
+  &:not(:first-child):not(:last-child) {
+    border-bottom: 1px solid #e6e6eb;
   }
 `;
 
@@ -55,34 +87,44 @@ const NA = styled.div`
   color: #8e929b !important;
 `;
 
+const Label = styled.span`
+  font-family: 'Open Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: uppercase;
+  color: #8e929b;
+  margin-bottom: 5px;
+`;
+
+const Value = styled.div`
+  font-family: 'Open Sans', sans-serif;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: ${props => (props.blue ? '600' : '400')};
+  color: ${(props) => {
+    if (props.na) {
+      return '#8e929b';
+    }
+    if (props.blue) {
+      return BLUE.BLUE_2;
+    }
+    return '#2e2e34';
+  }};
+`;
+
 const ValueWithLabel = styled.div`
   display: flex;
   flex-direction: column;
   width: ${props => props.width}px;
-
-  span {
-    font-family: 'Open Sans', sans-serif;
-    font-size: 11px;
-    font-weight: 400;
-    text-transform: uppercase;
-    color: #8e929b;
-    margin-bottom: 5px;
-  }
-
-  div {
-    font-family: 'Open Sans', sans-serif;
-    font-size: 13px;
-    color: #2e2e34;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
 `;
 
 type Props = {
-  index :number,
+  index? :number,
   person :Map<*, *>,
-  onClick :() => void
+  onClick? :() => void,
+  counts? :List<Map<string, number>>
 };
 
 const getProfileImgSrc = (person) => {
@@ -101,22 +143,56 @@ const renderValueWithLabel = (person, label, field, width, isDate) => {
   const value = isDate ? formatDateList(valueList) : valueList.join(', ');
   return (
     <ValueWithLabel width={width}>
-      <span>{label}</span>
-      {value.length ? <div>{value}</div> : <NA>N/A</NA>}
+      <Label>{label}</Label>
+      {value.length ? <Value>{value}</Value> : <Value na>N/A</Value>}
     </ValueWithLabel>
   );
 };
 
-const PersonResultCard = ({ index, person, onClick } :Props) => (
+const renderCounts = (counts) => {
+  return (
+    <CountCard>
+      <CountRow>
+        <Label>COUNT DETAILS</Label>
+        <Label>COUNT</Label>
+      </CountRow>
+      {counts.map(countItem => (
+        <CountRow>
+          <Value blue>{countItem.get(TOP_UTILIZERS_FILTER.LABEL)}</Value>
+          <Value>{countItem.get(COUNT_FQN)}</Value>
+        </CountRow>
+      ))}
+    </CountCard>
+  );
+};
 
-  <Card onClick={onClick}>
-    <ListNumber>{index}</ListNumber>
-    <ProfileImg src={getProfileImgSrc(person)} />
-    {renderValueWithLabel(person, 'FIRST NAME', FIRST_NAME, 180)}
-    {renderValueWithLabel(person, 'LAST NAME', LAST_NAME, 330)}
-    {renderValueWithLabel(person, 'DATE OF BIRTH', DOB, 100, true)}
-    {renderValueWithLabel(person, 'COUNT', COUNT_FQN, 40)}
-  </Card>
-);
+const PersonResultCard = ({
+  counts,
+  index,
+  person,
+  onClick
+} :Props) => {
+  const disabled = !onClick;
+  const onClickFn = disabled ? () => {} : onClick;
+  return (
+    <CardWrapper disabled={disabled} onClick={onClickFn} withCounts={!!counts}>
+      <Card>
+        <ListNumber>{index >= 0 ? index : ''}</ListNumber>
+        <ProfileImg src={getProfileImgSrc(person)} />
+        {renderValueWithLabel(person, 'FIRST NAME', FIRST_NAME, 180)}
+        {renderValueWithLabel(person, 'LAST NAME', LAST_NAME, 330)}
+        {renderValueWithLabel(person, 'DATE OF BIRTH', DOB, 100, true)}
+        {renderValueWithLabel(person, 'COUNT', COUNT_FQN, 40)}
+      </Card>
+      {counts ? renderCounts(counts) : null}
+    </CardWrapper>
+  );
+};
+
+PersonResultCard.defaultProps = {
+  index: -1,
+  onClick: undefined,
+  counts: null
+};
 
 export default PersonResultCard;

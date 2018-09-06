@@ -17,3 +17,10 @@ export const Title = styled.div`
   font-size: 18px;
   margin: 30px 0;
 `;
+
+export const TableWrapper = styled.div`
+  border-radius: 5px;
+  background-color: #ffffff;
+  border: 1px solid #e1e1eb;
+  padding: 5px;
+`;

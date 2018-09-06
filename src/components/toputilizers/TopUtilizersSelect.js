@@ -9,6 +9,19 @@ import styled, { css } from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/pro-light-svg-icons';
 
+import { TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
+import { BLUE } from '../../utils/constants/Colors';
+
+const {
+  ASSOC_ID,
+  ASSOC_TITLE,
+  NEIGHBOR_ID,
+  NEIGHBOR_TITLE,
+  IS_SRC,
+  VALUE,
+  LABEL
+} = TOP_UTILIZERS_FILTER;
+
 type Props = {
   selectedEntitySet :Immutable.Map<*, *>,
   neighborTypes :Immutable.List<*>,
@@ -39,7 +52,7 @@ const OptionRow = styled.div`
 `;
 
 const OptionEntitySetBox = styled.div`
-  background-color: ${props => (props.selected ? '#c3ceff' : '#f0f0f7')};
+  background-color: ${props => (props.selected ? BLUE.BLUE_1 : '#f0f0f7')};
   padding: 4px 10px;
   margin: 0 1px;
   font-family: 'Open Sans', sans-serif;
@@ -50,7 +63,7 @@ const OptionEntitySetBox = styled.div`
       return '#8e929b';
     }
     if (props.selected) {
-      return '#0021ba';
+      return BLUE.BLUE_2;
     }
     return '#2e2e34';
   }};
@@ -89,15 +102,14 @@ export default class TopUtilizersSelect extends React.Component<Props> {
       const neighborTitle = neighborType.getIn(['neighborEntityType', 'title']);
       const src = neighborType.get('src');
 
-      const label = (src ? [assocTitle, neighborTitle] : [neighborTitle, assocTitle]).join(' ');
       return {
-        value: this.getEdgeValue(assocId, neighborId, src),
-        label,
-        assocId,
-        assocTitle,
-        neighborId,
-        neighborTitle,
-        src
+        [VALUE]: this.getEdgeValue(assocId, neighborId, src),
+        [LABEL]: (src ? [assocTitle, neighborTitle] : [neighborTitle, assocTitle]).join(' '),
+        [ASSOC_ID]: assocId,
+        [ASSOC_TITLE]: assocTitle,
+        [NEIGHBOR_ID]: neighborId,
+        [NEIGHBOR_TITLE]: neighborTitle,
+        [IS_SRC]: src
       };
     }).toJS();
   };

@@ -15,6 +15,8 @@ import DataManagementContainer from '../manage/DataManagementContainer';
 import ExploreContainer from '../explore/ExploreContainer';
 import ReportsContainer from '../reports/ReportsContainer';
 import TopUtilizersContainer from '../toputilizers/TopUtilizersContainer';
+import { STATE, EDM } from '../../utils/constants/StateConstants';
+import { loadPropertyTypes } from '../edm/EdmActionFactory';
 import * as Routes from '../../core/router/Routes';
 
 const { logout } = AuthActionFactory;
@@ -44,32 +46,55 @@ const AppBodyWrapper = styled.div`
  */
 
 type Props = {
+  edmWasLoaded :boolean,
   actions :{
     login :() => void;
     logout :() => void;
+    loadPropertyTypes :() => void
   };
 };
 
-const AppContainer = ({ actions } :Props) => (
-  <AppWrapper>
-    <AppBodyWrapper>
-      <HeaderNav logout={actions.logout} />
-      <Switch>
-        <Route path={Routes.EXPLORE} component={ExploreContainer} />
-        <Route path={Routes.MANAGE} component={DataManagementContainer} />
-        <Route path={Routes.REPORTS} component={ReportsContainer} />
-        <Route path={Routes.TOP_UTILIZERS} component={TopUtilizersContainer} />
-        <Redirect to={Routes.EXPLORE} />
-      </Switch>
-    </AppBodyWrapper>
-  </AppWrapper>
-);
+class AppContainer extends React.Component<Props> {
+
+  componentDidMount() {
+    const { actions, edmWasLoaded } = this.props;
+    if (!edmWasLoaded) {
+      actions.loadPropertyTypes();
+    }
+  }
+
+  render() {
+    const { actions } = this.props;
+
+    return (
+      <AppWrapper>
+        <AppBodyWrapper>
+          <HeaderNav logout={actions.logout} />
+          <Switch>
+            <Route path={Routes.EXPLORE} component={ExploreContainer} />
+            <Route path={Routes.MANAGE} component={DataManagementContainer} />
+            <Route path={Routes.REPORTS} component={ReportsContainer} />
+            <Route path={Routes.TOP_UTILIZERS} component={TopUtilizersContainer} />
+            <Redirect to={Routes.EXPLORE} />
+          </Switch>
+        </AppBodyWrapper>
+      </AppWrapper>
+    );
+  }
+}
+
+function mapStateToProps(state :Map<*, *>) :Object {
+  const edm = state.get(STATE.EDM);
+  return {
+    edmWasLoaded: edm.get(EDM.EDM_WAS_LOADED)
+  };
+}
 
 function mapDispatchToProps(dispatch :Function) :Object {
 
   return {
-    actions: bindActionCreators({ logout }, dispatch)
+    actions: bindActionCreators({ logout, loadPropertyTypes }, dispatch)
   };
 }
 
-export default connect(null, mapDispatchToProps)(AppContainer);
+export default connect(mapStateToProps, mapDispatchToProps)(AppContainer);

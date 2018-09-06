@@ -11,13 +11,20 @@ import {
   getNeighborTypes,
   getTopUtilizers
 } from './TopUtilizersActionFactory';
+import { TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
 
 function* getTopUtilizersWorker(action :SequenceAction) {
   try {
-    yield put(getTopUtilizers.request(action.id));
     const { entitySetId, numResults, filters } = action.value;
+    yield put(getTopUtilizers.request(action.id, filters));
 
-    const topUtilizers = yield call(AnalysisApi.getTopUtilizers, entitySetId, numResults, filters);
+    const formattedFilters = filters.map(selectedType => ({
+      associationTypeId: selectedType[TOP_UTILIZERS_FILTER.ASSOC_ID],
+      neighborTypeIds: [selectedType[TOP_UTILIZERS_FILTER.NEIGHBOR_ID]],
+      utilizerIsSrc: selectedType[TOP_UTILIZERS_FILTER.IS_SRC]
+    }));
+
+    const topUtilizers = yield call(AnalysisApi.getTopUtilizers, entitySetId, numResults, formattedFilters);
     yield put(getTopUtilizers.success(action.id, topUtilizers));
   }
   catch (error) {

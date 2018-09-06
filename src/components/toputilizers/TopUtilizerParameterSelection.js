@@ -101,16 +101,10 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
     const { selectedNeighborTypes } = this.state;
     const entitySetId = selectedEntitySet.get('id');
 
-    const filters = selectedNeighborTypes.map(selectedType => ({
-      associationTypeId: selectedType.assocId,
-      neighborTypeIds: [selectedType.neighborId],
-      utilizerIsSrc: selectedType.src
-    }));
-
     getTopUtilizers({
       entitySetId,
       numResults: DEFAULT_NUM_RESULTS,
-      filters
+      filters: selectedNeighborTypes
     });
   }
 

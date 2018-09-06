@@ -28,7 +28,7 @@ type Props = {
   actions :{
     clearTopUtilizers :() => void,
     selectEntitySet :(entitySet? :Map<*, *>) => void,
-    loadEntityNeighbors :({ entitySetId :string, entityKeyId :string }) => void,
+    loadEntityNeighbors :({ entitySetId :string, entity :Map<*, *> }) => void,
     getTopUtilizers :() => void
   }
 };
