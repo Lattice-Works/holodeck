@@ -166,6 +166,23 @@ const renderCounts = (counts) => {
   );
 };
 
+const renderPersonDetails = (index, person) => {
+  if (!person.has(FIRST_NAME) && !person.has(LAST_NAME) && !person.has(DOB)) {
+    return null;
+  }
+
+  return (
+    <Card>
+      <ListNumber>{index >= 0 ? index : ''}</ListNumber>
+      <ProfileImg src={getProfileImgSrc(person)} />
+      {renderValueWithLabel(person, 'FIRST NAME', FIRST_NAME, 180)}
+      {renderValueWithLabel(person, 'LAST NAME', LAST_NAME, 330)}
+      {renderValueWithLabel(person, 'DATE OF BIRTH', DOB, 100, true)}
+      {renderValueWithLabel(person, 'COUNT', COUNT_FQN, 40)}
+    </Card>
+  );
+}
+
 const PersonResultCard = ({
   counts,
   index,
@@ -176,14 +193,7 @@ const PersonResultCard = ({
   const onClickFn = disabled ? () => {} : onClick;
   return (
     <CardWrapper disabled={disabled} onClick={onClickFn} withCounts={!!counts}>
-      <Card>
-        <ListNumber>{index >= 0 ? index : ''}</ListNumber>
-        <ProfileImg src={getProfileImgSrc(person)} />
-        {renderValueWithLabel(person, 'FIRST NAME', FIRST_NAME, 180)}
-        {renderValueWithLabel(person, 'LAST NAME', LAST_NAME, 330)}
-        {renderValueWithLabel(person, 'DATE OF BIRTH', DOB, 100, true)}
-        {renderValueWithLabel(person, 'COUNT', COUNT_FQN, 40)}
-      </Card>
+      {renderPersonDetails(index, person)}
       {counts ? renderCounts(counts) : null}
     </CardWrapper>
   );

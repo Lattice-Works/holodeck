@@ -20,13 +20,14 @@ type Props = {
   isPersonType :boolean,
   entitySetId :string,
   propertyTypes :List<*>,
+  exploring :boolean,
+  backToResults :() => void,
   onSelectEntity :({ entitySetId :string, entity :Map<*, *>}) => void,
   onUnmount :() => void
 }
 
 type State = {
-  layout :string,
-  exploring :boolean
+  layout :string
 }
 
 const ResultsContainer = styled.div`
@@ -53,8 +54,7 @@ export default class TopUtilizerResults extends React.Component<Props, State> {
   constructor(props) {
     super(props);
     this.state = {
-      layout: props.isPersonType ? LAYOUTS.PERSON : LAYOUTS.TABLE,
-      exploring: false
+      layout: props.isPersonType ? LAYOUTS.PERSON : LAYOUTS.TABLE
     };
   }
 
@@ -68,7 +68,6 @@ export default class TopUtilizerResults extends React.Component<Props, State> {
   onSelect = (index, entity) => {
     const { entitySetId, onSelectEntity } = this.props;
     onSelectEntity({ entitySetId, entity });
-    this.setState({ exploring: true });
   };
 
   renderPersonResults = () => {
@@ -139,8 +138,7 @@ export default class TopUtilizerResults extends React.Component<Props, State> {
   }
 
   render() {
-    const { isPersonType } = this.props;
-    const { exploring } = this.state;
+    const { backToResults, exploring, isPersonType } = this.props;
 
     const resultContent = exploring ? this.renderEntityDetails() : this.renderTopUtilizerResults();
 
@@ -148,7 +146,7 @@ export default class TopUtilizerResults extends React.Component<Props, State> {
       <ResultsContainer>
         <FixedWidthWrapper>
           {exploring
-            ? <BackNavButton onClick={() => this.setState({ exploring: false })}>Back to Search Results</BackNavButton>
+            ? <BackNavButton onClick={backToResults}>Back to Search Results</BackNavButton>
             : null}
           {(isPersonType && !exploring) ? this.renderLayoutToolbar() : null}
           {resultContent}

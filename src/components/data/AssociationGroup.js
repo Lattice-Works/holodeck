@@ -16,7 +16,8 @@ import { getFqnString } from '../../utils/DataUtils';
 type Props = {
   neighborsById :Map<string, Map<*, *>>,
   propertyTypesById :Map<string, *>,
-  entityTypesById :Map<string, *>
+  entityTypesById :Map<string, *>,
+  onSelectEntity :({ entitySetId :string, entity :Map<*, *> }) => void
 }
 
 type State = {
@@ -115,6 +116,13 @@ export default class AssociationGroup extends React.Component<Props, State> {
     });
   }
 
+  getOnRowClick = (entitySetId) => {
+    const { onSelectEntity } = this.props;
+    return (index, entity) => {
+      onSelectEntity({ entitySetId, entity });
+    };
+  }
+
   renderNeighborTable = (neighborEntitySetId, neighbors) => {
     const firstNeighbor = neighbors.get(0, Map());
     const neighborTitle = firstNeighbor.getIn(['neighborEntitySet', 'title'], '');
@@ -126,7 +134,7 @@ export default class AssociationGroup extends React.Component<Props, State> {
     const data = neighbors.map((neighbor) => {
       const associationDetails = neighbor.get('associationDetails', Map());
       const neighborDetails = neighbor.get('neighborDetails', Map());
-      return mergeDeep(associationDetails, neighborDetails);
+      return associationDetails.merge(neighborDetails);
     });
 
     return (
@@ -135,7 +143,7 @@ export default class AssociationGroup extends React.Component<Props, State> {
           <NeighborTitle>{neighborTitle}</NeighborTitle>
           <Banner>{neighbors.size}</Banner>
         </Row>
-        <DataTable data={data} headers={headers} />
+        <DataTable data={data} headers={headers} onRowClick={this.getOnRowClick(neighborEntitySetId)} />
       </SpacedTableWrapper>
     );
   }

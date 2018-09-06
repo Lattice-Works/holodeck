@@ -22,9 +22,10 @@ export const ENTITY_SETS = {
 };
 
 export const EXPLORE = {
-  SELECTED_ENTITY: 'selectedEntity',
   IS_LOADING_ENTITY_NEIGHBORS: 'isLoadingEntityNeighbors',
-  ENTITY_NEIGHBORS_BY_ID: 'entityNeighborsById'
+  ENTITIES_BY_ID: 'entitiesById',
+  ENTITY_NEIGHBORS_BY_ID: 'entityNeighborsById',
+  BREADCRUMBS: 'breadcrumbs'
 };
 
 export const TOP_UTILIZERS = {

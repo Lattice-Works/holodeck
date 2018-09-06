@@ -26,13 +26,18 @@ import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 type Props = {
   withCounts? :boolean,
   isPersonType :boolean,
-  entity :Map<*, *>,
+  breadcrumbs :List<string>,
   isLoadingNeighbors :boolean,
   neighborsById :Map<string, *>,
+  entitiesById :Map<string, *>,
   entityTypesById :Map<string, *>,
   propertyTypesByFqn :Map<string, *>,
   propertyTypesById :Map<string, *>,
-  topUtilizerFilters :List<*>
+  topUtilizerFilters :List<*>,
+  actions :{
+    selectEntity :(entityKeyId :string) => void,
+    loadEntityNeighbors :({ entityKeyId :string, entitySetId :string }) => void
+  }
 };
 
 type State = {
@@ -70,14 +75,22 @@ class EntityDetails extends React.Component<Props, State> {
     };
   }
 
+  getSelectedEntity = () => {
+    const { breadcrumbs, entitiesById } = this.props;
+    if (breadcrumbs.size) {
+      return entitiesById.get(breadcrumbs.get(-1), Map());
+    }
+    return Map();
+  }
+
   renderPersonCard = () => {
     const {
-      entity,
       neighborsById,
       topUtilizerFilters,
       withCounts
     } = this.props;
     let counts;
+    const entity = this.getSelectedEntity();
     if (withCounts) {
       const neighbors = neighborsById.get(getEntityKeyId(entity), List());
       counts = getNeighborCountsForFilters(topUtilizerFilters, neighbors);
@@ -86,7 +99,8 @@ class EntityDetails extends React.Component<Props, State> {
   }
 
   renderEntityTable = () => {
-    const { entity, propertyTypesByFqn } = this.props;
+    const { propertyTypesByFqn } = this.props;
+    const entity = this.getSelectedEntity();
     const headers = List.of(fromJS({
       id: HEADERS.PROPERTY,
       value: HEADERS.PROPERTY
@@ -109,20 +123,30 @@ class EntityDetails extends React.Component<Props, State> {
     return <TableWrapper><DataTable headers={headers} data={entityTable} /></TableWrapper>;
   }
 
+  onSelectEntity = ({ entitySetId, entity }) => {
+    const { actions, neighborsById } = this.props;
+    const entityKeyId = getEntityKeyId(entity);
+    actions.selectEntity(entityKeyId);
+    if (!neighborsById.has(entityKeyId)) {
+      actions.loadEntityNeighbors({ entitySetId, entity });
+    }
+  }
+
   renderNeighbors = () => {
     const {
-      entity,
       entityTypesById,
       isLoadingNeighbors,
       neighborsById,
       propertyTypesById
     } = this.props;
 
+    const entity = this.getSelectedEntity();
     const neighbors = neighborsById.get(getEntityKeyId(entity), List());
     const content = isLoadingNeighbors
       ? <LoadingSpinner />
       : (
         <NeighborTables
+            onSelectEntity={this.onSelectEntity}
             neighbors={groupNeighbors(neighbors)}
             entityTypesById={entityTypesById}
             propertyTypesById={propertyTypesById} />
@@ -149,8 +173,9 @@ function mapStateToProps(state :Map<*, *>) :Object {
   const topUtilizers = state.get(STATE.TOP_UTILIZERS);
 
   return {
-    entity: explore.get(EXPLORE.SELECTED_ENTITY),
+    breadcrumbs: explore.get(EXPLORE.BREADCRUMBS),
     isLoadingNeighbors: explore.get(EXPLORE.IS_LOADING_ENTITY_NEIGHBORS),
+    entitiesById: explore.get(EXPLORE.ENTITIES_BY_ID),
     neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
     entityTypesById: edm.get(EDM.ENTITY_TYPES_BY_ID),
     propertyTypesById: edm.get(EDM.PROPERTY_TYPES_BY_ID),
