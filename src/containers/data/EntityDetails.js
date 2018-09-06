@@ -9,8 +9,8 @@ import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
-import LoadingSpinner from '../../components/LoadingSpinner';
 import DataTable from '../../components/data/DataTable';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import NeighborTables from '../../components/data/NeighborTables';
 import PersonResultCard from '../../components/people/PersonResultCard';
 import {
@@ -19,8 +19,8 @@ import {
   EXPLORE,
   TOP_UTILIZERS
 } from '../../utils/constants/StateConstants';
-import { TableWrapper } from '../../components/layout/Layout';
-import { getEntityKeyId, getNeighborCountsForFilters } from '../../utils/DataUtils';
+import { FixedWidthWrapper, TableWrapper } from '../../components/layout/Layout';
+import { getEntityKeyId, getNeighborCountsForFilters, groupNeighbors } from '../../utils/DataUtils';
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 
 type Props = {
@@ -29,6 +29,7 @@ type Props = {
   entity :Map<*, *>,
   isLoadingNeighbors :boolean,
   neighborsById :Map<string, *>,
+  entityTypesById :Map<string, *>,
   propertyTypesByFqn :Map<string, *>,
   propertyTypesById :Map<string, *>,
   topUtilizerFilters :List<*>
@@ -37,6 +38,14 @@ type Props = {
 type State = {
   layout :string
 }
+
+const NeighborsWrapper = styled(FixedWidthWrapper)`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 30px 0;
+`;
 
 const LAYOUTS = {
   TABLE: 'TABLE',
@@ -100,12 +109,35 @@ class EntityDetails extends React.Component<Props, State> {
     return <TableWrapper><DataTable headers={headers} data={entityTable} /></TableWrapper>;
   }
 
+  renderNeighbors = () => {
+    const {
+      entity,
+      entityTypesById,
+      isLoadingNeighbors,
+      neighborsById,
+      propertyTypesById
+    } = this.props;
+
+    const neighbors = neighborsById.get(getEntityKeyId(entity), List());
+    const content = isLoadingNeighbors
+      ? <LoadingSpinner />
+      : (
+        <NeighborTables
+            neighbors={groupNeighbors(neighbors)}
+            entityTypesById={entityTypesById}
+            propertyTypesById={propertyTypesById} />
+      );
+
+    return <NeighborsWrapper>{content}</NeighborsWrapper>;
+  }
+
   render() {
     const { isPersonType } = this.props;
     return (
       <div>
         {isPersonType ? this.renderPersonCard() : null}
         {this.renderEntityTable()}
+        {this.renderNeighbors()}
       </div>
     );
   }
@@ -120,6 +152,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     entity: explore.get(EXPLORE.SELECTED_ENTITY),
     isLoadingNeighbors: explore.get(EXPLORE.IS_LOADING_ENTITY_NEIGHBORS),
     neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
+    entityTypesById: edm.get(EDM.ENTITY_TYPES_BY_ID),
     propertyTypesById: edm.get(EDM.PROPERTY_TYPES_BY_ID),
     propertyTypesByFqn: edm.get(EDM.PROPERTY_TYPES_BY_FQN),
     topUtilizerFilters: topUtilizers.get(TOP_UTILIZERS.TOP_UTILIZER_FILTERS)

@@ -21,7 +21,7 @@ export default function* sagas() :Generator<*, *, *> {
     fork(AuthSagas.watchLogout),
 
     /* EdmSagas */
-    fork(EdmSagas.loadPropertyTypesWatcher),
+    fork(EdmSagas.loadEdmWatcher),
 
     /* EntitySetSagas */
     fork(EntitySetSagas.searchEntitySetsWatcher),

@@ -16,7 +16,7 @@ import ExploreContainer from '../explore/ExploreContainer';
 import ReportsContainer from '../reports/ReportsContainer';
 import TopUtilizersContainer from '../toputilizers/TopUtilizersContainer';
 import { STATE, EDM } from '../../utils/constants/StateConstants';
-import { loadPropertyTypes } from '../edm/EdmActionFactory';
+import { loadEdm } from '../edm/EdmActionFactory';
 import * as Routes from '../../core/router/Routes';
 
 const { logout } = AuthActionFactory;
@@ -50,7 +50,7 @@ type Props = {
   actions :{
     login :() => void;
     logout :() => void;
-    loadPropertyTypes :() => void
+    loadEdm :() => void
   };
 };
 
@@ -59,7 +59,7 @@ class AppContainer extends React.Component<Props> {
   componentDidMount() {
     const { actions, edmWasLoaded } = this.props;
     if (!edmWasLoaded) {
-      actions.loadPropertyTypes();
+      actions.loadEdm();
     }
   }
 
@@ -93,7 +93,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
 function mapDispatchToProps(dispatch :Function) :Object {
 
   return {
-    actions: bindActionCreators({ logout, loadPropertyTypes }, dispatch)
+    actions: bindActionCreators({ logout, loadEdm }, dispatch)
   };
 }
 

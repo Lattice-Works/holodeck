@@ -10,6 +10,7 @@ const Button = styled.button`
   font-size: 14px;
   font-weight: 600;
   padding: 0;
+  background: transparent;
 
   span {
     margin-left: 7px;

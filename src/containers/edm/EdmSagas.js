@@ -3,29 +3,36 @@
  */
 
 import { EntityDataModelApi } from 'lattice';
-import { call, put, takeEvery } from 'redux-saga/effects';
+import { all, call, put, takeEvery } from 'redux-saga/effects';
 
 import {
-  LOAD_PROPERTY_TYPES,
-  loadPropertyTypes
+  LOAD_EDM,
+  loadEdm
 } from './EdmActionFactory';
 
-function* loadPropertyTypesWorker(action :SequenceAction) :Generator<*, *, *> {
+function* loadEdmWorker(action :SequenceAction) :Generator<*, *, *> {
   try {
-    yield put(loadPropertyTypes.request(action.id));
+    yield put(loadEdm.request(action.id));
 
-    const propertyTypes = yield call(EntityDataModelApi.getAllPropertyTypes);
-    yield put(loadPropertyTypes.success(action.id, propertyTypes));
+    const [propertyTypes, entityTypes] = yield all([
+      call(EntityDataModelApi.getAllPropertyTypes),
+      call(EntityDataModelApi.getAllEntityTypes)
+    ]);
+
+    yield put(loadEdm.success(action.id, {
+      propertyTypes,
+      entityTypes
+    }));
   }
   catch (error) {
     console.error(error);
-    yield put(loadPropertyTypes.failure(action.id, error));
+    yield put(loadEdm.failure(action.id, error));
   }
   finally {
-    yield put(loadPropertyTypes.finally(action.id));
+    yield put(loadEdm.finally(action.id));
   }
 }
 
-export function* loadPropertyTypesWatcher() :Generator<*, *, *> {
-  yield takeEvery(LOAD_PROPERTY_TYPES, loadPropertyTypesWorker);
+export function* loadEdmWatcher() :Generator<*, *, *> {
+  yield takeEvery(LOAD_EDM, loadEdmWorker);
 }

@@ -157,7 +157,7 @@ const renderCounts = (counts) => {
         <Label>COUNT</Label>
       </CountRow>
       {counts.map(countItem => (
-        <CountRow>
+        <CountRow key={countItem.get(TOP_UTILIZERS_FILTER.LABEL)}>
           <Value blue>{countItem.get(TOP_UTILIZERS_FILTER.LABEL)}</Value>
           <Value>{countItem.get(COUNT_FQN)}</Value>
         </CountRow>
