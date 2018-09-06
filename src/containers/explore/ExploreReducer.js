@@ -7,19 +7,25 @@ import { List, Map, fromJS } from 'immutable';
 import { EXPLORE } from '../../utils/constants/StateConstants';
 import { getEntityKeyId } from '../../utils/DataUtils';
 import {
-  loadEntityNeighbors
+  SELECT_BREADCRUMB,
+  SELECT_ENTITY,
+  loadEntityNeighbors,
 } from './ExploreActionFactory';
 
+import { getTopUtilizers } from '../toputilizers/TopUtilizersActionFactory';
+
 const {
-  SELECTED_ENTITY,
   IS_LOADING_ENTITY_NEIGHBORS,
-  ENTITY_NEIGHBORS_BY_ID
+  ENTITY_NEIGHBORS_BY_ID,
+  ENTITIES_BY_ID,
+  BREADCRUMBS
 } = EXPLORE;
 
 const INITIAL_STATE :Map<> = fromJS({
-  [SELECTED_ENTITY]: undefined,
   [IS_LOADING_ENTITY_NEIGHBORS]: false,
-  [ENTITY_NEIGHBORS_BY_ID]: Map()
+  [ENTITY_NEIGHBORS_BY_ID]: Map(),
+  [ENTITIES_BY_ID]: Map(),
+  [BREADCRUMBS]: List()
 });
 
 function reducer(state :Map<> = INITIAL_STATE, action :Object) {
@@ -29,13 +35,65 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
       return loadEntityNeighbors.reducer(state, action, {
         REQUEST: () => state
           .set(IS_LOADING_ENTITY_NEIGHBORS, true)
-          .set(SELECTED_ENTITY, action.value.entity)
           .setIn([ENTITY_NEIGHBORS_BY_ID, getEntityKeyId(action.value.entity)], List()),
-        SUCCESS: () => state
-          .setIn([ENTITY_NEIGHBORS_BY_ID, getEntityKeyId(action.value.entity)], fromJS(action.value.neighbors)),
+        SUCCESS: () => {
+          const { entity, neighbors } = action.value;
+          const neighborList = fromJS(neighbors);
+          const entityKeyId = getEntityKeyId(entity);
+
+          let entitiesById = state.get(ENTITIES_BY_ID);
+          neighborList.forEach((neighborObj) => {
+            const association = neighborObj.get('associationDetails', Map());
+            const neighbor = neighborObj.get('neighborDetails', Map());
+            if (association) {
+              const associationEntityKeyId = getEntityKeyId(association);
+              entitiesById = entitiesById.set(
+                associationEntityKeyId,
+                entitiesById.get(associationEntityKeyId, Map()).merge(association)
+              );
+            }
+            if (neighbor) {
+              const neighborEntityKeyId = getEntityKeyId(neighbor);
+              entitiesById = entitiesById.set(
+                neighborEntityKeyId,
+                entitiesById.get(neighborEntityKeyId, Map()).merge(neighbor)
+              );
+            }
+          });
+
+          return state
+            .setIn([ENTITY_NEIGHBORS_BY_ID, entityKeyId], neighborList)
+            .set(ENTITIES_BY_ID, entitiesById);
+        },
         FAILURE: () => state.setIn([ENTITY_NEIGHBORS_BY_ID, getEntityKeyId(action.value.entity)], List()),
         FINALLY: () => state.set(IS_LOADING_ENTITY_NEIGHBORS, false)
       });
+    }
+
+    case getTopUtilizers.case(action.type): {
+      return getTopUtilizers.reducer(state, action, {
+        SUCCESS: () => {
+          let entitiesById = state.get(ENTITIES_BY_ID);
+
+          fromJS(action.value).forEach((entity) => {
+            const entityKeyId = getEntityKeyId(entity);
+            entitiesById = entitiesById.set(
+              entityKeyId,
+              entitiesById.get(entityKeyId, Map()).merge(entity)
+            );
+          });
+
+          return state.set(ENTITIES_BY_ID, entitiesById);
+        }
+      });
+    }
+
+    case SELECT_BREADCRUMB:
+      return state.set(BREADCRUMBS, state.get(BREADCRUMBS).slice(0, action.value));
+
+    case SELECT_ENTITY: {
+      const entityKeyId = action.value;
+      return state.set(BREADCRUMBS, state.get(BREADCRUMBS).push(entityKeyId));
     }
 
     default:

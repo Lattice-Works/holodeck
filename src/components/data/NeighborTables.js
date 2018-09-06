@@ -16,17 +16,23 @@ const AssociationGroupContainer = styled.div`
 type Props = {
   neighbors :Map<string, Map<string, Map<*, *>>>,
   propertyTypesById :Map<string, *>,
-  entityTypesById :Map<string, *>
+  entityTypesById :Map<string, *>,
+  onSelectEntity :({ entitySetId :string, entity :Map<*, *> }) => void
 };
 
-const NeighborTables = ({ entityTypesById, neighbors, propertyTypesById } :Props) =>
-  neighbors.entrySeq().map(([assocId, neighborsById]) => (
-    <AssociationGroupContainer key={assocId}>
-      <AssociationGroup
-          neighborsById={neighborsById}
-          entityTypesById={entityTypesById}
-          propertyTypesById={propertyTypesById} />
-    </AssociationGroupContainer>
-  ));
+const NeighborTables = ({
+  entityTypesById,
+  neighbors,
+  propertyTypesById,
+  onSelectEntity
+} :Props) => neighbors.entrySeq().map(([assocId, neighborsById]) => (
+  <AssociationGroupContainer key={assocId}>
+    <AssociationGroup
+        neighborsById={neighborsById}
+        entityTypesById={entityTypesById}
+        propertyTypesById={propertyTypesById}
+        onSelectEntity={onSelectEntity} />
+  </AssociationGroupContainer>
+));
 
 export default NeighborTables;
