@@ -15,6 +15,7 @@ import TopUtilizerParameterSelection from '../../components/toputilizers/TopUtil
 import TopUtilizerResults from '../../components/toputilizers/TopUtilizerResults';
 import {
   STATE,
+  EDM,
   ENTITY_SETS,
   EXPLORE,
   TOP_UTILIZERS
@@ -30,13 +31,14 @@ type Props = {
   isPersonType :boolean,
   breadcrumbs :List<string>,
   neighborsById :Map<string, *>,
+  entityTypesById :Map<string, *>,
+  entitySetsById :Map<string, *>,
   neighborTypes :List<*>,
   isLoadingResults :boolean,
   results :List<*>,
   actions :{
     clearTopUtilizers :() => void,
     selectEntitySet :(entitySet? :Map<*, *>) => void,
-    selectBreadcrumb :(index :number) => void,
     selectEntity :(entityKeyId :string) => void,
     loadEntityNeighbors :({ entitySetId :string, entity :Map<*, *> }) => void,
     getTopUtilizers :() => void
@@ -73,9 +75,15 @@ class TopUtilizersContainer extends React.Component<Props, State> {
   }
 
   selectTopUtilizer = ({ entitySetId, entity }) => {
-    const { actions, neighborsById } = this.props;
+    const {
+      actions,
+      entitySetsById,
+      entityTypesById,
+      neighborsById
+    } = this.props;
     const entityKeyId = getEntityKeyId(entity);
-    actions.selectEntity(entityKeyId);
+    const entityType = entityTypesById.get(entitySetsById.getIn([entitySetId, 'entityTypeId'], ''), Map());
+    actions.selectEntity({ entityKeyId, entitySetId, entityType });
     if (!neighborsById.has(entityKeyId)) {
       actions.loadEntityNeighbors({ entitySetId, entity });
     }
@@ -99,7 +107,6 @@ class TopUtilizersContainer extends React.Component<Props, State> {
     if (results.size) {
       return (
         <TopUtilizerResults
-            backToResults={() => actions.selectBreadcrumb(0)}
             onUnmount={actions.clearTopUtilizers}
             results={results}
             isPersonType={isPersonType}
@@ -150,10 +157,13 @@ class TopUtilizersContainer extends React.Component<Props, State> {
 }
 
 function mapStateToProps(state :Map<*, *>) :Object {
+  const edm = state.get(STATE.EDM);
   const entitySets = state.get(STATE.ENTITY_SETS);
   const explore = state.get(STATE.EXPLORE);
   const topUtilizers = state.get(STATE.TOP_UTILIZERS);
   return {
+    entityTypesById: edm.get(EDM.ENTITY_TYPES_BY_ID),
+    entitySetsById: edm.get(EDM.ENTITY_SETS_BY_ID),
     selectedEntitySet: entitySets.get(ENTITY_SETS.SELECTED_ENTITY_SET),
     selectedEntitySetPropertyTypes: entitySets.get(ENTITY_SETS.SELECTED_ENTITY_SET_PROPERTY_TYPES),
     isPersonType: entitySets.get(ENTITY_SETS.IS_PERSON_TYPE),

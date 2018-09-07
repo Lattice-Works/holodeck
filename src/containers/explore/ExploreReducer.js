@@ -4,12 +4,15 @@
 
 import { List, Map, fromJS } from 'immutable';
 
+import getTitle from '../../utils/EntityTitleUtils';
 import { EXPLORE } from '../../utils/constants/StateConstants';
+import { BREADCRUMB } from '../../utils/constants/ExploreConstants';
 import { getEntityKeyId } from '../../utils/DataUtils';
 import {
   SELECT_BREADCRUMB,
   SELECT_ENTITY,
   loadEntityNeighbors,
+  selectEntity
 } from './ExploreActionFactory';
 
 import { getTopUtilizers } from '../toputilizers/TopUtilizersActionFactory';
@@ -92,8 +95,14 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
       return state.set(BREADCRUMBS, state.get(BREADCRUMBS).slice(0, action.value));
 
     case SELECT_ENTITY: {
-      const entityKeyId = action.value;
-      return state.set(BREADCRUMBS, state.get(BREADCRUMBS).push(entityKeyId));
+      const { entityKeyId, entitySetId, entityType } = action.value;
+      const crumb = {
+        [BREADCRUMB.ENTITY_SET_ID]: entitySetId,
+        [BREADCRUMB.ENTITY_KEY_ID]: entityKeyId,
+        [BREADCRUMB.ON_CLICK]: () => selectEntity(state.get(BREADCRUMBS).size),
+        [BREADCRUMB.TITLE]: getTitle(entityType, state.getIn([ENTITIES_BY_ID, entityKeyId], Map()))
+      };
+      return state.set(BREADCRUMBS, state.get(BREADCRUMBS).push(crumb));
     }
 
     default:

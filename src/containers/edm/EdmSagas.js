@@ -14,14 +14,16 @@ function* loadEdmWorker(action :SequenceAction) :Generator<*, *, *> {
   try {
     yield put(loadEdm.request(action.id));
 
-    const [propertyTypes, entityTypes] = yield all([
+    const [propertyTypes, entityTypes, entitySets] = yield all([
       call(EntityDataModelApi.getAllPropertyTypes),
-      call(EntityDataModelApi.getAllEntityTypes)
+      call(EntityDataModelApi.getAllEntityTypes),
+      call(EntityDataModelApi.getAllEntitySets)
     ]);
 
     yield put(loadEdm.success(action.id, {
       propertyTypes,
-      entityTypes
+      entityTypes,
+      entitySets
     }));
   }
   catch (error) {
