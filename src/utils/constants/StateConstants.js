@@ -7,6 +7,7 @@ export const STATE = {
 
 export const EDM = {
   EDM_WAS_LOADED: 'edmWasLoaded',
+  ENTITY_SETS_BY_ID: 'entitySetsById',
   ENTITY_TYPES_BY_ID: 'entityTypesById',
   ENTITY_TYPES_BY_FQN: 'entityTypesByFqn',
   PROPERTY_TYPES_BY_ID: 'propertyTypesById',

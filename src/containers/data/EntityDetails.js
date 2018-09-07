@@ -13,12 +13,14 @@ import DataTable from '../../components/data/DataTable';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import NeighborTables from '../../components/data/NeighborTables';
 import PersonResultCard from '../../components/people/PersonResultCard';
+import Breadcrumbs from '../../components/nav/Breadcrumbs';
 import {
   STATE,
   EDM,
   EXPLORE,
   TOP_UTILIZERS
 } from '../../utils/constants/StateConstants';
+import { BREADCRUMB } from '../../utils/constants/ExploreConstants';
 import { FixedWidthWrapper, TableWrapper } from '../../components/layout/Layout';
 import { getEntityKeyId, getNeighborCountsForFilters, groupNeighbors } from '../../utils/DataUtils';
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
@@ -31,10 +33,12 @@ type Props = {
   neighborsById :Map<string, *>,
   entitiesById :Map<string, *>,
   entityTypesById :Map<string, *>,
+  entitySetsById :Map<string, *>,
   propertyTypesByFqn :Map<string, *>,
   propertyTypesById :Map<string, *>,
   topUtilizerFilters :List<*>,
   actions :{
+    selectBreadcrumb :(index :number) => void,
     selectEntity :(entityKeyId :string) => void,
     loadEntityNeighbors :({ entityKeyId :string, entitySetId :string }) => void
   }
@@ -78,7 +82,8 @@ class EntityDetails extends React.Component<Props, State> {
   getSelectedEntity = () => {
     const { breadcrumbs, entitiesById } = this.props;
     if (breadcrumbs.size) {
-      return entitiesById.get(breadcrumbs.get(-1), Map());
+      const selectedEntityKeyId = breadcrumbs.get(-1)[BREADCRUMB.ENTITY_KEY_ID];
+      return entitiesById.get(selectedEntityKeyId, Map());
     }
     return Map();
   }
@@ -124,9 +129,15 @@ class EntityDetails extends React.Component<Props, State> {
   }
 
   onSelectEntity = ({ entitySetId, entity }) => {
-    const { actions, neighborsById } = this.props;
+    const {
+      actions,
+      entitySetsById,
+      entityTypesById,
+      neighborsById
+    } = this.props;
     const entityKeyId = getEntityKeyId(entity);
-    actions.selectEntity(entityKeyId);
+    const entityType = entityTypesById.get(entitySetsById.getIn([entitySetId, 'entityTypeId'], ''), Map());
+    actions.selectEntity({ entityKeyId, entitySetId, entityType });
     if (!neighborsById.has(entityKeyId)) {
       actions.loadEntityNeighbors({ entitySetId, entity });
     }
@@ -155,10 +166,20 @@ class EntityDetails extends React.Component<Props, State> {
     return <NeighborsWrapper>{content}</NeighborsWrapper>;
   }
 
+  renderBreadcrumbs = () => {
+    const { actions, breadcrumbs } = this.props;
+
+    const crumbs = List.of({ [BREADCRUMB.TITLE]: 'Search Results' }).concat(breadcrumbs).map((crumb, index) => {
+      return Object.assign({}, crumb, { [BREADCRUMB.ON_CLICK]: () => actions.selectBreadcrumb(index) });
+    });
+    return <Breadcrumbs breadcrumbs={crumbs} />;
+  }
+
   render() {
     const { isPersonType } = this.props;
     return (
       <div>
+        {this.renderBreadcrumbs()}
         {isPersonType ? this.renderPersonCard() : null}
         {this.renderEntityTable()}
         {this.renderNeighbors()}
@@ -178,6 +199,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     entitiesById: explore.get(EXPLORE.ENTITIES_BY_ID),
     neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
     entityTypesById: edm.get(EDM.ENTITY_TYPES_BY_ID),
+    entitySetsById: edm.get(EDM.ENTITY_SETS_BY_ID),
     propertyTypesById: edm.get(EDM.PROPERTY_TYPES_BY_ID),
     propertyTypesByFqn: edm.get(EDM.PROPERTY_TYPES_BY_FQN),
     topUtilizerFilters: topUtilizers.get(TOP_UTILIZERS.TOP_UTILIZER_FILTERS)

@@ -8,7 +8,6 @@ import { List, Map, fromJS } from 'immutable';
 
 import PersonResultCard from '../people/PersonResultCard';
 import ButtonToolbar from '../buttons/ButtonToolbar';
-import BackNavButton from '../buttons/BackNavButton';
 import DataTable from '../data/DataTable';
 import EntityDetails from '../../containers/data/EntityDetails';
 import { COUNT_FQN } from '../../utils/constants/DataConstants';
@@ -21,7 +20,6 @@ type Props = {
   entitySetId :string,
   propertyTypes :List<*>,
   exploring :boolean,
-  backToResults :() => void,
   onSelectEntity :({ entitySetId :string, entity :Map<*, *>}) => void,
   onUnmount :() => void
 }
@@ -138,16 +136,13 @@ export default class TopUtilizerResults extends React.Component<Props, State> {
   }
 
   render() {
-    const { backToResults, exploring, isPersonType } = this.props;
+    const { exploring, isPersonType } = this.props;
 
     const resultContent = exploring ? this.renderEntityDetails() : this.renderTopUtilizerResults();
 
     return (
       <ResultsContainer>
         <FixedWidthWrapper>
-          {exploring
-            ? <BackNavButton onClick={backToResults}>Back to Search Results</BackNavButton>
-            : null}
           {(isPersonType && !exploring) ? this.renderLayoutToolbar() : null}
           {resultContent}
         </FixedWidthWrapper>

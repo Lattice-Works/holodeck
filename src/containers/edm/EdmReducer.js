@@ -12,6 +12,7 @@ import {
 
 const {
   EDM_WAS_LOADED,
+  ENTITY_SETS_BY_ID,
   ENTITY_TYPES_BY_ID,
   ENTITY_TYPES_BY_FQN,
   PROPERTY_TYPES_BY_ID,
@@ -20,6 +21,7 @@ const {
 
 const INITIAL_STATE :Map<> = fromJS({
   [EDM_WAS_LOADED]: false,
+  [ENTITY_SETS_BY_ID]: Map(),
   [ENTITY_TYPES_BY_ID]: Map(),
   [ENTITY_TYPES_BY_FQN]: Map(),
   [PROPERTY_TYPES_BY_ID]: Map(),
@@ -32,12 +34,19 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
     case loadEdm.case(action.type): {
       return loadEdm.reducer(state, action, {
         SUCCESS: () => {
-          const { propertyTypes, entityTypes } = action.value;
+          const { entitySets, entityTypes, propertyTypes } = action.value;
 
+          let entitySetsById = Map();
           let entityTypesById = Map();
           let entityTypesByFqn = Map();
           let propertyTypesById = Map();
           let propertyTypesByFqn = Map();
+
+          /* Format entity sets */
+          fromJS(entitySets).forEach((entitySet) => {
+            const id = entitySet.get('id');
+            entitySetsById = entitySetsById.set(id, entitySet);
+          });
 
           /* Format entity types */
           fromJS(entityTypes).forEach((entityType) => {
@@ -55,6 +64,7 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
             propertyTypesByFqn = propertyTypesByFqn.set(fqn, propertyType);
           });
           return state
+            .set(ENTITY_SETS_BY_ID, entitySetsById)
             .set(ENTITY_TYPES_BY_ID, entityTypesById)
             .set(ENTITY_TYPES_BY_FQN, entityTypesByFqn)
             .set(PROPERTY_TYPES_BY_ID, propertyTypesById)
