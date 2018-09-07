@@ -9,9 +9,11 @@ import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
+import ButtonToolbar from '../../components/buttons/ButtonToolbar';
 import DataTable from '../../components/data/DataTable';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import NeighborTables from '../../components/data/NeighborTables';
+import NeighborTimeline from '../../components/data/NeighborTimeline';
 import PersonResultCard from '../../components/people/PersonResultCard';
 import Breadcrumbs from '../../components/nav/Breadcrumbs';
 import {
@@ -145,25 +147,65 @@ class EntityDetails extends React.Component<Props, State> {
 
   renderNeighbors = () => {
     const {
+      entitiesById,
+      entitySetsById,
       entityTypesById,
       isLoadingNeighbors,
       neighborsById,
       propertyTypesById
     } = this.props;
+    const { layout } = this.state;
 
     const entity = this.getSelectedEntity();
     const neighbors = neighborsById.get(getEntityKeyId(entity), List());
-    const content = isLoadingNeighbors
-      ? <LoadingSpinner />
-      : (
-        <NeighborTables
-            onSelectEntity={this.onSelectEntity}
-            neighbors={groupNeighbors(neighbors)}
-            entityTypesById={entityTypesById}
-            propertyTypesById={propertyTypesById} />
-      );
+
+    let content;
+
+    if (isLoadingNeighbors) {
+      content = <LoadingSpinner />;
+    }
+    else {
+      content = layout === LAYOUTS.TABLE
+        ? (
+          <NeighborTables
+              onSelectEntity={this.onSelectEntity}
+              neighbors={groupNeighbors(neighbors)}
+              entityTypesById={entityTypesById}
+              propertyTypesById={propertyTypesById} />
+        )
+        : (
+          <NeighborTimeline
+              onSelectEntity={this.onSelectEntity}
+              neighbors={neighbors}
+              entitySetsById={entitySetsById}
+              entityTypesById={entityTypesById}
+              entitiesById={entitiesById}
+              propertyTypesById={propertyTypesById} />
+        );
+    }
 
     return <NeighborsWrapper>{content}</NeighborsWrapper>;
+  }
+
+  updateLayout = (layout) => {
+    this.setState({ layout });
+  }
+
+  renderLayoutOptions = () => {
+    const { layout } = this.state;
+    const options = [
+      {
+        label: 'Table',
+        value: LAYOUTS.TABLE,
+        onClick: () => this.updateLayout(LAYOUTS.TABLE)
+      },
+      {
+        label: 'Timeline',
+        value: LAYOUTS.TIMELINE,
+        onClick: () => this.updateLayout(LAYOUTS.TIMELINE)
+      }
+    ];
+    return <ButtonToolbar options={options} value={layout} />
   }
 
   renderBreadcrumbs = () => {
@@ -180,6 +222,7 @@ class EntityDetails extends React.Component<Props, State> {
     return (
       <div>
         {this.renderBreadcrumbs()}
+        {this.renderLayoutOptions()}
         {isPersonType ? this.renderPersonCard() : null}
         {this.renderEntityTable()}
         {this.renderNeighbors()}
