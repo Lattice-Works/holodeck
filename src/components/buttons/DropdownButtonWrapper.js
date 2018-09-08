@@ -18,6 +18,7 @@ import StyledCheckbox from '../controls/StyledCheckbox';
    options :{ label :string, onClick :() => void }[],
    openAbove? :boolean,
    fullSize? :boolean,
+   width? :number,
    selected :Immutable.List<*>
  }
 
@@ -76,6 +77,7 @@ const DataTableWrapper = styled.div`
   margin: ${props => (props.openAbove ? '-303px 0 0 0' : '45px 0 0 0')};
   bottom: ${props => (props.openAbove ? '45px' : 'auto')};
   max-width: ${props => (props.fullSize ? '100%' : '400px')};
+  min-width: ${props => (props.width ? `${props.width}px` : 'auto')};
   width: ${props => (props.fullSize ? '100%' : 'auto')};
 `;
 
@@ -134,7 +136,13 @@ export default class DropdownButtonWrapper extends Component<Props, State> {
   }
 
   render() {
-    const { title, short, fullSize, children } = this.props;
+    const {
+      title,
+      short,
+      fullSize,
+      children,
+      width
+    } = this.props;
     const { isVisibleDataTable } = this.state;
     return (
       <RefWrapper innerRef={(node) => { this.node = node; }} {...this.props}>

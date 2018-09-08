@@ -6,8 +6,17 @@ import React from 'react';
 import moment from 'moment';
 import styled from 'styled-components';
 import { List, Map, Set } from 'immutable';
+import { DatePicker } from '@atlaskit/datetime-picker';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faLongArrowUp, faLongArrowDown } from '@fortawesome/pro-solid-svg-icons';
 
+import BasicButton from '../buttons/BasicButton';
+import InfoButton from '../buttons/InfoButton';
+import DropdownButton from '../buttons/DropdownButton';
+import DropdownButtonWrapper from '../buttons/DropdownButtonWrapper';
+import CheckboxDropdownButton from '../buttons/CheckboxDropdownButton';
 import { DATE_DATATYPES } from '../../utils/constants/DataModelConstants';
+import { DATE_FORMAT } from '../../utils/constants/DateTimeConstants';
 import { BLUE } from '../../utils/constants/Colors';
 import { getEntityKeyId, getFqnString } from '../../utils/DataUtils';
 
@@ -21,10 +30,13 @@ type Props = {
 };
 
 type State = {
-  orderedNeighbors :List<*>
-}
-
-// associationEntitySetId | neighborEntitySetId | datePropertyTypeId | date => entitySetId | entityKeyId
+  orderedNeighbors :List<*>,
+  reverse :boolean,
+  startDateInput :string,
+  endDateInput :string,
+  startDate :string,
+  endDate :string
+};
 
 type DateEntry = {
   entitySetId :string,
@@ -46,9 +58,17 @@ const Wrapper = styled.div`
   }
 `;
 
-const TimelineWrapper = styled.div`
+const SkinnyBasicButton = styled(BasicButton)`
+  padding: 10px;
+`;
+
+const ColumnWrapper = styled.div`
   display: flex;
   flex-direction: column;
+`;
+
+const PaddedColumnWrapper = styled(ColumnWrapper)`
+  padding: 20px;
 `;
 
 const EventRow = styled.div`
@@ -73,8 +93,12 @@ const DateLabel = styled.div`
   }
 
   div:last-child {
-    width: 130px;
+    width: 150px;
   }
+`;
+
+const MarginLeftWrapper = styled.div`
+  margin-left: 20px;
 `;
 
 const EventItem = styled.div`
@@ -88,13 +112,62 @@ const EventItem = styled.div`
   width: 100%;
 `;
 
+const OptionsBar = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const ButtonGroup = styled.div`
+  display: flex;
+  flex-direction: row;
+`;
+
+const InputRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+`;
+
+const InputGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  width: ${props => (props.fullSize ? '100%' : '33%')};
+`;
+
+const InputLabel = styled.span`
+  color: #8e929b;
+  margin-bottom: 10px;
+  font-size: 14px;
+`;
+
+const TitleInputLabel = styled(InputLabel)`
+  margin-bottom: 20px;
+`;
+
+const DatePickerWrapper = styled.div`
+  width: 100%;
+`;
+
+const FullWidthInfoButton = styled(InfoButton)`
+  width: 100%;
+`;
+
 export default class NeighborTimeline extends React.Component<Props, State> {
 
   constructor(props :Props) {
     super(props);
 
     this.state = {
-      orderedNeighbors: this.sortNeighbors(props)
+      orderedNeighbors: this.sortNeighbors(props),
+      reverse: false,
+      startDate: undefined,
+      endDate: undefined,
+      startDateInput: undefined,
+      endDateInput: undefined
     };
   }
 
@@ -190,11 +263,33 @@ export default class NeighborTimeline extends React.Component<Props, State> {
   }
 
   renderTimeline = () => {
-    const { orderedNeighbors } = this.state;
+    const {
+      orderedNeighbors,
+      reverse,
+      startDate,
+      endDate
+    } = this.state;
+    const start = moment(startDate);
+    const end = moment(endDate);
+    const startIsBounded = startDate && start.isValid();
+    const endIsBounded = endDate && end.isValid();
+    let neighborList = reverse ? orderedNeighbors.reverse() : orderedNeighbors;
+    if (startIsBounded || endIsBounded) {
+      neighborList = neighborList.filter((dateEntry) => {
+        const { date } = dateEntry;
+        if (startIsBounded && start.isAfter(date)) {
+          return false;
+        }
+        if (endIsBounded && end.isBefore(date)) {
+          return false;
+        }
+        return true;
+      });
+    }
 
     let lastYear;
 
-    const rows = orderedNeighbors.map((dateEntry :DateEntry) => {
+    const rows = neighborList.map((dateEntry :DateEntry) => {
       const { date } = dateEntry;
       const year = date.format('YYYY');
       const day = date.format('MMMM D');
@@ -209,19 +304,86 @@ export default class NeighborTimeline extends React.Component<Props, State> {
           </DateLabel>
           <EventItem>{this.getEventName(dateEntry)}</EventItem>
         </EventRow>
-      )
+      );
     });
 
     return (
-      <TimelineWrapper>
+      <ColumnWrapper>
         {rows}
-      </TimelineWrapper>
-    )
+      </ColumnWrapper>
+    );
+  }
+
+  renderDateOption = () => {
+    const { startDateInput, endDateInput } = this.state;
+
+    return (
+      <PaddedColumnWrapper>
+        <TitleInputLabel>Set a date range to display on the timeline.</TitleInputLabel>
+        <InputRow>
+          <InputGroup>
+            <InputLabel>Date Range Start</InputLabel>
+            <DatePickerWrapper>
+              <DatePicker
+                  value={startDateInput}
+                  dateFormat={DATE_FORMAT}
+                  onChange={date => this.setState({ startDateInput: date })}
+                  selectProps={{
+                    placeholder: DATE_FORMAT,
+                  }} />
+            </DatePickerWrapper>
+          </InputGroup>
+          <InputGroup>
+            <InputLabel>Date Range End</InputLabel>
+            <DatePickerWrapper>
+              <DatePicker
+                  value={endDateInput}
+                  dateFormat={DATE_FORMAT}
+                  onChange={date => this.setState({ endDateInput: date })}
+                  selectProps={{
+                    placeholder: DATE_FORMAT,
+                  }} />
+            </DatePickerWrapper>
+          </InputGroup>
+          <InputGroup>
+            <InputLabel />
+            <FullWidthInfoButton
+                onClick={() => this.setState({
+                  startDate: startDateInput,
+                  endDate: endDateInput
+                })}>
+              Set Date Range
+            </FullWidthInfoButton>
+          </InputGroup>
+        </InputRow>
+      </PaddedColumnWrapper>
+    );
+  }
+
+  renderOptionsBar = () => {
+    const { reverse } = this.state;
+    return (
+      <OptionsBar>
+        <ButtonGroup>
+          <DropdownButtonWrapper title="Display Option" width="960"><div>options</div></DropdownButtonWrapper>
+          <MarginLeftWrapper>
+            <DropdownButtonWrapper title="Date Option" width="800">{this.renderDateOption()}</DropdownButtonWrapper>
+          </MarginLeftWrapper>
+        </ButtonGroup>
+        <ButtonGroup>
+          <SkinnyBasicButton onClick={() => this.setState({ reverse: !reverse })}>
+            <FontAwesomeIcon icon={faLongArrowUp} />
+            <FontAwesomeIcon icon={faLongArrowDown} />
+          </SkinnyBasicButton>
+        </ButtonGroup>
+      </OptionsBar>
+    );
   }
 
   render() {
     return (
       <Wrapper>
+        {this.renderOptionsBar()}
         <h1>Timeline</h1>
         {this.renderTimeline()}
       </Wrapper>
