@@ -15,6 +15,7 @@ import InfoButton from '../buttons/InfoButton';
 import DropdownButton from '../buttons/DropdownButton';
 import DropdownButtonWrapper from '../buttons/DropdownButtonWrapper';
 import CheckboxDropdownButton from '../buttons/CheckboxDropdownButton';
+import StyledCheckbox from '../controls/StyledCheckbox';
 import { DATE_DATATYPES } from '../../utils/constants/DataModelConstants';
 import { DATE_FORMAT } from '../../utils/constants/DateTimeConstants';
 import { BLUE } from '../../utils/constants/Colors';
@@ -22,6 +23,7 @@ import { getEntityKeyId, getFqnString } from '../../utils/DataUtils';
 
 type Props = {
   neighbors :Map<string, Map<string, Map<*, *>>>,
+  propertyTypesByFqn :Map<string, *>,
   propertyTypesById :Map<string, *>,
   entityTypesById :Map<string, *>,
   entitySetsById :Map<string, *>,
@@ -31,6 +33,8 @@ type Props = {
 
 type State = {
   orderedNeighbors :List<*>,
+  dateTypeOptions :Map<*, *>,
+  selectedDateTypes :Map<*, *>,
   reverse :boolean,
   startDateInput :string,
   endDateInput :string,
@@ -156,13 +160,48 @@ const FullWidthInfoButton = styled(InfoButton)`
   width: 100%;
 `;
 
+const DisplayOptionGroup = styled.div`
+  display: flex;
+  flex-direction:column;
+
+  &:not(:last-child) {
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #e1e1eb;
+  }
+`;
+
+const DisplayOptionRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  font-family: 'Open Sans';
+  font-size: 14px;
+  font-weight: 400;
+  color: #2e2e34;
+  margin: 8px 0 8px 30px;
+  align-items: flex-start;
+
+  span {
+    padding-top: 3px;
+  }
+
+  &:first-child {
+    font-weight: 600;
+    margin-left: 0;
+  }
+`;
+
 export default class NeighborTimeline extends React.Component<Props, State> {
 
   constructor(props :Props) {
     super(props);
 
+    const { orderedNeighbors, dateTypeOptions } = this.preprocessProps(props);
+
     this.state = {
-      orderedNeighbors: this.sortNeighbors(props),
+      orderedNeighbors,
+      dateTypeOptions,
+      selectedDateTypes: dateTypeOptions,
       reverse: false,
       startDate: undefined,
       endDate: undefined,
@@ -196,7 +235,7 @@ export default class NeighborTimeline extends React.Component<Props, State> {
     return entitySetMap;
   }
 
-  getUpdatedNeighborsList = (orderedNeighbors, entitySetId, entity, neighbor, entitySetMap) => {
+  getUpdatedNeighborsList = (orderedNeighbors, dateTypeOptions, entitySetId, entity, neighbor, entitySetMap) => {
     let updatedNeighbors = orderedNeighbors;
 
     const propertyTypeFQNs = entitySetMap.get(entitySetId, List());
@@ -221,7 +260,7 @@ export default class NeighborTimeline extends React.Component<Props, State> {
     return updatedNeighbors;
   }
 
-  sortNeighbors = (props :Props) => {
+  preprocessProps = (props :Props) => {
     const {
       entitySetsById,
       entityTypesById,
@@ -231,12 +270,14 @@ export default class NeighborTimeline extends React.Component<Props, State> {
     const entitySetMap = this.getDatePropertiesForEntitySets(entitySetsById, entityTypesById, propertyTypesById);
 
     let orderedNeighbors = List();
+    let dateTypeOptions = Map();
 
     neighbors.forEach((neighbor) => {
-      const associationEntitySetId = neighbor.getIn(['associationEntitySetId', 'id']);
+      const associationEntitySetId = neighbor.getIn(['associationEntitySet', 'id']);
       const associationEntity = neighbor.get('associationDetails');
       orderedNeighbors = this.getUpdatedNeighborsList(
         orderedNeighbors,
+        dateTypeOptions,
         associationEntitySetId,
         associationEntity,
         neighbor,
@@ -247,15 +288,28 @@ export default class NeighborTimeline extends React.Component<Props, State> {
       if (neighborEntitySetId) {
         orderedNeighbors = this.getUpdatedNeighborsList(
           orderedNeighbors,
+          dateTypeOptions,
           neighborEntitySetId,
           neighborEntity,
           neighbor,
           entitySetMap
         );
+
+        const pair = List.of(associationEntitySetId, neighborEntitySetId);
+        if (!dateTypeOptions.has(pair)) {
+          const fqnOptions = entitySetMap.get(associationEntitySetId, List()).concat(
+            entitySetMap.get(neighborEntitySetId, List())
+          );
+          dateTypeOptions = dateTypeOptions.set(pair, fqnOptions);
+        }
       }
+
     });
 
-    return orderedNeighbors.sort((n1, n2) => (n1.date.isBefore(n2.date) ? 1 : -1));
+    return {
+      orderedNeighbors: orderedNeighbors.sort((n1, n2) => (n1.date.isBefore(n2.date) ? 1 : -1)),
+      dateTypeOptions
+    };
   }
 
   getEventName = (dateEntry) => {
@@ -267,29 +321,42 @@ export default class NeighborTimeline extends React.Component<Props, State> {
       orderedNeighbors,
       reverse,
       startDate,
-      endDate
+      endDate,
+      selectedDateTypes
     } = this.state;
     const start = moment(startDate);
     const end = moment(endDate);
     const startIsBounded = startDate && start.isValid();
     const endIsBounded = endDate && end.isValid();
     let neighborList = reverse ? orderedNeighbors.reverse() : orderedNeighbors;
-    if (startIsBounded || endIsBounded) {
-      neighborList = neighborList.filter((dateEntry) => {
-        const { date } = dateEntry;
+    neighborList = neighborList.filter((dateEntry) => {
+      const { date, neighbor, propertyTypeFqn } = dateEntry;
+
+      /* check if date property type is selected */
+      const associationEntitySetId = neighbor.getIn(['associationEntitySet', 'id']);
+      const neighborEntitySetId = neighbor.getIn(['neighborEntitySet', 'id']);
+      if (associationEntitySetId && neighborEntitySetId) {
+        const pair = List.of(associationEntitySetId, neighborEntitySetId);
+        if (!selectedDateTypes.get(pair, List()).includes(propertyTypeFqn)) {
+          return false;
+        }
+      }
+
+      /* check if date filter matches */
+      if (startIsBounded || endIsBounded) {
         if (startIsBounded && start.isAfter(date)) {
           return false;
         }
         if (endIsBounded && end.isBefore(date)) {
           return false;
         }
-        return true;
-      });
-    }
+      }
+      return true;
+    });
 
     let lastYear;
 
-    const rows = neighborList.map((dateEntry :DateEntry) => {
+    const rows = neighborList.map((dateEntry :DateEntry, index :number) => {
       const { date } = dateEntry;
       const year = date.format('YYYY');
       const day = date.format('MMMM D');
@@ -297,7 +364,7 @@ export default class NeighborTimeline extends React.Component<Props, State> {
       const yearStr = year === lastYear ? '' : year;
       lastYear = year;
       return (
-        <EventRow>
+        <EventRow key={index}>
           <DateLabel>
             <div>{yearStr}</div>
             <div>{day}</div>
@@ -311,6 +378,83 @@ export default class NeighborTimeline extends React.Component<Props, State> {
       <ColumnWrapper>
         {rows}
       </ColumnWrapper>
+    );
+  }
+
+  onDisplayPTChange = (e, pair, fqn) => {
+    let { selectedDateTypes } = this.state;
+    let selectedPTs = selectedDateTypes.get(pair, List());
+    const { checked } = e.target;
+    if (checked && !selectedPTs.includes(fqn)) {
+      selectedPTs = selectedPTs.push(fqn);
+    }
+    else if (!checked && selectedPTs.includes(fqn)) {
+      selectedPTs = selectedPTs.remove(selectedPTs.indexOf(fqn));
+    }
+    selectedDateTypes = selectedDateTypes.set(pair, selectedPTs);
+    this.setState({ selectedDateTypes });
+  }
+
+  onDisplayESChange = (e, pair) => {
+    const { dateTypeOptions } = this.state;
+    let { selectedDateTypes } = this.state;
+    const { checked } = e.target;
+
+    if (checked) {
+      selectedDateTypes = selectedDateTypes.set(pair, dateTypeOptions.get(pair, List()));
+    }
+    else {
+      selectedDateTypes = selectedDateTypes.set(pair, List());
+    }
+
+    this.setState({ selectedDateTypes });
+  }
+
+  renderDisplayOptionGroup = ([pair, fqnList]) => {
+    const { entitySetsById, propertyTypesByFqn } = this.props;
+    const { selectedDateTypes } = this.state;
+
+
+    const getTitle = id => entitySetsById.getIn([id, 'title'], '');
+
+    const headerText = `${getTitle(pair.get(0))} ${getTitle(pair.get(1))}`;
+
+    return (
+      <DisplayOptionGroup key={headerText}>
+        <DisplayOptionRow>
+          <StyledCheckbox
+              checked={!!selectedDateTypes.get(pair, List()).size}
+              onChange={e => this.onDisplayESChange(e, pair)} />
+          <span>{headerText}</span>
+        </DisplayOptionRow>
+        {fqnList.map((fqn) => {
+          const ptTitle = propertyTypesByFqn.getIn([fqn, 'title'], '');
+          return (
+            <DisplayOptionRow key={`${headerText}|${fqn}`}>
+              <StyledCheckbox
+                  checked={selectedDateTypes.get(pair, List()).includes(fqn)}
+                  onChange={e => this.onDisplayPTChange(e, pair, fqn)} />
+              <span>{ptTitle}</span>
+            </DisplayOptionRow>
+          );
+        })}
+      </DisplayOptionGroup>
+    )
+  }
+
+  renderDisplayOption = () => {
+    const { dateTypeOptions } = this.state;
+
+    return (
+      <PaddedColumnWrapper>
+        <TitleInputLabel>Select properties to display on the timeline.</TitleInputLabel>
+        {
+          dateTypeOptions
+            .entrySeq()
+            .filter(([pair, fqnList]) => !!fqnList.size)
+            .map(this.renderDisplayOptionGroup)
+        }
+      </PaddedColumnWrapper>
     );
   }
 
@@ -365,7 +509,7 @@ export default class NeighborTimeline extends React.Component<Props, State> {
     return (
       <OptionsBar>
         <ButtonGroup>
-          <DropdownButtonWrapper title="Display Option" width="960"><div>options</div></DropdownButtonWrapper>
+          <DropdownButtonWrapper title="Display Option" width="960">{this.renderDisplayOption()}</DropdownButtonWrapper>
           <MarginLeftWrapper>
             <DropdownButtonWrapper title="Date Option" width="800">{this.renderDateOption()}</DropdownButtonWrapper>
           </MarginLeftWrapper>

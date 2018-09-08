@@ -152,7 +152,8 @@ class EntityDetails extends React.Component<Props, State> {
       entityTypesById,
       isLoadingNeighbors,
       neighborsById,
-      propertyTypesById
+      propertyTypesById,
+      propertyTypesByFqn
     } = this.props;
     const { layout } = this.state;
 
@@ -180,6 +181,7 @@ class EntityDetails extends React.Component<Props, State> {
               entitySetsById={entitySetsById}
               entityTypesById={entityTypesById}
               entitiesById={entitiesById}
+              propertyTypesByFqn={propertyTypesByFqn}
               propertyTypesById={propertyTypesById} />
         );
     }

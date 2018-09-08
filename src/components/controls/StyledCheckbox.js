@@ -8,8 +8,7 @@ import styled from 'styled-components';
 const Control = styled.label`
   display: block;
   position: relative;
-  padding: 0 10px 0 30px;
-  margin-bottom: 15px;
+  padding: 0 10px 0 20px;
   font-family: 'Open Sans', sans-serif;
   font-size: 14px;
   font-weight: normal;
