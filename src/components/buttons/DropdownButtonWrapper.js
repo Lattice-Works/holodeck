@@ -3,9 +3,10 @@
  */
 
 import React, { Component } from 'react';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronDown, faChevronUp } from '@fortawesome/pro-regular-svg-icons';
 
-import downArrowIcon from '../../assets/svg/down-arrow.svg';
 import BasicButton from './BasicButton';
 import StyledCheckbox from '../controls/StyledCheckbox';
 
@@ -47,10 +48,10 @@ const SearchInputWrapper = styled.div`
 
 const SearchIcon = styled.div`
   align-self: center;
-  color: #687F96;
   position: absolute;
   margin: 0 20px;
   right: 0;
+  color: ${props => (props.open ? '#ffffff' : '#8e929b')}
 `;
 
 
@@ -63,6 +64,20 @@ const SearchButton = styled(BasicButton)`
   padding: 0 45px 0 20px;
   outline: none;
   border: none;
+  ${(props) => {
+    if (props.open) {
+      return css`
+        background-color: #8e929b;
+        color: #ffffff;
+
+        &:hover {
+          background-color: #8e929b !important;
+          color: #ffffff !important;
+        }
+      `;
+    }
+    return '';
+  }}
 `;
 
 const DataTableWrapper = styled.div`
@@ -148,11 +163,11 @@ export default class DropdownButtonWrapper extends Component<Props, State> {
       <RefWrapper innerRef={(node) => { this.node = node; }} {...this.props}>
         <SearchableSelectWrapper isVisibleDataTable={isVisibleDataTable} {...this.props}>
           <SearchInputWrapper short={short}>
-            <SearchButton onClick={this.toggleDataTable} {...this.props}>
+            <SearchButton open={isVisibleDataTable} onClick={this.toggleDataTable} {...this.props}>
               {title}
             </SearchButton>
-            <SearchIcon>
-              <img src={downArrowIcon} alt="" />
+            <SearchIcon open={isVisibleDataTable}>
+              <FontAwesomeIcon icon={isVisibleDataTable ? faChevronUp : faChevronDown} />
             </SearchIcon>
           </SearchInputWrapper>
           {
