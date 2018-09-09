@@ -13,6 +13,7 @@ import { faLongArrowUp, faLongArrowDown } from '@fortawesome/pro-solid-svg-icons
 import BasicButton from '../buttons/BasicButton';
 import InfoButton from '../buttons/InfoButton';
 import DropdownButton from '../buttons/DropdownButton';
+import TimelineRow from './TimelineRow';
 import DropdownButtonWrapper from '../buttons/DropdownButtonWrapper';
 import CheckboxDropdownButton from '../buttons/CheckboxDropdownButton';
 import StyledCheckbox from '../controls/StyledCheckbox';
@@ -103,17 +104,6 @@ const DateLabel = styled.div`
 
 const MarginLeftWrapper = styled.div`
   margin-left: 20px;
-`;
-
-const EventItem = styled.div`
-  background-color: ${BLUE.BLUE_1};
-  color: ${BLUE.BLUE_2};
-  padding: 15px 20px;
-  font-family: 'Open Sans', sans-serif;
-  font-size: 16px;
-  border-radius: 5px;
-  margin-left: 45px;
-  width: 100%;
 `;
 
 const OptionsBar = styled.div`
@@ -324,6 +314,10 @@ export default class NeighborTimeline extends React.Component<Props, State> {
       endDate,
       selectedDateTypes
     } = this.state;
+    const {
+      entityTypesById,
+      propertyTypesById
+    } = this.props;
     const start = moment(startDate);
     const end = moment(endDate);
     const startIsBounded = startDate && start.isValid();
@@ -357,7 +351,7 @@ export default class NeighborTimeline extends React.Component<Props, State> {
     let lastYear;
 
     const rows = neighborList.map((dateEntry :DateEntry, index :number) => {
-      const { date } = dateEntry;
+      const { date, neighbor } = dateEntry;
       const year = date.format('YYYY');
       const day = date.format('MMMM D');
 
@@ -369,7 +363,7 @@ export default class NeighborTimeline extends React.Component<Props, State> {
             <div>{yearStr}</div>
             <div>{day}</div>
           </DateLabel>
-          <EventItem>{this.getEventName(dateEntry)}</EventItem>
+          <TimelineRow neighbor={neighbor} entityTypesById={entityTypesById} propertyTypesById={propertyTypesById} />
         </EventRow>
       );
     });
