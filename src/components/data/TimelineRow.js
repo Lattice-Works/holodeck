@@ -22,8 +22,10 @@ type State = {
   open :boolean
 }
 
+const ROW_WIDTH = 695;
+
 const TimelineRowWrapper = styled.div`
-  width: 695px;
+  width: ${ROW_WIDTH}px;
   margin-left: 45px;
 `;
 
@@ -104,7 +106,7 @@ export default class TimelineRow extends React.Component<Props, State> {
 
     return (
       <TableWrapper>
-        <DataTable data={data} headers={headers} onRowClick={() => {}} />
+        <DataTable data={data} headers={headers} width={ROW_WIDTH} onRowClick={() => {}} />
       </TableWrapper>
     );
   }

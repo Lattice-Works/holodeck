@@ -49,7 +49,7 @@ const TableHeadContainer = styled.div`
   display: flex;
   font-weight: 600;
   height: ${ROW_MIN_HEIGHT}px;
-  width: ${TABLE_MAX_WIDTH}px;
+  width: ${props => props.width}px;
 `;
 
 const TableBodyContainer = styled.div`
@@ -60,7 +60,7 @@ const TableBodyContainer = styled.div`
     // -1 to compensate for the border-bottom of each cell
     return `${height - 1}px`;
   }};
-  width: ${TABLE_MAX_WIDTH}px;
+  width: ${props => props.width}px;
 `;
 
 const TableHeadGrid = styled(Grid)`
@@ -129,7 +129,8 @@ type Props = {
   data :ListSetMultiMap,
   headers :List<Map<string, string>>,
   excludeEmptyColumns :boolean,
-  onRowClick :Function
+  onRowClick :Function,
+  width? :number
 };
 
 type State = {
@@ -150,15 +151,17 @@ class DataTable extends React.Component<Props, State> {
 
   static defaultProps = {
     excludeEmptyColumns: true,
-    onRowClick: () => {}
+    onRowClick: () => {},
+    width: TABLE_MAX_WIDTH
   };
 
   tableHeadGrid :?Grid;
   tableBodyGrid :?Grid;
 
   constructor(props :Props) {
-
     super(props);
+
+    const { width } = props;
 
     let headerIdToWidthMap :Map<string, number> = this.getHeaderIdToWidthMap(props.headers, props.data);
 
@@ -169,12 +172,12 @@ class DataTable extends React.Component<Props, State> {
       0
     );
 
-    const lastColumnOverrideMaxWidth :boolean = (tableWidth < TABLE_MAX_WIDTH);
+    const lastColumnOverrideMaxWidth :boolean = (tableWidth < width);
 
     if (lastColumnOverrideMaxWidth) {
       const lastHeader :string = headerIdToWidthMap.keySeq().last();
       const lastColumnWidth :number = headerIdToWidthMap.get(lastHeader);
-      const differenceInWidth :number = TABLE_MAX_WIDTH - tableWidth;
+      const differenceInWidth :number = width - tableWidth;
       headerIdToWidthMap = headerIdToWidthMap.set(lastHeader, lastColumnWidth + differenceInWidth);
     }
 
@@ -203,11 +206,11 @@ class DataTable extends React.Component<Props, State> {
         0
       );
 
-      const lastColumnOverrideMaxWidth :boolean = (tableWidth < TABLE_MAX_WIDTH);
+      const lastColumnOverrideMaxWidth :boolean = (tableWidth < nextProps.width);
       if (lastColumnOverrideMaxWidth) {
         const lastHeader :string = headerIdToWidthMap.keySeq().last();
         const lastColumnWidth :number = headerIdToWidthMap.get(lastHeader);
-        const differenceInWidth :number = TABLE_MAX_WIDTH - tableWidth;
+        const differenceInWidth :number = nextProps.width - tableWidth;
         headerIdToWidthMap = headerIdToWidthMap.set(lastHeader, lastColumnWidth + differenceInWidth);
       }
 
@@ -474,8 +477,10 @@ class DataTable extends React.Component<Props, State> {
 
   render() {
 
-    const columnCount :number = this.props.headers.size;
-    const rowCount :number = this.state.data.size;
+    const { data, headers, width } = this.props;
+
+    const columnCount :number = headers.size;
+    const rowCount :number = data.size;
 
     if (rowCount === 0) {
       return (
@@ -511,7 +516,7 @@ class DataTable extends React.Component<Props, State> {
                       rowHeight={ROW_MIN_HEIGHT}
                       rowCount={1}
                       scrollLeft={scrollLeft}
-                      width={TABLE_MAX_WIDTH} />
+                      width={width} />
                 </TableHeadContainer>
                 <TableBodyContainer gridHeight={gridHeight}>
                   <TableBodyGrid
@@ -526,7 +531,7 @@ class DataTable extends React.Component<Props, State> {
                       overscanRowCount={overscanRowCount}
                       rowCount={rowCount}
                       rowHeight={this.getGridRowHeight}
-                      width={TABLE_MAX_WIDTH} />
+                      width={width} />
                 </TableBodyContainer>
               </TableContainer>
             );
