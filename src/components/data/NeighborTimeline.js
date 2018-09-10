@@ -12,14 +12,12 @@ import { faLongArrowUp, faLongArrowDown } from '@fortawesome/pro-solid-svg-icons
 
 import BasicButton from '../buttons/BasicButton';
 import InfoButton from '../buttons/InfoButton';
-import DropdownButton from '../buttons/DropdownButton';
+import HorizontalTimeline from './HorizontalTimeline';
 import TimelineRow from './TimelineRow';
 import DropdownButtonWrapper from '../buttons/DropdownButtonWrapper';
-import CheckboxDropdownButton from '../buttons/CheckboxDropdownButton';
 import StyledCheckbox from '../controls/StyledCheckbox';
 import { DATE_DATATYPES } from '../../utils/constants/DataModelConstants';
 import { DATE_FORMAT } from '../../utils/constants/DateTimeConstants';
-import { BLUE } from '../../utils/constants/Colors';
 import { getEntityKeyId, getFqnString } from '../../utils/DataUtils';
 
 type Props = {
@@ -171,10 +169,6 @@ const DisplayOptionRow = styled.div`
   margin: 8px 0 8px 30px;
   align-items: flex-start;
 
-  span {
-    padding-top: 3px;
-  }
-
   &:first-child {
     font-weight: 600;
     margin-left: 0;
@@ -306,24 +300,20 @@ export default class NeighborTimeline extends React.Component<Props, State> {
     return dateEntry.neighbor.getIn(['neighborEntitySet', 'title']);
   }
 
-  renderTimeline = () => {
+  getFilteredNeighbors = () => {
     const {
       orderedNeighbors,
-      reverse,
       startDate,
       endDate,
       selectedDateTypes
     } = this.state;
-    const {
-      entityTypesById,
-      propertyTypesById
-    } = this.props;
+
     const start = moment(startDate);
     const end = moment(endDate);
     const startIsBounded = startDate && start.isValid();
     const endIsBounded = endDate && end.isValid();
-    let neighborList = reverse ? orderedNeighbors.reverse() : orderedNeighbors;
-    neighborList = neighborList.filter((dateEntry) => {
+
+    return orderedNeighbors.filter((dateEntry) => {
       const { date, neighbor, propertyTypeFqn } = dateEntry;
 
       /* check if date property type is selected */
@@ -347,9 +337,23 @@ export default class NeighborTimeline extends React.Component<Props, State> {
       }
       return true;
     });
+  }
+
+  renderOverview = (filteredNeighbors) => {
+
+    return <HorizontalTimeline datesToRender={filteredNeighbors} />
+  }
+
+  renderTimeline = (filteredNeighbors) => {
+    const { reverse } = this.state;
+    const {
+      entityTypesById,
+      propertyTypesById
+    } = this.props;
 
     let lastYear;
 
+    const neighborList = reverse ? filteredNeighbors.reverse() : filteredNeighbors;
     const rows = neighborList.map((dateEntry :DateEntry, index :number) => {
       const { date, neighbor } = dateEntry;
       const year = date.format('YYYY');
@@ -519,11 +523,15 @@ export default class NeighborTimeline extends React.Component<Props, State> {
   }
 
   render() {
+    const filteredNeighbors = this.getFilteredNeighbors();
+
     return (
       <Wrapper>
         {this.renderOptionsBar()}
+        <h1>Overview</h1>
+        {this.renderOverview(filteredNeighbors)}
         <h1>Timeline</h1>
-        {this.renderTimeline()}
+        {this.renderTimeline(filteredNeighbors)}
       </Wrapper>
     );
   }

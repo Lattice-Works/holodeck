@@ -4,7 +4,7 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import { List, Map } from 'immutable';
+import { List, Map, Set } from 'immutable';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -46,7 +46,7 @@ type Props = {
 };
 
 type State = {
-  selectedPropertyTypes :List<*>
+  selectedPropertyTypes :Set<*>
 };
 
 const ResultsWrapper = styled.div`
@@ -58,18 +58,18 @@ class TopUtilizersContainer extends React.Component<Props, State> {
   constructor(props :Props) {
     super(props);
     this.state = {
-      selectedPropertyTypes: List()
+      selectedPropertyTypes: Set()
     };
   }
 
   onPropertyTypeChange = (e) => {
-    const propertyType = e.target.value;
+    const { value, checked } = e.target;
     let { selectedPropertyTypes } = this.state;
-    if (selectedPropertyTypes.includes(propertyType)) {
-      selectedPropertyTypes = selectedPropertyTypes.remove(propertyType);
+    if (checked) {
+      selectedPropertyTypes = selectedPropertyTypes.add(value);
     }
     else {
-      selectedPropertyTypes = selectedPropertyTypes.push(propertyType);
+      selectedPropertyTypes = selectedPropertyTypes.delete(value);
     }
     this.setState({ selectedPropertyTypes });
   }
