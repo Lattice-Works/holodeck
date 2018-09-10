@@ -32,10 +32,11 @@ const CheckboxInput = styled.input.attrs({
 
 const CheckboxIndicator = styled.div`
   position: absolute;
-  top: 2px;
+  top: 0;
   left: 0;
   height: 20px;
   width: 20px;
+  margin-top: -2px;
   border-radius: 2px;
   background: #E6E6F7;
 
@@ -91,6 +92,10 @@ const CheckboxIndicator = styled.div`
   }
 `;
 
+const CheckboxLabel = styled.span`
+  margin-left: 5px;
+`;
+
 type Props = {
   name :string,
   label :string,
@@ -110,7 +115,8 @@ const StyledCheckbox = ({
   disabled,
   dataSection
 } :Props) => (
-  <Control disabled={disabled} checked={checked}>{label}
+  <Control disabled={disabled} checked={checked}>
+    <CheckboxLabel>{label}</CheckboxLabel>
     <CheckboxInput
         data-section={dataSection}
         name={name}

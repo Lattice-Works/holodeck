@@ -3,29 +3,27 @@
  */
 
 import React from 'react';
-import Immutable from 'immutable';
 import styled from 'styled-components';
 import moment from 'moment';
+import { Map, List, Set } from 'immutable';
 import { DatePicker } from '@atlaskit/datetime-picker';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDatabase } from '@fortawesome/pro-solid-svg-icons';
 
 import BackNavButton from '../buttons/BackNavButton';
 import InfoButton from '../buttons/InfoButton';
-import DropdownButton from '../buttons/DropdownButton';
 import DropdownButtonWrapper from '../buttons/DropdownButtonWrapper';
-import CheckboxDropdownButton from '../buttons/CheckboxDropdownButton';
-import StyledInput from '../controls/StyledInput';
+import StyledCheckbox from '../controls/StyledCheckbox';
 import TopUtilizersSelect from './TopUtilizersSelect';
-import { ComponentWrapper, FixedWidthWrapper, HeaderComponentWrapper } from '../layout/Layout';
+import { FixedWidthWrapper, HeaderComponentWrapper } from '../layout/Layout';
 import { DATE_FORMAT } from '../../utils/constants/DateTimeConstants';
 
 type Props = {
-  selectedEntitySet :?Immutable.Map<*, *>,
-  selectedEntitySetPropertyTypes :Immutable.List<*>,
-  selectedPropertyTypes :Immutable.List<*>,
-  onPropertyTypeChange :(propertyType :Immutable.Map<*, *>) => void,
-  neighborTypes :Immutable.List<*>,
+  selectedEntitySet :?Map<*, *>,
+  selectedEntitySetPropertyTypes :List<*>,
+  selectedPropertyTypes :List<*>,
+  onPropertyTypeChange :(propertyTypeId :string) => void,
+  neighborTypes :List<*>,
   deselectEntitySet :() => void,
   getTopUtilizers :() => void
 };
@@ -83,6 +81,17 @@ const DatePickerWrapper = styled.div`
   width: 100%;
 `;
 
+const PropertyTypeWrapper = styled.div`
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 32% 32% 32%;
+  grid-auto-rows: 25px;
+  grid-column-gap: 10px;
+  grid-row-gap: 20px;
+  grid-auto-flow: row;
+  align-items: center;
+`;
+
 const DEFAULT_NUM_RESULTS = 100;
 
 export default class TopUtilizerParameterSelection extends React.Component<Props, State> {
@@ -108,22 +117,30 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
     });
   }
 
-  getPropertyFilterOptions = () => {
-    const { selectedEntitySetPropertyTypes } = this.props;
-    return selectedEntitySetPropertyTypes.map(propertyType => ({
-      label: propertyType.get('title'),
-      value: propertyType
-    })).toArray();
+  renderPropertyTypeFilterOptions = () => {
+    const { selectedEntitySetPropertyTypes, selectedPropertyTypes, onPropertyTypeChange } = this.props;
+
+    return (
+      <PropertyTypeWrapper>
+        {selectedEntitySetPropertyTypes.map((propertyType) => {
+          const id = propertyType.get('id');
+          const title = propertyType.get('title');
+          return (
+            <div key={id}>
+              <StyledCheckbox
+                  checked={selectedPropertyTypes.has(id)}
+                  value={id}
+                  label={title}
+                  onChange={onPropertyTypeChange} />
+            </div>
+          );
+        })}
+      </PropertyTypeWrapper>
+    );
   }
 
   render() {
-    const {
-      selectedEntitySet,
-      deselectEntitySet,
-      neighborTypes,
-      selectedPropertyTypes,
-      onPropertyTypeChange
-    } = this.props;
+    const { selectedEntitySet, deselectEntitySet, neighborTypes } = this.props;
     const { selectedNeighborTypes, startDate, endDate } = this.state;
     const entitySetTitle = selectedEntitySet.get('title');
     return (
@@ -171,13 +188,9 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
               </DatePickerWrapper>
             </InputGroup>
             <InputGroup>
-              <CheckboxDropdownButton
-                  short
-                  fullSize
-                  title="Filter properties"
-                  selected={selectedPropertyTypes}
-                  onChange={onPropertyTypeChange}
-                  options={this.getPropertyFilterOptions()} />
+              <DropdownButtonWrapper title="Filter properties" width={800} short fullSize>
+                {this.renderPropertyTypeFilterOptions()}
+              </DropdownButtonWrapper>
             </InputGroup>
             <InputGroup>
               <InfoButton onClick={this.searchTopUtilizers} fullSize>Find Top Utilizers</InfoButton>
