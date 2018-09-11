@@ -9,12 +9,15 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronUp } from '@fortawesome/pro-regular-svg-icons';
 
 import DataTable from './DataTable';
-import { BLUE } from '../../utils/constants/Colors';
 import { getFqnString } from '../../utils/DataUtils';
 
 type Props = {
   neighbor :Map<*, *>,
   propertyTypeTitle :string,
+  colors :{
+    PRIMARY :string,
+    SECONDARY :string
+  },
   entityTypesById :Map<*, *>,
   propertyTypesById :Map<*, *>
 };
@@ -29,13 +32,16 @@ const TimelineRowWrapper = styled.div`
   width: ${ROW_WIDTH}px;
 `;
 
-const Row = styled.div`
+const Row = styled.div.attrs({
+  style: ({ colors }) => ({
+    backgroundColor: colors.SECONDARY,
+    color: colors.PRIMARY
+  })
+})`
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  background-color: ${BLUE.BLUE_1};
-  color: ${BLUE.BLUE_2};
   padding: 15px;
   font-family: 'Open Sans', sans-serif;
   font-size: 16px;
@@ -128,11 +134,12 @@ export default class TimelineRow extends React.Component<Props, State> {
   }
 
   render() {
+    const { colors } = this.props;
     const { open } = this.state;
 
     return (
       <TimelineRowWrapper>
-        <Row>
+        <Row colors={colors}>
           {this.getEventName()}
           {this.renderExpandButton()}
         </Row>

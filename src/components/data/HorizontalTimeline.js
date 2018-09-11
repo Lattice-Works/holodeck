@@ -4,8 +4,7 @@
 
 import React from 'react';
 import styled from 'styled-components';
-
-import { BLUE } from '../../utils/constants/Colors';
+import { List } from 'immutable';
 
 const TimelineWrapper = styled.div`
   width: 100%;
@@ -38,21 +37,25 @@ const TimelineBackground = styled.div`
 `;
 
 const TimelineEvent = styled.span.attrs({
-  style: ({ offset }) => ({
-    left: `${offset}%`
+  style: ({ offset, colors }) => ({
+    left: `${offset}%`,
+    backgroundColor: colors.PRIMARY
   })
 })`
   position: absolute;
   height: 100%;
   width: 2px;
-  background-color: ${BLUE.BLUE_2};
 `;
 
 type Props = {
-  datesToRender :List<*>
+  datesToRender :List<*>,
+  dateTypeColors :Map<List<string>, {
+    PRIMARY :string,
+    SECONDARY :string
+  }>
 };
 
-const HorizontalTimeline = ({ datesToRender } :Props) => {
+const HorizontalTimeline = ({ datesToRender, dateTypeColors } :Props) => {
 
   const range = [0, 0];
   let shouldRenderRange = false;
@@ -66,10 +69,14 @@ const HorizontalTimeline = ({ datesToRender } :Props) => {
 
 
   const getTimelineEventWithOffset = (dateEntry, index) => {
-    const { date } = dateEntry;
+    const { date, neighbor } = dateEntry;
     const offset = (date.valueOf() - range[0].valueOf()) / spread;
+    const colors = dateTypeColors.get(List.of(
+      neighbor.getIn(['associationEntitySet', 'id']),
+      neighbor.getIn(['neighborEntitySet', 'id'])
+    ), {});
 
-    return <TimelineEvent key={index} offset={offset * 100} />;
+    return <TimelineEvent key={index} offset={offset * 100} colors={colors} />;
   };
 
   return (

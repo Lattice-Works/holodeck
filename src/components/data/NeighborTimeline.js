@@ -18,6 +18,7 @@ import DropdownButtonWrapper from '../buttons/DropdownButtonWrapper';
 import StyledCheckbox from '../controls/StyledCheckbox';
 import { DATE_DATATYPES, DEFAULT_IGNORE_PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { DATE_FORMAT } from '../../utils/constants/DateTimeConstants';
+import { DEFAULT_COLORS } from '../../utils/constants/Colors';
 import { getEntityKeyId, getFqnString } from '../../utils/DataUtils';
 
 type Props = {
@@ -33,6 +34,7 @@ type Props = {
 type State = {
   orderedNeighbors :List<*>,
   dateTypeOptions :Map<*, *>,
+  dateTypeColors :Map<*, *>,
   selectedDateTypes :Map<*, *>,
   reverse :boolean,
   startDateInput :string,
@@ -195,16 +197,21 @@ const DisplayOptionRow = styled.div`
   }
 `;
 
+const DisplayTitle = styled.span.attrs({
+  style: ({ color }) => ({ color })
+})``;
+
 export default class NeighborTimeline extends React.Component<Props, State> {
 
   constructor(props :Props) {
     super(props);
 
-    const { orderedNeighbors, dateTypeOptions } = this.preprocessProps(props);
+    const { orderedNeighbors, dateTypeOptions, dateTypeColors } = this.preprocessProps(props);
 
     this.state = {
       orderedNeighbors,
       dateTypeOptions,
+      dateTypeColors,
       selectedDateTypes: this.getDefaultSelectedDateTypes(dateTypeOptions),
       reverse: false,
       startDate: undefined,
@@ -284,6 +291,7 @@ export default class NeighborTimeline extends React.Component<Props, State> {
 
     let orderedNeighbors = List();
     let dateTypeOptions = Map();
+    let dateTypeColors = Map();
 
     neighbors.forEach((neighbor) => {
       const associationEntitySetId = neighbor.getIn(['associationEntitySet', 'id']);
@@ -319,14 +327,29 @@ export default class NeighborTimeline extends React.Component<Props, State> {
 
     });
 
+    dateTypeOptions.keySeq().forEach((pair, index) => {
+      dateTypeColors = dateTypeColors.set(pair, DEFAULT_COLORS[index % DEFAULT_COLORS.length]);
+    });
+
     return {
       orderedNeighbors: orderedNeighbors.sort((n1, n2) => (n1.date.isBefore(n2.date) ? 1 : -1)),
-      dateTypeOptions
+      dateTypeOptions,
+      dateTypeColors
     };
   }
 
   getEventName = (dateEntry) => {
     return dateEntry.neighbor.getIn(['neighborEntitySet', 'title']);
+  }
+
+  getPairFromNeighbor = (neighbor) => {
+    const associationEntitySetId = neighbor.getIn(['associationEntitySet', 'id']);
+    const neighborEntitySetId = neighbor.getIn(['neighborEntitySet', 'id']);
+    if (associationEntitySetId && neighborEntitySetId) {
+      return List.of(associationEntitySetId, neighborEntitySetId);
+    }
+
+    return List.of();
   }
 
   getFilteredNeighbors = () => {
@@ -346,13 +369,9 @@ export default class NeighborTimeline extends React.Component<Props, State> {
       const { date, neighbor, propertyTypeFqn } = dateEntry;
 
       /* check if date property type is selected */
-      const associationEntitySetId = neighbor.getIn(['associationEntitySet', 'id']);
-      const neighborEntitySetId = neighbor.getIn(['neighborEntitySet', 'id']);
-      if (associationEntitySetId && neighborEntitySetId) {
-        const pair = List.of(associationEntitySetId, neighborEntitySetId);
-        if (!selectedDateTypes.get(pair, List()).includes(propertyTypeFqn)) {
-          return false;
-        }
+      const pair = this.getPairFromNeighbor(neighbor);
+      if (!selectedDateTypes.get(pair, List()).includes(propertyTypeFqn)) {
+        return false;
       }
 
       /* check if date filter matches */
@@ -369,8 +388,9 @@ export default class NeighborTimeline extends React.Component<Props, State> {
   }
 
   renderOverview = (filteredNeighbors) => {
+    const { dateTypeColors } = this.state;
 
-    return <HorizontalTimeline datesToRender={filteredNeighbors} />
+    return <HorizontalTimeline datesToRender={filteredNeighbors} dateTypeColors={dateTypeColors} />;
   }
 
   renderYear = (year) => (
@@ -379,6 +399,12 @@ export default class NeighborTimeline extends React.Component<Props, State> {
       <hr />
     </YearWrapper>
   )
+
+  getColorsForNeighbor = (neighbor) => {
+    const { dateTypeColors } = this.state;
+
+    return dateTypeColors.get(this.getPairFromNeighbor(neighbor));
+  }
 
   renderTimeline = (filteredNeighbors) => {
     const { reverse } = this.state;
@@ -404,9 +430,9 @@ export default class NeighborTimeline extends React.Component<Props, State> {
 
       lastYear = year;
       return (
-        <ColumnWrapper>
+        <ColumnWrapper key={index}>
           {isNewYear ? this.renderYear(year) : null}
-          <EventRow key={index}>
+          <EventRow>
             <DateLabel>
               <div>{day}</div>
               <div>{isDateTime ? time : ''}</div>
@@ -414,6 +440,7 @@ export default class NeighborTimeline extends React.Component<Props, State> {
             <TimelineRow
                 neighbor={neighbor}
                 propertyTypeTitle={propertyType.get('title')}
+                colors={this.getColorsForNeighbor(neighbor)}
                 entityTypesById={entityTypesById}
                 propertyTypesById={propertyTypesById} />
           </EventRow>
@@ -459,12 +486,11 @@ export default class NeighborTimeline extends React.Component<Props, State> {
 
   renderDisplayOptionGroup = ([pair, fqnList]) => {
     const { entitySetsById, propertyTypesByFqn } = this.props;
-    const { selectedDateTypes } = this.state;
-
+    const { selectedDateTypes, dateTypeColors } = this.state;
 
     const getTitle = id => entitySetsById.getIn([id, 'title'], '');
-
     const headerText = `${getTitle(pair.get(0))} ${getTitle(pair.get(1))}`;
+    const colors = dateTypeColors.get(pair);
 
     return (
       <DisplayOptionGroup key={headerText}>
@@ -472,7 +498,7 @@ export default class NeighborTimeline extends React.Component<Props, State> {
           <StyledCheckbox
               checked={!!selectedDateTypes.get(pair, List()).size}
               onChange={e => this.onDisplayESChange(e, pair)} />
-          <span>{headerText}</span>
+          <DisplayTitle color={colors.PRIMARY}>{headerText}</DisplayTitle>
         </DisplayOptionRow>
         {fqnList.map((fqn) => {
           const ptTitle = propertyTypesByFqn.getIn([fqn, 'title'], '');
