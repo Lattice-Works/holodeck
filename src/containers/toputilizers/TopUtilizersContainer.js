@@ -20,7 +20,8 @@ import {
   EXPLORE,
   TOP_UTILIZERS
 } from '../../utils/constants/StateConstants';
-import { getEntityKeyId } from '../../utils/DataUtils';
+import { DEFAULT_PERSON_PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { getEntityKeyId, getFqnString } from '../../utils/DataUtils';
 import * as EntitySetActionFactory from '../entitysets/EntitySetActionFactory';
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 import * as TopUtilizersActionFactory from './TopUtilizersActionFactory';
@@ -58,8 +59,27 @@ class TopUtilizersContainer extends React.Component<Props, State> {
   constructor(props :Props) {
     super(props);
     this.state = {
-      selectedPropertyTypes: Set()
+      selectedPropertyTypes: this.getDefaultSelectedPropertyTypes(props)
     };
+  }
+
+  componentWillReceiveProps(nextProps) {
+    const { isPersonType, selectedEntitySetPropertyTypes } = this.props;
+    if (isPersonType !== nextProps.isPersonType
+      || (!selectedEntitySetPropertyTypes.size && nextProps.selectedEntitySetPropertyTypes.size)) {
+      this.setState({ selectedPropertyTypes: this.getDefaultSelectedPropertyTypes(nextProps) });
+    }
+  }
+
+  getDefaultSelectedPropertyTypes = ({ isPersonType, selectedEntitySetPropertyTypes }) => {
+    let result = Set();
+    selectedEntitySetPropertyTypes.forEach((propertyType) => {
+      if (!isPersonType || DEFAULT_PERSON_PROPERTY_TYPES.includes(getFqnString(propertyType.get('type')))) {
+        result = result.add(propertyType.get('id'));
+      }
+    });
+
+    return result;
   }
 
   onPropertyTypeChange = (e) => {
@@ -100,6 +120,8 @@ class TopUtilizersContainer extends React.Component<Props, State> {
       selectedEntitySetPropertyTypes
     } = this.props;
 
+    const { selectedPropertyTypes } = this.state;
+
     if (isLoadingResults) {
       return <LoadingSpinner />;
     }
@@ -109,6 +131,7 @@ class TopUtilizersContainer extends React.Component<Props, State> {
         <TopUtilizerResults
             onUnmount={actions.clearTopUtilizers}
             results={results}
+            selectedPropertyTypes={selectedPropertyTypes}
             isPersonType={isPersonType}
             entitySetId={selectedEntitySet.get('id')}
             propertyTypes={selectedEntitySetPropertyTypes}
@@ -122,7 +145,6 @@ class TopUtilizersContainer extends React.Component<Props, State> {
   render() {
     const {
       actions,
-      entitySetSearchResults,
       neighborTypes,
       selectedEntitySet,
       selectedEntitySetPropertyTypes
