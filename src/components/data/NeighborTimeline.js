@@ -110,8 +110,7 @@ const DateLabel = styled.div`
   color: #555e6f;
 
   div:first-child {
-    font-weight: bold;
-    width: 130px;
+    width: 125px;
     margin-right: 10px;
   }
 
