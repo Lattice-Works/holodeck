@@ -15,7 +15,9 @@ export const PROPERTY_TYPES = {
   GENDER: 'bhr.gender',
   MARITAL_STATUS: 'person.maritalstatus',
   MUGSHOT: 'publicsafety.mugshot',
-  PICTURE: 'person.picture'
+  PICTURE: 'person.picture',
+
+  ENTRY_UPDATED: 'general.entryupdated'
 };
 
 export const DEFAULT_PERSON_PROPERTY_TYPES = [
@@ -33,6 +35,10 @@ export const DEFAULT_PERSON_PROPERTY_TYPES = [
   PROPERTY_TYPES.MARITAL_STATUS,
   PROPERTY_TYPES.MUGSHOT,
   PROPERTY_TYPES.PICTURE
+];
+
+export const DEFAULT_IGNORE_PROPERTY_TYPES = [
+  PROPERTY_TYPES.ENTRY_UPDATED
 ];
 
 export const DATE_DATATYPES = [
