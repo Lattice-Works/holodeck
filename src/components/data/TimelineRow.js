@@ -26,7 +26,6 @@ const ROW_WIDTH = 730;
 
 const TimelineRowWrapper = styled.div`
   width: ${ROW_WIDTH}px;
-  margin-left: 45px;
 `;
 
 const Row = styled.div`
@@ -36,7 +35,7 @@ const Row = styled.div`
   justify-content: space-between;
   background-color: ${BLUE.BLUE_1};
   color: ${BLUE.BLUE_2};
-  padding: 15px 20px;
+  padding: 15px;
   font-family: 'Open Sans', sans-serif;
   font-size: 16px;
   border-radius: 5px;
@@ -60,6 +59,15 @@ const ExpandButton = styled.button`
 
 const TableWrapper = styled.div`
   background-color: #ffffff;
+  border: 1px solid #e1e1eb;
+  border-radius: 5px;
+  margin-top: 5px;
+`;
+
+const TableTitle = styled.div`
+  font-family: 'Open Sans', sans-serif;
+  font-size: 14px;
+  color: #2e2e34;
 `;
 
 export default class TimelineRow extends React.Component<Props, State> {
@@ -82,7 +90,7 @@ export default class TimelineRow extends React.Component<Props, State> {
       <ExpandButton onClick={() => this.setState({ open: !open })}>
         <FontAwesomeIcon icon={open ? faChevronUp : faChevronDown} />
       </ExpandButton>
-    )
+    );
   }
 
   getPropertyHeaders = (entityTypeId) => {
