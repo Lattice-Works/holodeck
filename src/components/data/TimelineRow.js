@@ -19,7 +19,8 @@ type Props = {
     SECONDARY :string
   },
   entityTypesById :Map<*, *>,
-  propertyTypesById :Map<*, *>
+  propertyTypesById :Map<*, *>,
+  onClick :() => void
 };
 
 type State = {
@@ -113,7 +114,7 @@ export default class TimelineRow extends React.Component<Props, State> {
   }
 
   renderDataTable = () => {
-    const { neighbor, propertyTypeTitle } = this.props;
+    const { neighbor, propertyTypeTitle, onClick } = this.props;
 
     const associationTypeId = neighbor.getIn(['associationEntitySet', 'entityTypeId']);
     const neighborTypeId = neighbor.getIn(['neighborEntitySet', 'entityTypeId']);
@@ -128,7 +129,7 @@ export default class TimelineRow extends React.Component<Props, State> {
     return (
       <TableWrapper>
         <TableTitle>{`${baseTitle}: ${propertyTypeTitle}`}</TableTitle>
-        <DataTable data={data} headers={headers} width={ROW_WIDTH} onRowClick={() => {}} />
+        <DataTable data={data} headers={headers} width={ROW_WIDTH} onRowClick={onClick} />
       </TableWrapper>
     );
   }
