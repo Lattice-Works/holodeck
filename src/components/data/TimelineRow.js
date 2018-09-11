@@ -22,7 +22,7 @@ type State = {
   open :boolean
 }
 
-const ROW_WIDTH = 695;
+const ROW_WIDTH = 730;
 
 const TimelineRowWrapper = styled.div`
   width: ${ROW_WIDTH}px;

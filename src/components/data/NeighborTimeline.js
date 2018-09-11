@@ -16,7 +16,7 @@ import HorizontalTimeline from './HorizontalTimeline';
 import TimelineRow from './TimelineRow';
 import DropdownButtonWrapper from '../buttons/DropdownButtonWrapper';
 import StyledCheckbox from '../controls/StyledCheckbox';
-import { DATE_DATATYPES } from '../../utils/constants/DataModelConstants';
+import { DATE_DATATYPES, DEFAULT_IGNORE_PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { DATE_FORMAT } from '../../utils/constants/DateTimeConstants';
 import { getEntityKeyId, getFqnString } from '../../utils/DataUtils';
 
@@ -74,6 +74,26 @@ const PaddedColumnWrapper = styled(ColumnWrapper)`
   padding: 20px;
 `;
 
+const YearWrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  color: #555e6f;
+  margin: 30px 0;
+
+  span {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  hr {
+    width: 100%;
+    margin-left: 20px;
+    border: 1px solid #e1e1eb;
+  }
+`;
+
 const EventRow = styled.div`
   display: flex;
   flex-direction: row;
@@ -86,17 +106,18 @@ const DateLabel = styled.div`
   display: flex;
   flex-direction: row;
   font-family: 'Open Sans', sans-serif;
-  font-size: 20px;
+  font-size: 17px;
   color: #555e6f;
 
   div:first-child {
     font-weight: bold;
-    width: 50px;
-    margin-right: 20px;
+    width: 130px;
+    margin-right: 10px;
   }
 
   div:last-child {
-    width: 150px;
+    color: #8e929b;
+    width: 80px;
   }
 `;
 
@@ -185,13 +206,22 @@ export default class NeighborTimeline extends React.Component<Props, State> {
     this.state = {
       orderedNeighbors,
       dateTypeOptions,
-      selectedDateTypes: dateTypeOptions,
+      selectedDateTypes: this.getDefaultSelectedDateTypes(dateTypeOptions),
       reverse: false,
       startDate: undefined,
       endDate: undefined,
       startDateInput: undefined,
       endDateInput: undefined
     };
+  }
+
+  getDefaultSelectedDateTypes = (dateTypeOptions) => {
+    let result = Map();
+    dateTypeOptions.entrySeq().forEach(([entitySet, ptList]) => {
+      result = result.set(entitySet, ptList.filter(fqn => !DEFAULT_IGNORE_PROPERTY_TYPES.includes(fqn)));
+    });
+
+    return result;
   }
 
   getDatePropertyTypeIds = (propertyTypesById) => {
@@ -344,31 +374,45 @@ export default class NeighborTimeline extends React.Component<Props, State> {
     return <HorizontalTimeline datesToRender={filteredNeighbors} />
   }
 
+  renderYear = (year) => (
+    <YearWrapper>
+      <span>{year}</span>
+      <hr />
+    </YearWrapper>
+  )
+
   renderTimeline = (filteredNeighbors) => {
     const { reverse } = this.state;
     const {
       entityTypesById,
-      propertyTypesById
+      propertyTypesById,
+      propertyTypesByFqn
     } = this.props;
 
     let lastYear;
 
     const neighborList = reverse ? filteredNeighbors.reverse() : filteredNeighbors;
     const rows = neighborList.map((dateEntry :DateEntry, index :number) => {
-      const { date, neighbor } = dateEntry;
+      const { date, neighbor, propertyTypeFqn } = dateEntry;
       const year = date.format('YYYY');
       const day = date.format('MMMM D');
+      const time = date.format('h:mm a');
+      const isDateTime = propertyTypesByFqn.get(propertyTypeFqn).get('datatype') === 'DateTimeOffset';
 
-      const yearStr = year === lastYear ? '' : year;
+      const isNewYear = lastYear !== year;
+
       lastYear = year;
       return (
-        <EventRow key={index}>
-          <DateLabel>
-            <div>{yearStr}</div>
-            <div>{day}</div>
-          </DateLabel>
-          <TimelineRow neighbor={neighbor} entityTypesById={entityTypesById} propertyTypesById={propertyTypesById} />
-        </EventRow>
+        <ColumnWrapper>
+          {isNewYear ? this.renderYear(year) : null}
+          <EventRow key={index}>
+            <DateLabel>
+              <div>{day}</div>
+              <div>{isDateTime ? time : ''}</div>
+            </DateLabel>
+            <TimelineRow neighbor={neighbor} entityTypesById={entityTypesById} propertyTypesById={propertyTypesById} />
+          </EventRow>
+        </ColumnWrapper>
       );
     });
 

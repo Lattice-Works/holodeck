@@ -20,7 +20,7 @@ import {
   EXPLORE,
   TOP_UTILIZERS
 } from '../../utils/constants/StateConstants';
-import { DEFAULT_PERSON_PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { DEFAULT_IGNORE_PROPERTY_TYPES, DEFAULT_PERSON_PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { getEntityKeyId, getFqnString } from '../../utils/DataUtils';
 import * as EntitySetActionFactory from '../entitysets/EntitySetActionFactory';
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
@@ -74,7 +74,10 @@ class TopUtilizersContainer extends React.Component<Props, State> {
   getDefaultSelectedPropertyTypes = ({ isPersonType, selectedEntitySetPropertyTypes }) => {
     let result = Set();
     selectedEntitySetPropertyTypes.forEach((propertyType) => {
-      if (!isPersonType || DEFAULT_PERSON_PROPERTY_TYPES.includes(getFqnString(propertyType.get('type')))) {
+      const fqn = getFqnString(propertyType.get('type'));
+      const shouldIgnore = DEFAULT_IGNORE_PROPERTY_TYPES.includes(fqn);
+      const shouldExcludeForPerson = isPersonType && !DEFAULT_PERSON_PROPERTY_TYPES.includes(fqn);
+      if (!shouldIgnore && !shouldExcludeForPerson) {
         result = result.add(propertyType.get('id'));
       }
     });
