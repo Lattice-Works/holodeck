@@ -75,6 +75,7 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
 
     case getTopUtilizers.case(action.type): {
       return getTopUtilizers.reducer(state, action, {
+        REQUEST: () => state.set(BREADCRUMBS, List()),
         SUCCESS: () => {
           let entitiesById = state.get(ENTITIES_BY_ID);
 
