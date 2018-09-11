@@ -393,7 +393,7 @@ export default class NeighborTimeline extends React.Component<Props, State> {
     return <HorizontalTimeline datesToRender={filteredNeighbors} dateTypeColors={dateTypeColors} />;
   }
 
-  renderYear = (year) => (
+  renderYear = year => (
     <YearWrapper>
       <span>{year}</span>
       <hr />
@@ -411,7 +411,8 @@ export default class NeighborTimeline extends React.Component<Props, State> {
     const {
       entityTypesById,
       propertyTypesById,
-      propertyTypesByFqn
+      propertyTypesByFqn,
+      onSelectEntity
     } = this.props;
 
     let lastYear;
@@ -428,6 +429,11 @@ export default class NeighborTimeline extends React.Component<Props, State> {
 
       const isNewYear = lastYear !== year;
 
+      const onClick = () => onSelectEntity({
+        entitySetId: neighbor.getIn(['neighborEntitySet', 'id']),
+        entity: neighbor.get('neighborDetails', Map())
+      });
+
       lastYear = year;
       return (
         <ColumnWrapper key={index}>
@@ -440,6 +446,7 @@ export default class NeighborTimeline extends React.Component<Props, State> {
             <TimelineRow
                 neighbor={neighbor}
                 propertyTypeTitle={propertyType.get('title')}
+                onClick={onClick}
                 colors={this.getColorsForNeighbor(neighbor)}
                 entityTypesById={entityTypesById}
                 propertyTypesById={propertyTypesById} />
