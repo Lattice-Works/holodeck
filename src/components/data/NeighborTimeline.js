@@ -393,10 +393,12 @@ export default class NeighborTimeline extends React.Component<Props, State> {
     const neighborList = reverse ? filteredNeighbors.reverse() : filteredNeighbors;
     const rows = neighborList.map((dateEntry :DateEntry, index :number) => {
       const { date, neighbor, propertyTypeFqn } = dateEntry;
+      const propertyType = propertyTypesByFqn.get(propertyTypeFqn);
+
       const year = date.format('YYYY');
       const day = date.format('MMMM D');
       const time = date.format('h:mm a');
-      const isDateTime = propertyTypesByFqn.get(propertyTypeFqn).get('datatype') === 'DateTimeOffset';
+      const isDateTime = propertyType.get('datatype') === 'DateTimeOffset';
 
       const isNewYear = lastYear !== year;
 
@@ -409,7 +411,11 @@ export default class NeighborTimeline extends React.Component<Props, State> {
               <div>{day}</div>
               <div>{isDateTime ? time : ''}</div>
             </DateLabel>
-            <TimelineRow neighbor={neighbor} entityTypesById={entityTypesById} propertyTypesById={propertyTypesById} />
+            <TimelineRow
+                neighbor={neighbor}
+                propertyTypeTitle={propertyType.get('title')}
+                entityTypesById={entityTypesById}
+                propertyTypesById={propertyTypesById} />
           </EventRow>
         </ColumnWrapper>
       );

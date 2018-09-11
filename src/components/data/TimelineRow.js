@@ -14,6 +14,7 @@ import { getFqnString } from '../../utils/DataUtils';
 
 type Props = {
   neighbor :Map<*, *>,
+  propertyTypeTitle :string,
   entityTypesById :Map<*, *>,
   propertyTypesById :Map<*, *>
 };
@@ -62,12 +63,14 @@ const TableWrapper = styled.div`
   border: 1px solid #e1e1eb;
   border-radius: 5px;
   margin-top: 5px;
+  padding 5px;
 `;
 
 const TableTitle = styled.div`
   font-family: 'Open Sans', sans-serif;
   font-size: 14px;
   color: #2e2e34;
+  padding: 20px 0 10px 20px;
 `;
 
 export default class TimelineRow extends React.Component<Props, State> {
@@ -104,7 +107,7 @@ export default class TimelineRow extends React.Component<Props, State> {
   }
 
   renderDataTable = () => {
-    const { neighbor } = this.props;
+    const { neighbor, propertyTypeTitle } = this.props;
 
     const associationTypeId = neighbor.getIn(['associationEntitySet', 'entityTypeId']);
     const neighborTypeId = neighbor.getIn(['neighborEntitySet', 'entityTypeId']);
@@ -112,8 +115,13 @@ export default class TimelineRow extends React.Component<Props, State> {
 
     const data = List.of(neighbor.get('associationDetails', Map()).merge(neighbor.get('neighborDetails', Map())));
 
+    const aesTitle = neighbor.getIn(['associationEntitySet', 'title'], '');
+    const nesTitle = neighbor.getIn(['neighborEntitySet', 'title'], '');
+    const baseTitle = neighbor.get('src') ? `${aesTitle} ${nesTitle}` : `${nesTitle} ${aesTitle}`;
+
     return (
       <TableWrapper>
+        <TableTitle>{`${baseTitle}: ${propertyTypeTitle}`}</TableTitle>
         <DataTable data={data} headers={headers} width={ROW_WIDTH} onRowClick={() => {}} />
       </TableWrapper>
     );
