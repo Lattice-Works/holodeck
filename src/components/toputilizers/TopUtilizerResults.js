@@ -19,6 +19,7 @@ type Props = {
   isPersonType :boolean,
   entitySetId :string,
   propertyTypes :List<*>,
+  selectedPropertyTypes :Set<string>,
   exploring :boolean,
   onSelectEntity :({ entitySetId :string, entity :Map<*, *>}) => void,
   onUnmount :() => void
@@ -81,7 +82,7 @@ export default class TopUtilizerResults extends React.Component<Props, State> {
   }
 
   renderTableResults = () => {
-    const { propertyTypes, results } = this.props;
+    const { propertyTypes, results, selectedPropertyTypes } = this.props;
     let propertyTypeHeaders = List();
     propertyTypeHeaders = propertyTypeHeaders.push(fromJS({
       id: COUNT_FQN,
@@ -91,7 +92,9 @@ export default class TopUtilizerResults extends React.Component<Props, State> {
     propertyTypes.forEach((propertyType) => {
       const id = getFqnString(propertyType.get('type'));
       const value = propertyType.get('title');
-      propertyTypeHeaders = propertyTypeHeaders.push(fromJS({ id, value }));
+      if (selectedPropertyTypes.has(propertyType.get('id'))) {
+        propertyTypeHeaders = propertyTypeHeaders.push(fromJS({ id, value }));
+      }
     });
 
     return (
