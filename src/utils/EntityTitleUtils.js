@@ -23,9 +23,6 @@ const titleProperties = {
   'general.case': [
     'justice.courtcasenumber'
   ],
-  'justice.case': [
-    'justice.courtcasenumber'
-  ],
   'danecountywi.dacase': [
     'justice.courtcasenumber'
   ],
@@ -127,6 +124,62 @@ const titleProperties = {
   ],
   'j.ServiceCallType': [
     'publicsafety.CadEventNumber'
+  ],
+
+  // PSA
+  'publicsafety.pretrialstatuscaseprocessings': [
+    'j.CaseNumberText'
+  ],
+  'justice.charge': [
+    'event.OffenseLocalCodeSection',
+    'event.OffenseLocalDescription',
+  ],
+  'justice.case': [
+    'justice.courtcasetype'
+  ],
+  'j.sentence': [
+    'justice.incarcerationlocation'
+  ],
+  'justice.bond': [
+    'justice.bonddescription'
+  ],
+  'justice.fta': [
+    'general.id'
+  ],
+  'justice.psa': [
+    'psa.ncaScale',
+    'psa.ftaScale',
+    'psa.nvcaFlag'
+  ],
+  'justice.dmf': [
+    'criminaljustice.releasetype'
+  ],
+  'publicsafety.releaserecommendation': [
+    'publicsafety.recommendation'
+  ],
+
+  // JC
+  'justice.booking': [
+    'j.OffenseViolatedStatute',
+    'justice.Bail',
+    'j.ArrestAgency'
+  ],
+  'justice.JailBooking': [
+    'j.ArrestAgency',
+    'scr.DetentionReleaseReasonCategoryCodeType',
+    'j.ArrestSequenceID'
+  ],
+  'publicsafety.callforservice': [
+    'publicsafety.dispatchtype',
+    'criminaljustice.disposition'
+  ],
+  'criminaljustice.incident': [
+    'criminaljustice.localstatute',
+    'criminaljustice.nibrs'
+  ],
+  'criminaljustice.arrestedin': [
+    'ol.arrestcategory',
+    'criminaljustice.localstatute'
   ]
 };
 
