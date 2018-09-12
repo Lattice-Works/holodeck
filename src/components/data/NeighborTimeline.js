@@ -6,7 +6,6 @@ import React from 'react';
 import moment from 'moment';
 import styled from 'styled-components';
 import { List, Map, Set } from 'immutable';
-import { DatePicker } from '@atlaskit/datetime-picker';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLongArrowUp, faLongArrowDown } from '@fortawesome/pro-solid-svg-icons';
 
@@ -16,8 +15,8 @@ import HorizontalTimeline from './HorizontalTimeline';
 import TimelineRow from './TimelineRow';
 import DropdownButtonWrapper from '../buttons/DropdownButtonWrapper';
 import StyledCheckbox from '../controls/StyledCheckbox';
+import DateRangePicker from '../controls/DateRangePicker';
 import { DATE_DATATYPES, DEFAULT_IGNORE_PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { DATE_FORMAT } from '../../utils/constants/DateTimeConstants';
 import { DEFAULT_COLORS } from '../../utils/constants/Colors';
 import { getEntityKeyId, getFqnString } from '../../utils/DataUtils';
 
@@ -37,8 +36,6 @@ type State = {
   dateTypeColors :Map<*, *>,
   selectedDateTypes :Map<*, *>,
   reverse :boolean,
-  startDateInput :string,
-  endDateInput :string,
   startDate :string,
   endDate :string
 };
@@ -138,20 +135,6 @@ const ButtonGroup = styled.div`
   flex-direction: row;
 `;
 
-const InputRow = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-`;
-
-const InputGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-end;
-  width: ${props => (props.fullSize ? '100%' : '33%')};
-`;
-
 const InputLabel = styled.span`
   color: #8e929b;
   margin-bottom: 10px;
@@ -160,14 +143,6 @@ const InputLabel = styled.span`
 
 const TitleInputLabel = styled(InputLabel)`
   margin-bottom: 20px;
-`;
-
-const DatePickerWrapper = styled.div`
-  width: 100%;
-`;
-
-const FullWidthInfoButton = styled(InfoButton)`
-  width: 100%;
 `;
 
 const DisplayOptionGroup = styled.div`
@@ -215,9 +190,7 @@ export default class NeighborTimeline extends React.Component<Props, State> {
       selectedDateTypes: this.getDefaultSelectedDateTypes(dateTypeOptions),
       reverse: false,
       startDate: undefined,
-      endDate: undefined,
-      startDateInput: undefined,
-      endDateInput: undefined
+      endDate: undefined
     };
   }
 
@@ -542,51 +515,15 @@ export default class NeighborTimeline extends React.Component<Props, State> {
     );
   }
 
-  renderDateOption = () => {
-    const { startDateInput, endDateInput } = this.state;
-
-    return (
-      <PaddedColumnWrapper>
-        <TitleInputLabel>Set a date range to display on the timeline.</TitleInputLabel>
-        <InputRow>
-          <InputGroup>
-            <InputLabel>Date Range Start</InputLabel>
-            <DatePickerWrapper>
-              <DatePicker
-                  value={startDateInput}
-                  dateFormat={DATE_FORMAT}
-                  onChange={date => this.setState({ startDateInput: date })}
-                  selectProps={{
-                    placeholder: DATE_FORMAT,
-                  }} />
-            </DatePickerWrapper>
-          </InputGroup>
-          <InputGroup>
-            <InputLabel>Date Range End</InputLabel>
-            <DatePickerWrapper>
-              <DatePicker
-                  value={endDateInput}
-                  dateFormat={DATE_FORMAT}
-                  onChange={date => this.setState({ endDateInput: date })}
-                  selectProps={{
-                    placeholder: DATE_FORMAT,
-                  }} />
-            </DatePickerWrapper>
-          </InputGroup>
-          <InputGroup>
-            <InputLabel />
-            <FullWidthInfoButton
-                onClick={() => this.setState({
-                  startDate: startDateInput,
-                  endDate: endDateInput
-                })}>
-              Set Date Range
-            </FullWidthInfoButton>
-          </InputGroup>
-        </InputRow>
-      </PaddedColumnWrapper>
-    );
-  }
+  renderDateOption = () => (
+    <PaddedColumnWrapper>
+      <TitleInputLabel>Set a date range to display on the timeline.</TitleInputLabel>
+      <DateRangePicker
+          defaultStart={this.state.startDate}
+          defaultEnd={this.state.endDate}
+          onConfirm={({ startDate, endDate }) => this.setState({ startDate, endDate })} />
+    </PaddedColumnWrapper>
+  )
 
   renderOptionsBar = () => {
     const { reverse } = this.state;
