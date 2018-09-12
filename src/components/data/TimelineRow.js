@@ -9,6 +9,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronUp } from '@fortawesome/pro-regular-svg-icons';
 
 import DataTable from './DataTable';
+import getTitle from '../../utils/EntityTitleUtils';
 import { getFqnString } from '../../utils/DataUtils';
 
 type Props = {
@@ -80,6 +81,18 @@ const TableTitle = styled.div`
   padding: 20px 0 10px 20px;
 `;
 
+const EntityTitle = styled.div`
+  font-family: 'Open Sans', sans-serif;
+  font-size: 16px;
+  display: flex;
+  flex-direction: row;
+
+  span:first-child {
+    font-weight: 600;
+    margin-right: 10px;
+  }
+`;
+
 export default class TimelineRow extends React.Component<Props, State> {
 
   constructor(props) {
@@ -90,8 +103,22 @@ export default class TimelineRow extends React.Component<Props, State> {
   }
 
   getEventName = () => {
-    const { neighbor } = this.props;
-    return neighbor.getIn(['neighborEntitySet', 'title']);
+    const { entityTypesById, neighbor } = this.props;
+    const entity = neighbor.get('neighborDetails', Map());
+    const entityType = entityTypesById.get(neighbor.getIn(['neighborEntitySet', 'entityTypeId']));
+
+    const entityTypeTitle = entityType.get('title');
+    let entityTitle = getTitle(entityType, entity);
+    if (entityTitle === `[${entityTypeTitle}]`) {
+      entityTitle = '';
+    }
+
+    return (
+      <EntityTitle>
+        <span>{entityTypeTitle}</span>
+        <span>{entityTitle}</span>
+      </EntityTitle>
+    );
   }
 
   renderExpandButton = () => {
