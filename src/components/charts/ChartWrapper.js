@@ -172,7 +172,7 @@ const ChartWrapper = ({
         {children}
         {yLabelRight ? (
           <YLabelWrapper secondary>
-            <YLabel>{yLabelRight}</YLabel>
+            <YLabel secondary>{yLabelRight}</YLabel>
           </YLabelWrapper>
         ) : null}
       </BodyWrapper>
