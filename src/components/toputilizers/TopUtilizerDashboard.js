@@ -272,7 +272,7 @@ export default class TopUtilizerDashboard extends React.Component<Props, State> 
         {eventColors.entrySeq().map(([pair, color]) => {
           const title = entityTypesById.getIn([pair.get(1), 'title']);
           return (
-            <LegendRow color={color}>
+            <LegendRow color={color} key={pair}>
               <span color={color} />
               <div>{title}</div>
             </LegendRow>
