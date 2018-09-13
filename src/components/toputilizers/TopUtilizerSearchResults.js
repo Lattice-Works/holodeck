@@ -21,8 +21,7 @@ type Props = {
   propertyTypes :List<*>,
   selectedPropertyTypes :Set<string>,
   exploring :boolean,
-  onSelectEntity :({ entitySetId :string, entity :Map<*, *>}) => void,
-  onUnmount :() => void
+  onSelectEntity :({ entitySetId :string, entity :Map<*, *>}) => void
 }
 
 type State = {

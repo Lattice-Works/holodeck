@@ -12,9 +12,7 @@ import {
   XAxis,
   YAxis,
   ComposedChart,
-  CartesianGrid,
-  Tooltip,
-  Legend
+  Tooltip
 } from 'recharts';
 
 import LoadingSpinner from '../LoadingSpinner';
@@ -23,10 +21,8 @@ import ChartTooltip from '../charts/ChartTooltip';
 import { CHART_EXPLANATIONS, PARETO_LABELS } from '../../utils/constants/TopUtilizerConstants';
 import { CHART_COLORS } from '../../utils/constants/Colors';
 import { FixedWidthWrapper } from '../layout/Layout';
-import { getEntityKeyId } from '../../utils/DataUtils';
 
 type Props = {
-  results :List<*>,
   selectedEntityType :Map<*, *>,
   entityTypesById :Map<string, *>,
   detailedCounts :Map<string, *>,
