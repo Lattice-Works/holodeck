@@ -11,6 +11,7 @@ type Props = {
   title :string,
   xLabel? :string,
   yLabel? :string,
+  yLabelRight? :string,
   downloadFn? :() => void,
   infoText? :string,
   children :React.Node
@@ -60,6 +61,7 @@ const DownloadButton = styled(BasicButton)`
 
 const ExplainTooltip = styled.div`
   position: absolute;
+  z-index: 5;
   right: 10px;
   top: 65px;
   width: 230px;
@@ -118,13 +120,14 @@ const XLabel = styled.div`
   text-transform: uppercase;
   height: 20px;
   min-width: fit-content;
+  margin: 0;
 `;
 
 const YLabelWrapper = styled.div`
   height: 100%;
   width: 20px;
   max-width: 20px;
-  justify-self: flex-start;
+  justify-self: ${props => (props.secondary ? 'flex-end' : 'flex-start')};
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -133,7 +136,7 @@ const YLabelWrapper = styled.div`
 const YLabel = styled(XLabel)`
   transform: rotate(270deg);
   white-space: nowrap;
-  margin-left: -200%;
+  margin-left: -${props => (props.secondary ? 400 : 200)}%;
 `;
 
 const ChartWrapper = ({
@@ -142,7 +145,8 @@ const ChartWrapper = ({
   children,
   title,
   xLabel,
-  yLabel
+  yLabel,
+  yLabelRight
 } :Props) => {
 
   return (
@@ -166,6 +170,11 @@ const ChartWrapper = ({
           </YLabelWrapper>
         ) : null}
         {children}
+        {yLabelRight ? (
+          <YLabelWrapper secondary>
+            <YLabel>{yLabelRight}</YLabel>
+          </YLabelWrapper>
+        ) : null}
       </BodyWrapper>
       {
         xLabel ? (
