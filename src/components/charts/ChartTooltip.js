@@ -21,13 +21,10 @@ const TooltipCard = styled.div`
   }
 `;
 
-const ChartTooltip = ({ children }) => {
-
-  return (
-    <TooltipCard>
-      {children}
-    </TooltipCard>
-  );
-}
+const ChartTooltip = ({ children }) => (
+  <TooltipCard>
+    {children}
+  </TooltipCard>
+);
 
 export default ChartTooltip;
