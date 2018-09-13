@@ -29,3 +29,12 @@ export const DEFAULT_COLORS = [
     SECONDARY: '#e3d6ff'
   }
 ];
+
+export const CHART_COLORS = [
+  '#6124e2',
+  '#00be84',
+  '#bc0000',
+  '#0021ba',
+  '#ff9a58',
+  '#f25497'
+];

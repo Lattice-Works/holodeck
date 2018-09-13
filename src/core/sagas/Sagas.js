@@ -32,6 +32,7 @@ export default function* sagas() :Generator<*, *, *> {
 
     /* TopUtilizersSagas */
     fork(TopUtilizersSagas.getNeighborTypesWatcher),
-    fork(TopUtilizersSagas.getTopUtilizersWatcher)
+    fork(TopUtilizersSagas.getTopUtilizersWatcher),
+    fork(TopUtilizersSagas.loadTopUtilizerNeighborsWatcher)
   ];
 }

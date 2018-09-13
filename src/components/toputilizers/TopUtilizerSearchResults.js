@@ -48,18 +48,13 @@ const LAYOUTS = {
   TABLE: 'TABLE'
 };
 
-export default class TopUtilizerResults extends React.Component<Props, State> {
+export default class TopUtilizerSearchResults extends React.Component<Props, State> {
 
   constructor(props) {
     super(props);
     this.state = {
       layout: props.isPersonType ? LAYOUTS.PERSON : LAYOUTS.TABLE
     };
-  }
-
-  componentWillUnmount() {
-    const { onUnmount } = this.props;
-    onUnmount();
   }
 
   updateLayout = layout => this.setState({ layout });
@@ -125,7 +120,7 @@ export default class TopUtilizerResults extends React.Component<Props, State> {
     );
   }
 
-  renderTopUtilizerResults = () => {
+  renderTopUtilizerSearchResults = () => {
     const { isPersonType } = this.props;
     const { layout } = this.state;
 
@@ -141,7 +136,7 @@ export default class TopUtilizerResults extends React.Component<Props, State> {
   render() {
     const { exploring, isPersonType } = this.props;
 
-    const resultContent = exploring ? this.renderEntityDetails() : this.renderTopUtilizerResults();
+    const resultContent = exploring ? this.renderEntityDetails() : this.renderTopUtilizerSearchResults();
 
     return (
       <ResultsContainer>
