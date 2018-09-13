@@ -366,7 +366,7 @@ export default class TopUtilizerDashboard extends React.Component<Props, State> 
     const { entityTypesById, detailedCounts } = this.props;
 
     const entityTypeTitle = entityTypesById.getIn([pair.get(1), 'title']);
-    const title = `Cumulative sum of ${entityTypeTitle}`;
+    const title = `Cumulative Sum of ${entityTypeTitle}`;
 
     const top100 = detailedCounts
       .valueSeq()
