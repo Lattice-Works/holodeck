@@ -11,19 +11,24 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDatabase } from '@fortawesome/pro-solid-svg-icons';
 
 import BackNavButton from '../buttons/BackNavButton';
+import TabNavButton from '../buttons/TabNavButton';
 import InfoButton from '../buttons/InfoButton';
 import DropdownButtonWrapper from '../buttons/DropdownButtonWrapper';
 import StyledCheckbox from '../controls/StyledCheckbox';
 import TopUtilizersSelect from './TopUtilizersSelect';
 import { FixedWidthWrapper, HeaderComponentWrapper } from '../layout/Layout';
 import { DATE_FORMAT } from '../../utils/constants/DateTimeConstants';
+import { RESULT_DISPLAYS } from '../../utils/constants/TopUtilizerConstants';
 
 type Props = {
+  display :string,
+  searchHasRun :boolean,
+  neighborTypes :List<*>,
   selectedEntitySet :?Map<*, *>,
   selectedEntitySetPropertyTypes :List<*>,
   selectedPropertyTypes :List<*>,
   onPropertyTypeChange :(propertyTypeId :string) => void,
-  neighborTypes :List<*>,
+  changeTopUtilizersDisplay :(display :string) => void,
   deselectEntitySet :() => void,
   getTopUtilizers :() => void
 };
@@ -92,6 +97,13 @@ const PropertyTypeWrapper = styled.div`
   align-items: center;
 `;
 
+const TabButtonRow = styled.div`
+  margin: 20px 0 -30px 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+`;
+
 const DEFAULT_NUM_RESULTS = 100;
 
 export default class TopUtilizerParameterSelection extends React.Component<Props, State> {
@@ -139,9 +151,26 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
     );
   }
 
+  renderNavButton = (buttonDisplay) => {
+    const { display, changeTopUtilizersDisplay } = this.props;
+
+    const selected = buttonDisplay === display;
+    return (
+      <TabNavButton selected={selected} onClick={() => changeTopUtilizersDisplay(buttonDisplay)}>
+        {buttonDisplay}
+      </TabNavButton>
+    );
+  }
+
   render() {
-    const { selectedEntitySet, deselectEntitySet, neighborTypes } = this.props;
     const { selectedNeighborTypes, startDate, endDate } = this.state;
+    const {
+      searchHasRun,
+      selectedEntitySet,
+      deselectEntitySet,
+      neighborTypes
+    } = this.props;
+
     const entitySetTitle = selectedEntitySet.get('title');
     return (
       <CenteredHeaderWrapper>
@@ -196,6 +225,14 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
               <InfoButton onClick={this.searchTopUtilizers} fullSize>Find Top Utilizers</InfoButton>
             </InputGroup>
           </InputRow>
+          {
+            searchHasRun ? (
+              <TabButtonRow>
+                {this.renderNavButton(RESULT_DISPLAYS.SEARCH_RESULTS)}
+                {this.renderNavButton(RESULT_DISPLAYS.DASHBOARD)}
+              </TabButtonRow>
+            ) : null
+          }
         </FixedWidthWrapper>
       </CenteredHeaderWrapper>
     );

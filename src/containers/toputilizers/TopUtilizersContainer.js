@@ -12,7 +12,8 @@ import { bindActionCreators } from 'redux';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import EntitySetSearch from '../entitysets/EntitySetSearch';
 import TopUtilizerParameterSelection from '../../components/toputilizers/TopUtilizerParameterSelection';
-import TopUtilizerResults from '../../components/toputilizers/TopUtilizerResults';
+import TopUtilizerSearchResults from '../../components/toputilizers/TopUtilizerSearchResults';
+import TopUtilizerDashboard from '../../components/toputilizers/TopUtilizerDashboard';
 import {
   STATE,
   EDM,
@@ -21,6 +22,7 @@ import {
   TOP_UTILIZERS
 } from '../../utils/constants/StateConstants';
 import { DEFAULT_IGNORE_PROPERTY_TYPES, DEFAULT_PERSON_PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { RESULT_DISPLAYS } from '../../utils/constants/TopUtilizerConstants';
 import { getEntityKeyId, getFqnString } from '../../utils/DataUtils';
 import * as EntitySetActionFactory from '../entitysets/EntitySetActionFactory';
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
@@ -35,9 +37,13 @@ type Props = {
   entityTypesById :Map<string, *>,
   entitySetsById :Map<string, *>,
   neighborTypes :List<*>,
+  display :string,
   isLoadingResults :boolean,
+  isLoadingResultCounts :boolean,
+  detailedCounts :Map<*, *>,
   results :List<*>,
   actions :{
+    changeTopUtilizersDisplay :(display :string) => void,
     clearTopUtilizers :() => void,
     selectEntitySet :(entitySet? :Map<*, *>) => void,
     selectEntity :(entityKeyId :string) => void,
@@ -116,7 +122,11 @@ class TopUtilizersContainer extends React.Component<Props, State> {
     const {
       actions,
       breadcrumbs,
+      display,
+      entityTypesById,
       isLoadingResults,
+      isLoadingResultCounts,
+      detailedCounts,
       isPersonType,
       results,
       selectedEntitySet,
@@ -130,25 +140,43 @@ class TopUtilizersContainer extends React.Component<Props, State> {
     }
 
     if (results.size) {
-      return (
-        <TopUtilizerResults
-            onUnmount={actions.clearTopUtilizers}
-            results={results}
-            selectedPropertyTypes={selectedPropertyTypes}
-            isPersonType={isPersonType}
-            entitySetId={selectedEntitySet.get('id')}
-            propertyTypes={selectedEntitySetPropertyTypes}
-            exploring={!!breadcrumbs.size}
-            onSelectEntity={this.selectTopUtilizer} />
-      );
+      switch (display) {
+
+        case RESULT_DISPLAYS.DASHBOARD:
+          return (
+            <TopUtilizerDashboard
+                results-={results}
+                entityTypesById={entityTypesById}
+                selectedEntityType={entityTypesById.get(selectedEntitySet.get('entityTypeId'))}
+                detailedCounts={detailedCounts}
+                isLoading={isLoadingResultCounts} />
+          );
+
+        case RESULT_DISPLAYS.SEARCH_RESULTS:
+        default:
+          return (
+            <TopUtilizerSearchResults
+                onUnmount={actions.clearTopUtilizers}
+                results={results}
+                selectedPropertyTypes={selectedPropertyTypes}
+                isPersonType={isPersonType}
+                entitySetId={selectedEntitySet.get('id')}
+                propertyTypes={selectedEntitySetPropertyTypes}
+                exploring={!!breadcrumbs.size}
+                onSelectEntity={this.selectTopUtilizer} />
+          );
+      }
     }
+
     return null;
   }
 
   render() {
     const {
       actions,
+      display,
       neighborTypes,
+      results,
       selectedEntitySet,
       selectedEntitySetPropertyTypes
     } = this.props;
@@ -161,12 +189,15 @@ class TopUtilizersContainer extends React.Component<Props, State> {
           selectedEntitySet
             ? (
               <TopUtilizerParameterSelection
+                  display={display}
+                  searchHasRun={!!results.size}
                   selectedEntitySet={selectedEntitySet}
                   selectedEntitySetPropertyTypes={selectedEntitySetPropertyTypes}
                   selectedPropertyTypes={selectedPropertyTypes}
                   neighborTypes={neighborTypes}
                   getTopUtilizers={actions.getTopUtilizers}
                   onPropertyTypeChange={this.onPropertyTypeChange}
+                  changeTopUtilizersDisplay={actions.changeTopUtilizersDisplay}
                   deselectEntitySet={() => {
                     actions.clearTopUtilizers();
                     actions.selectEntitySet({ entitySet: undefined, propertyTypes: List() });
@@ -194,8 +225,11 @@ function mapStateToProps(state :Map<*, *>) :Object {
     isPersonType: entitySets.get(ENTITY_SETS.IS_PERSON_TYPE),
     breadcrumbs: explore.get(EXPLORE.BREADCRUMBS),
     neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
+    display: topUtilizers.get(TOP_UTILIZERS.RESULT_DISPLAY),
     neighborTypes: topUtilizers.get(TOP_UTILIZERS.NEIGHBOR_TYPES),
     isLoadingResults: topUtilizers.get(TOP_UTILIZERS.IS_LOADING_TOP_UTILIZERS),
+    isLoadingResultCounts: topUtilizers.get(TOP_UTILIZERS.IS_LOADING_TOP_UTILIZER_NEIGHBORS),
+    detailedCounts: topUtilizers.get(TOP_UTILIZERS.TOP_UTILIZER_NEIGHBOR_DETAILS),
     results: topUtilizers.get(TOP_UTILIZERS.TOP_UTILIZER_RESULTS)
   };
 }
