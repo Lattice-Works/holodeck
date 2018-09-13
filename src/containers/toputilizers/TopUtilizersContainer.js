@@ -120,7 +120,6 @@ class TopUtilizersContainer extends React.Component<Props, State> {
 
   renderResults = () => {
     const {
-      actions,
       breadcrumbs,
       display,
       entityTypesById,
@@ -145,7 +144,6 @@ class TopUtilizersContainer extends React.Component<Props, State> {
         case RESULT_DISPLAYS.DASHBOARD:
           return (
             <TopUtilizerDashboard
-                results-={results}
                 entityTypesById={entityTypesById}
                 selectedEntityType={entityTypesById.get(selectedEntitySet.get('entityTypeId'))}
                 detailedCounts={detailedCounts}
@@ -156,7 +154,6 @@ class TopUtilizersContainer extends React.Component<Props, State> {
         default:
           return (
             <TopUtilizerSearchResults
-                onUnmount={actions.clearTopUtilizers}
                 results={results}
                 selectedPropertyTypes={selectedPropertyTypes}
                 isPersonType={isPersonType}
