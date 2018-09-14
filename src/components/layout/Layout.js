@@ -24,3 +24,23 @@ export const TableWrapper = styled.div`
   border: 1px solid #e1e1eb;
   padding: 5px;
 `;
+
+export const CenteredColumnContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+`;
+
+export const TitleText = styled.div`
+  font-family: 'Open Sans';
+  font-size: 20px;
+  font-weight: 600;
+  color: #2e2e34;
+`;
+
+export const LoadingText = styled(TitleText)`
+  margin: 20px;
+  color: #555e6f;
+  font-weight: 400;
+`;

@@ -180,6 +180,10 @@ const titleProperties = {
   'criminaljustice.arrestedin': [
     'ol.arrestcategory',
     'criminaljustice.localstatute'
+  ],
+  'housing.stay': [
+    'housing.programtype',
+    'housing.lengthofstay'
   ]
 };
 

@@ -11,7 +11,7 @@ import ButtonToolbar from '../buttons/ButtonToolbar';
 import DataTable from '../data/DataTable';
 import EntityDetails from '../../containers/data/EntityDetails';
 import { COUNT_FQN } from '../../utils/constants/DataConstants';
-import { FixedWidthWrapper, TableWrapper } from '../layout/Layout';
+import { CenteredColumnContainer, FixedWidthWrapper, TableWrapper } from '../layout/Layout';
 import { getEntityKeyId, getFqnString } from '../../utils/DataUtils';
 
 type Props = {
@@ -28,12 +28,6 @@ type State = {
   layout :string
 }
 
-const ResultsContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-`;
 
 const LeftJustifyWrapper = styled.div`
   width: 100%;
@@ -138,12 +132,12 @@ export default class TopUtilizerSearchResults extends React.Component<Props, Sta
     const resultContent = exploring ? this.renderEntityDetails() : this.renderTopUtilizerSearchResults();
 
     return (
-      <ResultsContainer>
+      <CenteredColumnContainer>
         <FixedWidthWrapper>
           {(isPersonType && !exploring) ? this.renderLayoutToolbar() : null}
           {resultContent}
         </FixedWidthWrapper>
-      </ResultsContainer>
+      </CenteredColumnContainer>
     );
   }
 }

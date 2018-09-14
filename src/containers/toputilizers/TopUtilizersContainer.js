@@ -14,6 +14,7 @@ import EntitySetSearch from '../entitysets/EntitySetSearch';
 import TopUtilizerParameterSelection from '../../components/toputilizers/TopUtilizerParameterSelection';
 import TopUtilizerSearchResults from '../../components/toputilizers/TopUtilizerSearchResults';
 import TopUtilizerDashboard from '../../components/toputilizers/TopUtilizerDashboard';
+import TopUtilizerResouces from '../../components/toputilizers/TopUtilizerResources';
 import {
   STATE,
   EDM,
@@ -36,6 +37,8 @@ type Props = {
   neighborsById :Map<string, *>,
   entityTypesById :Map<string, *>,
   entitySetsById :Map<string, *>,
+  propertyTypesByFqn :Map<string, *>,
+  propertyTypesById :Map<string, *>,
   neighborTypes :List<*>,
   display :string,
   isLoadingResults :boolean,
@@ -121,12 +124,15 @@ class TopUtilizersContainer extends React.Component<Props, State> {
   renderResults = () => {
     const {
       breadcrumbs,
+      detailedCounts,
       display,
       entityTypesById,
       isLoadingResults,
       isLoadingResultCounts,
-      detailedCounts,
       isPersonType,
+      neighborsById,
+      propertyTypesByFqn,
+      propertyTypesById,
       results,
       selectedEntitySet,
       selectedEntitySetPropertyTypes
@@ -139,15 +145,30 @@ class TopUtilizersContainer extends React.Component<Props, State> {
     }
 
     if (results.size) {
+      const selectedEntityType = entityTypesById.get(selectedEntitySet.get('entityTypeId', ''));
+
       switch (display) {
 
         case RESULT_DISPLAYS.DASHBOARD:
           return (
             <TopUtilizerDashboard
                 entityTypesById={entityTypesById}
-                selectedEntityType={entityTypesById.get(selectedEntitySet.get('entityTypeId'))}
+                selectedEntityType={selectedEntityType}
                 detailedCounts={detailedCounts}
                 isLoading={isLoadingResultCounts} />
+          );
+
+        case RESULT_DISPLAYS.RESOURCES:
+          return (
+            <TopUtilizerResouces
+                results={results}
+                neighborsById={neighborsById}
+                entityTypesById={entityTypesById}
+                selectedEntityType={selectedEntityType}
+                detailedCounts={detailedCounts}
+                isLoading={isLoadingResultCounts}
+                propertyTypesByFqn={propertyTypesByFqn}
+                propertyTypesById={propertyTypesById} />
           );
 
         case RESULT_DISPLAYS.SEARCH_RESULTS:
@@ -217,6 +238,8 @@ function mapStateToProps(state :Map<*, *>) :Object {
   return {
     entityTypesById: edm.get(EDM.ENTITY_TYPES_BY_ID),
     entitySetsById: edm.get(EDM.ENTITY_SETS_BY_ID),
+    propertyTypesByFqn: edm.get(EDM.PROPERTY_TYPES_BY_FQN),
+    propertyTypesById: edm.get(EDM.PROPERTY_TYPES_BY_ID),
     selectedEntitySet: entitySets.get(ENTITY_SETS.SELECTED_ENTITY_SET),
     selectedEntitySetPropertyTypes: entitySets.get(ENTITY_SETS.SELECTED_ENTITY_SET_PROPERTY_TYPES),
     isPersonType: entitySets.get(ENTITY_SETS.IS_PERSON_TYPE),

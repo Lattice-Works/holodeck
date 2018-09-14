@@ -3,7 +3,12 @@
  */
 
 import { AnalysisApi, SearchApi } from 'lattice';
-import { fromJS, List, Map } from 'immutable';
+import {
+  fromJS,
+  List,
+  Map,
+  Set
+} from 'immutable';
 import { call, put, takeEvery } from 'redux-saga/effects';
 
 import {
@@ -91,9 +96,12 @@ function* loadTopUtilizerNeighborsWorker(action :SequenceAction) :Generator<*, *
         if (associationEntitySet && neighborEntitySet) {
           const assocId = associationEntitySet.entityTypeId;
           const neighborId = neighborEntitySet.entityTypeId;
+          delete neighbor.associationPropertyTypes;
 
           if (assocId && neighborId) {
+            delete neighbor.neighborPropertyTypes;
             const pair = List.of(assocId, neighborId);
+
             if (counts.has(pair)) {
               counts = counts.set(pair, counts.get(pair) + 1);
             }
@@ -103,7 +111,7 @@ function* loadTopUtilizerNeighborsWorker(action :SequenceAction) :Generator<*, *
       neighborCounts = neighborCounts.set(entityKeyId, counts);
     });
 
-    yield put(loadTopUtilizerNeighbors.success(action.id, neighborCounts));
+    yield put(loadTopUtilizerNeighbors.success(action.id, { neighborCounts, neighborsById }));
   }
   catch (error) {
     console.error(error)
