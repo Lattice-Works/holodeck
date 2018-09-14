@@ -8,6 +8,7 @@ import styled from 'styled-components';
 import BasicButton from '../buttons/BasicButton';
 
 type Props = {
+  noMargin? :boolean,
   title :string,
   xLabel? :string,
   yLabel? :string,
@@ -136,13 +137,22 @@ const YLabelWrapper = styled.div`
 const YLabel = styled(XLabel)`
   transform: rotate(270deg);
   white-space: nowrap;
-  margin-left: -${props => (props.secondary ? 400 : 200)}%;
+  margin-left: -${(props) => {
+    if (props.noMargin) {
+      return 0;
+    }
+    if (props.secondary) {
+      return 400;
+    }
+    return 200;
+  }}%;
 `;
 
 const ChartWrapper = ({
   downloadFn,
   infoText,
   children,
+  noMargin,
   title,
   xLabel,
   yLabel,
@@ -166,7 +176,7 @@ const ChartWrapper = ({
       <BodyWrapper>
         {yLabel ? (
           <YLabelWrapper>
-            <YLabel>{yLabel}</YLabel>
+            <YLabel noMargin={noMargin}>{yLabel}</YLabel>
           </YLabelWrapper>
         ) : null}
         {children}
