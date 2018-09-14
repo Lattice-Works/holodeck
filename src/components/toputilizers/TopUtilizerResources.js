@@ -24,8 +24,10 @@ import {
 } from 'recharts';
 
 import LoadingSpinner from '../LoadingSpinner';
+import ChartWrapper from '../charts/ChartWrapper';
 import getTitle from '../../utils/EntityTitleUtils';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { CHART_EXPLANATIONS } from '../../utils/constants/TopUtilizerConstants';
 import {
   CenteredColumnContainer,
   FixedWidthWrapper,
@@ -116,6 +118,47 @@ const WideSelect = styled(Select)`
   width: 100%;
 `;
 
+const TimelineTooltipLabel = styled.span`
+  font-family: 'Open Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #8e929b;
+  margin: 0 5px;
+`;
+
+const TimelineLineDescriptor = styled.div`
+  font-family: 'Open Sans', sans-serif;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: fit-content;
+
+  div:first-child {
+    width: 30px;
+    height: 2px;
+    margin-left: 40px;
+    background-color: ${props => props.color};
+  }
+
+  div:last-child {
+    color: #555e6f;
+    font-size: 14px;
+    font-weight: 600;
+  }
+`;
+
+const TimelineTooltip = styled.div`
+  position: absolute;
+  top: -50px;
+  right: 10px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: fit-content;
+  height: 20px;
+  visibility: visible;
+`;
+
 const FILTERS = {
   SELECTED_UTILIZER: 'SELECTED_UTILIZER',
   SELECTED_TYPE: 'SELECTED_TYPE'
@@ -126,7 +169,7 @@ const BLANK_OPTION = fromJS({
   label: 'All'
 });
 
-const MONTH_FORMAT = 'MMM YYYY';
+const MONTH_FORMAT = 'MM/YYYY';
 
 export default class TopUtilizerResouces extends React.Component<Props, State> {
 
@@ -245,7 +288,7 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     this.setState({ processedDates, processedDurations });
   }
 
-  renderOption = (data, selected, onClick, withNum) => (
+  renderOption = (data, selected, onClick) => (
     <Option selected={selected} onClick={onClick ? onClick : () => {}}>
       {data.num > 0 ? <span>{data.num}</span> : null}
       <div>{data.label}</div>
@@ -298,18 +341,20 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     );
   }
 
-  getCountsByYear = () => {
+  getCountsByYearAndMonth = () => {
     const { processedDates } = this.state;
 
-    // pair -> year -> count
-    let countsByYear = Map();
+    /* pair -> year -> month -> count */
+    let counts = Map();
 
     const updateCounts = (countsMap) => {
       countsMap.entrySeq().forEach(([pair, datesMap]) => {
         datesMap.entrySeq().forEach(([date, count]) => {
-          const year = Number.parseInt(date.slice(-4), 10);
-          if (!Number.isNaN(year)) {
-            countsByYear = countsByYear.setIn([pair, year], countsByYear.getIn([pair, year], 0) + count);
+          const monthAndYear = date.split('/');
+          const month = Number.parseInt(monthAndYear[0], 10);
+          const year = Number.parseInt(monthAndYear[1], 10);
+          if (!Number.isNaN(month) && !Number.isNaN(year)) {
+            counts = counts.setIn([pair, year, month], counts.getIn([pair, year, month], 0) + count);
           }
         });
       });
@@ -322,31 +367,48 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
       processedDates.valueSeq().forEach(countsMap => updateCounts(countsMap));
     }
 
-    return countsByYear;
+    return counts;
+  }
+
+  getFilteredCountsForType = (byMonth) => {
+    /* either year -> count OR year -> month -> count (depending on byMonth) */
+    const pairDateCounts = this.getCountsByYearAndMonth();
+    let counts = Map();
+
+    const updateCountsByDate = (pair) => {
+      pairDateCounts.get(pair, Map()).entrySeq().forEach(([year, monthCount]) => {
+
+        monthCount.entrySeq().forEach(([month, count]) => {
+          if (byMonth) {
+            counts = counts.setIn([year, month], counts.getIn([year, month], 0) + count);
+          }
+          else {
+            counts = counts.set(year, counts.get(year, 0) + count);
+          }
+        });
+      });
+    };
+
+    if (this.state[FILTERS.SELECTED_TYPE].value.size) {
+      updateCountsByDate(this.state[FILTERS.SELECTED_TYPE].value);
+    }
+    else {
+      pairDateCounts.keySeq().forEach(pair => updateCountsByDate(pair));
+    }
+
+    return counts;
   }
 
   renderEventCountChart = () => {
-    const pairYearCounts = this.getCountsByYear();
-    let countsByYear = Map();
+    const countsByYear = this.getFilteredCountsForType();
 
-    const updateCountsByYear = (pair) => {
-      pairYearCounts.get(pair, Map()).entrySeq().forEach(([year, count]) => {
-        countsByYear = countsByYear.set(year, countsByYear.get(year, 0) + count);
-      });
-    }
-
-    if (this.state[FILTERS.SELECTED_TYPE].value.size) {
-      updateCountsByYear(this.state[FILTERS.SELECTED_TYPE].value);
-    }
-    else {
-      pairYearCounts.keySeq().forEach(pair => updateCountsByYear(pair));
-    }
     const data = countsByYear.entrySeq().map(([year, count]) => ({ year, count }));
+    const xAxisType = data.size > 1 ? 'number' : 'category';
 
     return (
-      <BarChart width={400} height={400} data={data.toJS()}>
+      <BarChart width={400} height={400} data={[...data.toJS()]}>
         <YAxis type="number" tickLine={false} />
-        <XAxis type="number" tickLine={false} dataKey="year" domain={['dataMin', 'dataMax']} />
+        <XAxis type={xAxisType} tickLine={false} dataKey="year" domain={['dataMin', 'dataMax']} />
         <Tooltip />
         <Bar dataKey="count" fill="#ffc59e" />
       </BarChart>
@@ -404,6 +466,92 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     );
   }
 
+  renderTimelineTooltip = ({ label, payload }) => {
+    if (!payload || !payload.length) {
+      return null;
+    }
+
+    const year = Math.floor(label);
+    const month = Math.round((label - year) * 12) + 1;
+    const dateStr = `${month}/${year}`;
+    const date = moment(dateStr, 'M/YYYY');
+    const formattedDate = date.isValid() ? date.format('MMM YYYY') : dateStr;
+
+    let eventDescriptor;
+    payload.forEach((payloadPoint) => {
+      const { color } = payloadPoint;
+      const { count } = payloadPoint.payload;
+      if (count !== undefined) {
+        eventDescriptor = (
+          <TimelineLineDescriptor color={color}>
+            <div color={color} />
+            <TimelineTooltipLabel>Event count</TimelineTooltipLabel>
+            <div>{count}</div>
+          </TimelineLineDescriptor>
+        );
+      }
+    });
+
+    return (
+      <TimelineTooltip>
+        <TimelineTooltipLabel>{formattedDate}</TimelineTooltipLabel>
+        {eventDescriptor}
+      </TimelineTooltip>
+    );
+  }
+
+  renderTimeline = () => {
+    const countsByYearAndMonth = this.getFilteredCountsForType(true);
+
+    const data = [];
+    countsByYearAndMonth.entrySeq().forEach(([year, monthCounts]) => {
+      monthCounts.entrySeq().forEach(([month, count]) => {
+        const dt = year + ((month - 1) / 12);
+        data.push({ dt, count });
+      });
+    });
+
+    data.sort((d1, d2) => (d1.dt < d2.dt ? -1 : 1));
+
+    let minYear = 0;
+    let maxYear = 0;
+
+    if (data.length > 0) {
+      minYear = Math.floor(data[0].dt);
+      maxYear = Math.ceil(data[data.length - 1].dt);
+    }
+
+    return (
+      <ChartWrapper
+          title="Timeline"
+          yLabel="Count"
+          noMargin
+          infoText={CHART_EXPLANATIONS.RESOURCE_TIMELINE}>
+        <LineChart width={840} height={250} data={data}>
+          <YAxis type="number" tickLine={false} />
+          <XAxis
+              type="number"
+              tickLine={false}
+              allowDecimals={false}
+              dataKey="dt"
+              domain={[minYear, maxYear]} />
+          <Tooltip
+              wrapperStyle={{
+                position: 'static',
+                transform: 'none !important'
+              }}
+              content={this.renderTimelineTooltip} />
+          <Line
+              dataKey="count"
+              dot={false}
+              strokeWidth={2}
+              type="linear"
+              stroke="#ff9a58" />
+        </LineChart>
+      </ChartWrapper>
+    );
+  }
+
   getContent = () => {
     const { isLoading } = this.props;
 
@@ -419,6 +567,7 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     return (
       <CenteredColumnContainer>
         {this.renderBasicSetup()}
+        {this.renderTimeline()}
       </CenteredColumnContainer>
     );
   }
