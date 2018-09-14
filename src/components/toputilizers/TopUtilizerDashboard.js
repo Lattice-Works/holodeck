@@ -4,7 +4,7 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import { List, Map } from 'immutable';
+import { Map } from 'immutable';
 import {
   LineChart,
   Line,
@@ -20,7 +20,7 @@ import ChartWrapper from '../charts/ChartWrapper';
 import ChartTooltip from '../charts/ChartTooltip';
 import { CHART_EXPLANATIONS, PARETO_LABELS } from '../../utils/constants/TopUtilizerConstants';
 import { CHART_COLORS } from '../../utils/constants/Colors';
-import { FixedWidthWrapper } from '../layout/Layout';
+import { CenteredColumnContainer, FixedWidthWrapper, LoadingText } from '../layout/Layout';
 
 type Props = {
   selectedEntityType :Map<*, *>,
@@ -33,20 +33,6 @@ type State = {
   eventCounts :Map<*, number>,
   eventColors :Map<*, string>
 }
-
-const ResultsContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-`;
-
-const TitleText = styled.h1`
-  font-family: 'Open Sans', sans-serif;
-  font-size: 20px;
-  font-weight: 600;
-  color: #2e2e34;
-`;
 
 const CountCardRow = styled.div`
   display: flex;
@@ -423,30 +409,30 @@ export default class TopUtilizerDashboard extends React.Component<Props, State> 
 
     if (isLoading) {
       return (
-        <ResultsContainer>
-          <TitleText>Loading dashboard data</TitleText>
+        <CenteredColumnContainer>
+          <LoadingText>Loading dashboard data</LoadingText>
           <LoadingSpinner />
-        </ResultsContainer>
+        </CenteredColumnContainer>
       );
     }
 
     return (
-      <ResultsContainer>
+      <CenteredColumnContainer>
         {this.renderCountCards()}
         {this.renderEventsPerPerson()}
         {this.renderParetoCharts()}
-      </ResultsContainer>
+      </CenteredColumnContainer>
     );
 
   }
 
   render() {
     return (
-      <ResultsContainer>
+      <CenteredColumnContainer>
         <FixedWidthWrapper>
           {this.getContent()}
         </FixedWidthWrapper>
-      </ResultsContainer>
+      </CenteredColumnContainer>
     );
   }
 }

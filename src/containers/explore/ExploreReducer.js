@@ -15,7 +15,7 @@ import {
   selectEntity
 } from './ExploreActionFactory';
 
-import { getTopUtilizers } from '../toputilizers/TopUtilizersActionFactory';
+import { getTopUtilizers, loadTopUtilizerNeighbors } from '../toputilizers/TopUtilizersActionFactory';
 
 const {
   IS_LOADING_ENTITY_NEIGHBORS,
@@ -89,6 +89,13 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
 
           return state.set(ENTITIES_BY_ID, entitiesById);
         }
+      });
+    }
+
+    case loadTopUtilizerNeighbors.case(action.type): {
+      return loadTopUtilizerNeighbors.reducer(state, action, {
+        SUCCESS: () => state
+          .set(ENTITY_NEIGHBORS_BY_ID, state.get(ENTITY_NEIGHBORS_BY_ID).merge(fromJS(action.value.neighborsById)))
       });
     }
 

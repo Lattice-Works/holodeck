@@ -17,7 +17,10 @@ export const PROPERTY_TYPES = {
   MUGSHOT: 'publicsafety.mugshot',
   PICTURE: 'person.picture',
 
-  ENTRY_UPDATED: 'general.entryupdated'
+  ENTRY_UPDATED: 'general.entryupdated',
+
+  DURATION: 'ol.durationinterval',
+  DATETIME_ALERTED: 'datetime.alerted'
 };
 
 export const DEFAULT_PERSON_PROPERTY_TYPES = [

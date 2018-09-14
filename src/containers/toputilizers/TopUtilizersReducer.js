@@ -65,7 +65,7 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
     case loadTopUtilizerNeighbors.case(action.type): {
       return loadTopUtilizerNeighbors.reducer(state, action, {
         REQUEST: () => state.set(IS_LOADING_TOP_UTILIZER_NEIGHBORS, true),
-        SUCCESS: () => state.set(TOP_UTILIZER_NEIGHBOR_DETAILS, action.value),
+        SUCCESS: () => state.set(TOP_UTILIZER_NEIGHBOR_DETAILS, action.value.neighborCounts),
         FAILURE: () => state.set(TOP_UTILIZER_NEIGHBOR_DETAILS, Map()),
         FINALLY: () => state.set(IS_LOADING_TOP_UTILIZER_NEIGHBORS, false)
       });

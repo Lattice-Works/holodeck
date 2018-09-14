@@ -230,6 +230,7 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
               <TabButtonRow>
                 {this.renderNavButton(RESULT_DISPLAYS.SEARCH_RESULTS)}
                 {this.renderNavButton(RESULT_DISPLAYS.DASHBOARD)}
+                {this.renderNavButton(RESULT_DISPLAYS.RESOURCES)}
               </TabButtonRow>
             ) : null
           }
