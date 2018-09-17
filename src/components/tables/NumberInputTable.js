@@ -17,7 +17,6 @@ const Table = styled.table.attrs({
   cellSpacing: 0
 })`
   margin: 20px 0;
-  padding: 6px 15px;
   font-family: 'Open Sans', sans-serif;
   font-size: 12px;
   color: #2e2e34;
