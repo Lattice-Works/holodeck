@@ -37,7 +37,6 @@ import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 
 type Props = {
   withCounts? :boolean,
-  isPersonType :boolean,
   breadcrumbs :List<string>,
   isLoadingNeighbors :boolean,
   neighborsById :Map<string, *>,
@@ -246,7 +245,6 @@ class EntityDetails extends React.Component<Props, State> {
   }
 
   render() {
-    const { isPersonType } = this.props;
     return (
       <div>
         {this.renderBreadcrumbs()}
