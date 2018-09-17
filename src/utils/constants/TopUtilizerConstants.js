@@ -5,7 +5,8 @@ export const TOP_UTILIZERS_FILTER = {
   NEIGHBOR_TITLE: 'neighborTitle',
   IS_SRC: 'src',
   VALUE: 'value',
-  LABEL: 'label'
+  LABEL: 'label',
+  WEIGHT: 'weight'
 };
 
 export const RESULT_DISPLAYS = {

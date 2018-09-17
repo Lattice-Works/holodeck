@@ -9,7 +9,8 @@ import {
   Map,
   List,
   Set,
-  OrderedSet
+  OrderedSet,
+  fromJS
 } from 'immutable';
 import { DatePicker } from '@atlaskit/datetime-picker';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -18,14 +19,17 @@ import { faDatabase } from '@fortawesome/pro-solid-svg-icons';
 import BackNavButton from '../buttons/BackNavButton';
 import TabNavButton from '../buttons/TabNavButton';
 import InfoButton from '../buttons/InfoButton';
+import UtilityButton from '../buttons/UtilityButton';
 import DropdownButtonWrapper from '../buttons/DropdownButtonWrapper';
 import StyledCheckbox from '../controls/StyledCheckbox';
 import StyledRadio from '../controls/StyledRadio';
 import TopUtilizersSelect from './TopUtilizersSelect';
+import NumberInputTable from '../tables/NumberInputTable';
 import { FixedWidthWrapper, HeaderComponentWrapper } from '../layout/Layout';
 import { DATE_FORMAT } from '../../utils/constants/DateTimeConstants';
 import { DATE_DATATYPES } from '../../utils/constants/DataModelConstants';
 import { COUNT_TYPES, RESULT_DISPLAYS, TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
+import { isNotNumber } from '../../utils/ValidationUtils';
 
 type Props = {
   display :string,
@@ -84,7 +88,7 @@ const InputGroup = styled.div`
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-end;
-  width: ${props => (props.fullSize ? '100%' : '24%')};
+  width: ${props => (props.fullSize ? '100%' : '19%')};
 `;
 
 const DateInputGroup = styled(InputGroup)`
@@ -136,6 +140,11 @@ const RowWrapper = styled.div`
   width: 100%;
 `;
 
+const RightRowWrapper = styled(RowWrapper)`
+  justify-content: flex-end;
+  margin-top: 15px;
+`;
+
 const RadioTitle = styled.div`
   width: fit-content;
   font-family: 'Open Sans', sans-serif;
@@ -155,7 +164,7 @@ const TabsContainer = styled.div`
   border-bottom: 1px solid #e6e6eb;
 `;
 
-const DateTab = styled.div`
+const DropdownTab = styled.div`
   padding-bottom: 20px;
   margin-bottom: -20px;
   margin-right: 30px;
@@ -323,24 +332,24 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
       const { start, end } = range;
       const text = (start.length && end.length) ? `${start} - ${end}` : 'New date range';
       return (
-        <DateTab
+        <DropdownTab
             key={index}
             selected={index === dateRangeViewing}
             onClick={() => this.setState({ dateRangeViewing: index })}>
           {text}
-        </DateTab>
+        </DropdownTab>
       );
     });
     if (!dateRanges.filter(range => !range.start.length && !range.end.length).size) {
       tabs = tabs.push((
-        <DateTab
+        <DropdownTab
             key={-1}
             onClick={() => this.setState({
               dateRanges: dateRanges.push(newDateRange),
               dateRangeViewing: dateRanges.size
             })}>
           Add New
-        </DateTab>
+        </DropdownTab>
       ));
     }
     return <TabsContainer>{tabs}</TabsContainer>;
@@ -418,14 +427,52 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
     );
   }
 
-  renderDateRangePicker = () => {
+  renderDateRangePicker = () => (
+    <DropdownWrapper>
+      {this.renderSelectedRangesTab()}
+      {this.renderDateRangeSelection()}
+      {this.renderDatePropertySelection()}
+    </DropdownWrapper>
+  )
+
+  resetWeights = () => {
+    const { selectedNeighborTypes } = this.state;
+    const resetTypes = selectedNeighborTypes.map(type => Object.assign({}, type, { [TOP_UTILIZERS_FILTER.WEIGHT]: 1 }));
+    this.setState({ selectedNeighborTypes: resetTypes });
+  }
+
+  renderWeightsPicker = () => {
+    const { selectedNeighborTypes } = this.state;
+    const rows = fromJS(selectedNeighborTypes.map((option, index) => {
+      const label = `${option[TOP_UTILIZERS_FILTER.ASSOC_TITLE]} ${option[TOP_UTILIZERS_FILTER.NEIGHBOR_TITLE]}`;
+      const value = option[TOP_UTILIZERS_FILTER.WEIGHT];
+      const key = index;
+      return { key, value, label };
+    }));
+
+    const onChange = (index, value) => {
+      const formattedValue = value === '.' ? '0.' : value;
+      if (!isNotNumber(formattedValue) || formattedValue === '') {
+        selectedNeighborTypes[index][TOP_UTILIZERS_FILTER.WEIGHT] = formattedValue;
+        this.setState({ selectedNeighborTypes });
+      }
+    };
+
     return (
       <DropdownWrapper>
-        {this.renderSelectedRangesTab()}
-        {this.renderDateRangeSelection()}
-        {this.renderDatePropertySelection()}
+        <TabsContainer>
+          <DropdownTab selected>Events</DropdownTab>
+        </TabsContainer>
+        <RightRowWrapper>
+          <UtilityButton onClick={this.resetWeights}>Reset Weights</UtilityButton>
+        </RightRowWrapper>
+        <NumberInputTable
+            keyHeader="Events"
+            valueHeader="Weight"
+            rows={rows}
+            onChange={onChange} />
       </DropdownWrapper>
-    )
+    );
   }
 
   render() {
@@ -466,6 +513,11 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
             <InputGroup>
               <DropdownButtonWrapper title="Date Range" width={800} short fullSize>
                 {this.renderDateRangePicker()}
+              </DropdownButtonWrapper>
+            </InputGroup>
+            <InputGroup>
+              <DropdownButtonWrapper title="Weights" width={600} short fullSize>
+                {this.renderWeightsPicker()}
               </DropdownButtonWrapper>
             </InputGroup>
             <InputGroup>

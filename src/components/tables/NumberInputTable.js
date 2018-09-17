@@ -16,6 +16,7 @@ type Props = {
 const Table = styled.table.attrs({
   cellSpacing: 0
 })`
+  width: 100% !important;
   margin: 20px 0;
   font-family: 'Open Sans', sans-serif;
   font-size: 12px;

@@ -20,13 +20,13 @@ import {
   BarChart,
   XAxis,
   YAxis,
-  ComposedChart,
   Tooltip
 } from 'recharts';
 
 import LoadingSpinner from '../LoadingSpinner';
 import ChartWrapper from '../charts/ChartWrapper';
 import CostRateModal from './CostRateModal';
+import UtilityButton from '../buttons/UtilityButton';
 import getTitle from '../../utils/EntityTitleUtils';
 import { CHART_EXPLANATIONS, RESOURCE_TYPES } from '../../utils/constants/TopUtilizerConstants';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
@@ -69,7 +69,6 @@ const RowWrapper = styled.div`
   flex-direction: row;
   justify-content: space-between;
   width: 100%;
-  height: 532px;
 `;
 
 const ChartCard = styled.div`
@@ -200,28 +199,10 @@ const Subtitle = styled.div`
   }
 `;
 
-const CostRateButton = styled.button`
+const CostRateButton = styled(UtilityButton)`
   position: absolute;
   top: 30px;
   right: 30px;
-  border-radius: 3px;
-  background-color: #f0f0f7;
-  font-family: 'Open Sans', sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  color: #8e929b;
-  width: 71px;
-  height: 28px;
-  border: none;
-
-  &:hover {
-    cursor: pointer;
-    background-color: #dcdce7
-  }
-
-  &:focus {
-    outline: none;
-  }
 `;
 
 const FloatingTooltipWrapper = styled.div`

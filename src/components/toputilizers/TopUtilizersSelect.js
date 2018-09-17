@@ -19,7 +19,8 @@ const {
   NEIGHBOR_TITLE,
   IS_SRC,
   VALUE,
-  LABEL
+  LABEL,
+  WEIGHT
 } = TOP_UTILIZERS_FILTER;
 
 type Props = {
@@ -109,7 +110,8 @@ export default class TopUtilizersSelect extends React.Component<Props> {
         [ASSOC_TITLE]: assocTitle,
         [NEIGHBOR_ID]: neighborId,
         [NEIGHBOR_TITLE]: neighborTitle,
-        [IS_SRC]: src
+        [IS_SRC]: src,
+        [WEIGHT]: 1
       };
     }).toJS();
   };
