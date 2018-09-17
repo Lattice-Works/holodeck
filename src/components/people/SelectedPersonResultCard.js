@@ -6,7 +6,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { List, Map } from 'immutable';
 
-import defaultProfileIcon from '../../assets/svg/profile-placeholder-round.svg';
+import defaultProfileIcon from '../../assets/svg/profile-placeholder-card-large.svg';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { IMAGE_PREFIX } from '../../utils/constants/DataConstants';
 import { FixedWidthWrapper } from '../layout/Layout';
@@ -32,11 +32,6 @@ const CardWrapper = styled(FixedWidthWrapper)`
   display: flex;
   flex-direction: row;
   align-items: center;
-`;
-
-const ProfileImg = styled.img`
-  height: 215px;
-  width: 215px;
 `;
 
 const Label = styled.span`
@@ -129,7 +124,7 @@ const renderPersonDetails = (index, person) => {
 
 const SelectedPersonResultCard = ({ index, person } :Props) => (
   <CardWrapper>
-    <ProfileImg src={getProfileImgSrc(person)} />
+    <img src={getProfileImgSrc(person)} />
     {renderPersonDetails(index, person)}
   </CardWrapper>
 );
