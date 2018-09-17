@@ -123,7 +123,7 @@ export default class TopUtilizerSearchResults extends React.Component<Props, Sta
   render() {
     const { exploring, isPersonType } = this.props;
 
-    const resultContent = exploring ? <EntityDetails withCounts /> : this.renderTopUtilizerSearchResults();
+    const resultContent = exploring ? <EntityDetails /> : this.renderTopUtilizerSearchResults();
 
     return (
       <CenteredColumnContainer>

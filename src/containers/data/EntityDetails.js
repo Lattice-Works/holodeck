@@ -36,7 +36,6 @@ import {
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 
 type Props = {
-  withCounts? :boolean,
   breadcrumbs :List<string>,
   isLoadingNeighbors :boolean,
   neighborsById :Map<string, *>,
@@ -77,10 +76,6 @@ const HEADERS = {
 
 class EntityDetails extends React.Component<Props, State> {
 
-  static defaultProps = {
-    withCounts: false
-  }
-
   constructor(props :Props) {
     super(props);
     this.state = {
@@ -100,10 +95,8 @@ class EntityDetails extends React.Component<Props, State> {
   renderCountsCard = () => {
     const {
       neighborsById,
-      topUtilizerFilters,
-      withCounts
+      topUtilizerFilters
     } = this.props;
-    if (!withCounts) return null;
     const entity = this.getSelectedEntity();
     const total = entity.getIn([COUNT_FQN, 0]);
     if (total === undefined) return null;
