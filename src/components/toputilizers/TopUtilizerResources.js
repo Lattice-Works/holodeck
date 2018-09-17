@@ -596,7 +596,7 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     return (
       <WideSplitCard>
         <SimpleWrapper>
-          <PaddedTitleText>Resources Setup</PaddedTitleText>
+          <PaddedTitleText>Resources Option</PaddedTitleText>
           {this.renderSelectDropdown(FILTERS.SELECTED_UTILIZER, selectedEntityType.get('title'), utilizerOptions)}
           {this.renderSelectDropdown(FILTERS.SELECTED_TYPE, 'Event Type', entityTypeOptions)}
         </SimpleWrapper>

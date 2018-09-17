@@ -32,3 +32,8 @@ export const RESOURCE_TYPES = {
   HOURS: 'HOURS',
   COST: 'COST'
 };
+
+export const COUNT_TYPES = {
+  EVENTS: 'EVENTS',
+  DURATION: 'DURATION'
+};

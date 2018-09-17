@@ -9,8 +9,7 @@ import {
   Map,
   List,
   Set,
-  OrderedSet,
-  fromJS
+  OrderedSet
 } from 'immutable';
 import { DatePicker } from '@atlaskit/datetime-picker';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -21,11 +20,12 @@ import TabNavButton from '../buttons/TabNavButton';
 import InfoButton from '../buttons/InfoButton';
 import DropdownButtonWrapper from '../buttons/DropdownButtonWrapper';
 import StyledCheckbox from '../controls/StyledCheckbox';
+import StyledRadio from '../controls/StyledRadio';
 import TopUtilizersSelect from './TopUtilizersSelect';
 import { FixedWidthWrapper, HeaderComponentWrapper } from '../layout/Layout';
 import { DATE_FORMAT } from '../../utils/constants/DateTimeConstants';
 import { DATE_DATATYPES } from '../../utils/constants/DataModelConstants';
-import { RESULT_DISPLAYS, TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
+import { COUNT_TYPES, RESULT_DISPLAYS, TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
 
 type Props = {
   display :string,
@@ -43,8 +43,10 @@ type Props = {
 };
 
 type State = {
-  temp :boolean,
-  dateRanges :List
+  countType :boolean,
+  dateRanges :List,
+  dateRangeViewing :boolean,
+  selectedNeighborTypes :Object[]
 };
 
 const CenteredHeaderWrapper = styled(HeaderComponentWrapper)`
@@ -131,15 +133,16 @@ const RowWrapper = styled.div`
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+  width: 100%;
 `;
 
-const CheckboxTitle = styled.div`
+const RadioTitle = styled.div`
   width: fit-content;
   font-family: 'Open Sans', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: #555e6f;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 `;
 
 const TabsContainer = styled.div`
@@ -197,8 +200,7 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
       selectedNeighborTypes: [],
       dateRanges: List.of(newDateRange),
       dateRangeViewing: 0,
-      startDate: '',
-      endDate: ''
+      countType: COUNT_TYPES.EVENTS
     };
   }
 
@@ -249,14 +251,24 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
   }
 
   renderSearchOption = () => {
+    const { countType } = this.state;
+
+    const onChange = e => this.setState({ countType: e.target.value });
+
     return (
       <DropdownWrapper>
-        <CheckboxTitle>Count Type</CheckboxTitle>
+        <RadioTitle>Count Type</RadioTitle>
         <RowWrapper>
-          <StyledCheckbox
+          <StyledRadio
+              checked={countType === COUNT_TYPES.EVENTS}
+              value={COUNT_TYPES.EVENTS}
+              onChange={onChange}
               label="Events" />
-          <StyledCheckbox
-              label="Hours" />
+          <StyledRadio
+              checked={countType === COUNT_TYPES.DURATION}
+              value={COUNT_TYPES.DURATION}
+              onChange={onChange}
+              label="Duration" />
         </RowWrapper>
       </DropdownWrapper>
     );
@@ -417,7 +429,7 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
   }
 
   render() {
-    const { selectedNeighborTypes, startDate, endDate } = this.state;
+    const { selectedNeighborTypes } = this.state;
     const {
       searchHasRun,
       selectedEntitySet,
@@ -447,7 +459,7 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
           </InputRow>
           <InputRow>
             <InputGroup>
-              <DropdownButtonWrapper title="Search Option" short fullSize>
+              <DropdownButtonWrapper title="Search Option" width={300} short fullSize>
                 {this.renderSearchOption()}
               </DropdownButtonWrapper>
             </InputGroup>
