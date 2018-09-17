@@ -535,13 +535,10 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     const data = this.getFilteredCountsForType(byDates, false, withCostMultiplier)
       .entrySeq()
       .map(([year, count]) => ({ year, count }));
+    const total = data.map(point => point.count).reduce((t1, t2) => t1 + t2);
 
+    /* workaround -- recharts has a bug which doesn't display number-type data if there is only one data point */
     const xAxisType = data.size > 1 ? 'number' : 'category';
-
-    let total = 0;
-    data.forEach((point) => {
-      total += point.count;
-    });
 
     return (
       <BarChartWrapper>
@@ -550,7 +547,7 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
           ? <CostRateButton onClick={() => this.setState({ isSettingCostRate: true })}>Cost Rate</CostRateButton>
           : null
         }
-        <BarChart width={400} height={400} data={[...data.toJS()]}>
+        <BarChart width={400} height={400} data={data.toJS()}>
           <YAxis type="number" tickLine={false} />
           <XAxis type={xAxisType} tickLine={false} dataKey="year" domain={['dataMin', 'dataMax']} />
           <Tooltip content={payloadData => this.renderBarChartTooltip(resourceType, payloadData)} />
