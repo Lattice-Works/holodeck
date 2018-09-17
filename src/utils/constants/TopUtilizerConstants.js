@@ -26,3 +26,9 @@ export const PARETO_LABELS = {
   INDIVIDUAL_PERCENTAGE: 'Individual percentage',
   CUMULATIVE_PERCENTAGE: 'Cumulative percentage'
 };
+
+export const RESOURCE_TYPES = {
+  EVENTS: 'EVENTS',
+  HOURS: 'HOURS',
+  COST: 'COST'
+};

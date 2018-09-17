@@ -55,7 +55,7 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
         REQUEST: () => state
           .set(IS_LOADING_TOP_UTILIZERS, true)
           .set(TOP_UTILIZER_RESULTS, List())
-          .set(TOP_UTILIZER_FILTERS, fromJS(action.value)),
+          .set(TOP_UTILIZER_FILTERS, fromJS(action.value.eventFilters)),
         SUCCESS: () => state.set(TOP_UTILIZER_RESULTS, fromJS(action.value)),
         FAILURE: () => state.set(TOP_UTILIZER_RESULTS, List()),
         FINALLY: () => state.set(IS_LOADING_TOP_UTILIZERS, false).set(QUERY_HAS_RUN, true)

@@ -1,3 +1,5 @@
+import { RESOURCE_TYPES } from './TopUtilizerConstants';
+
 export const BLUE = {
   BLUE_1: '#c3ceff',
   BLUE_2: '#0021ba'
@@ -38,3 +40,9 @@ export const CHART_COLORS = [
   '#ff9a58',
   '#f25497'
 ];
+
+export const RESOURCE_COLORS = {
+  [RESOURCE_TYPES.EVENTS]: ['#ffc59e', '#ff9a58'],
+  [RESOURCE_TYPES.HOURS]: ['#a57cff', '#6124e2'],
+  [RESOURCE_TYPES.COST]: ['#75d6b7', '#00be84']
+};
