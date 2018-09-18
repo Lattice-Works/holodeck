@@ -713,6 +713,10 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
   }
 
   renderHoursAndCost = () => {
+    if (!this.getFilteredCountsForType().size) {
+      return null;
+    }
+
     return (
       <RowWrapper>
         <ChartCard>
@@ -734,20 +738,20 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     const { isSettingCostRate, costRates } = this.state;
 
     const onClose = () => this.setState({ isSettingCostRate: false });
-    const onSetCostRate = (costRates) => this.setState({ costRates });
+    const onSetCostRate = newCostRates => this.setState({ costRates: newCostRates });
     return (
       <ModalTransition>
-          {isSettingCostRate && (
-            <Modal onClose={onClose}>
-              <CostRateModal
-                  costRates={costRates}
-                  entityTypesById={entityTypesById}
-                  onClose={onClose}
-                  onSetCostRate={onSetCostRate}  />
-            </Modal>
-          )}
-        </ModalTransition>
-    )
+        {isSettingCostRate && (
+          <Modal onClose={onClose}>
+            <CostRateModal
+                costRates={costRates}
+                entityTypesById={entityTypesById}
+                onClose={onClose}
+                onSetCostRate={onSetCostRate} />
+          </Modal>
+        )}
+      </ModalTransition>
+    );
   }
 
   getContent = () => {
