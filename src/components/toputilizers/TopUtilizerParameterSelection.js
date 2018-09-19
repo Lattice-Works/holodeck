@@ -27,9 +27,10 @@ import TopUtilizersSelect from './TopUtilizersSelect';
 import NumberInputTable from '../tables/NumberInputTable';
 import { FixedWidthWrapper, HeaderComponentWrapper } from '../layout/Layout';
 import { DATE_FORMAT } from '../../utils/constants/DateTimeConstants';
-import { DATE_DATATYPES } from '../../utils/constants/DataModelConstants';
+import { DATE_DATATYPES, DURATION_TYPES } from '../../utils/constants/DataModelConstants';
 import { COUNT_TYPES, RESULT_DISPLAYS, TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
 import { isNotNumber } from '../../utils/ValidationUtils';
+import { getFqnString } from '../../utils/DataUtils';
 
 type Props = {
   display :string,
@@ -50,7 +51,8 @@ type State = {
   countType :boolean,
   dateRanges :List,
   dateRangeViewing :boolean,
-  selectedNeighborTypes :Object[]
+  selectedNeighborTypes :Object[],
+  durationTypeWeights :Map<*, *>
 };
 
 const CenteredHeaderWrapper = styled(HeaderComponentWrapper)`
@@ -101,7 +103,7 @@ const DropdownWrapper = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 20px;
+  padding: ${props => (props.noPadding ? 0 : '20px')};
 `;
 
 const InputLabel = styled.span`
@@ -117,10 +119,10 @@ const DatePickerWrapper = styled.div`
 const PropertyTypeWrapper = styled.div`
   padding: 20px;
   display: grid;
-  grid-template-columns: 32% 32% 32%;
+  grid-template-columns: ${props => (props.twoCols ? '48% 48%' : '32% 32% 32%')};
   grid-auto-rows: 25px;
   grid-column-gap: 10px;
-  grid-row-gap: 20px;
+  grid-row-gap: ${props => (props.twoCols ? 30 : 20)}px;
   grid-auto-flow: row;
   align-items: center;
 `;
@@ -193,6 +195,24 @@ const SingleCheckboxWrapper = styled.div`
   width: 240px;
 `;
 
+const TopBorderRowWrapper = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30px 0;
+  margin-top: 20px;
+  border-top: 1px solid #e6e6eb;
+
+  div {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #555e6f;
+  }
+`;
+
 const DEFAULT_NUM_RESULTS = 100;
 
 const newDateRange = Object.assign({}, {
@@ -209,20 +229,29 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
       selectedNeighborTypes: [],
       dateRanges: List.of(newDateRange),
       dateRangeViewing: 0,
-      countType: COUNT_TYPES.EVENTS
+      countType: COUNT_TYPES.EVENTS,
+      durationTypeWeights: Map()
     };
   }
 
   searchTopUtilizers = () => {
-    const { getTopUtilizers, selectedEntitySet } = this.props;
-    const { dateRanges, selectedNeighborTypes } = this.state;
+    const { entityTypesById, getTopUtilizers, selectedEntitySet } = this.props;
+    const {
+      countType,
+      dateRanges,
+      durationTypeWeights,
+      selectedNeighborTypes
+    } = this.state;
     const entitySetId = selectedEntitySet.get('id');
 
     getTopUtilizers({
       entitySetId,
       numResults: DEFAULT_NUM_RESULTS,
       eventFilters: selectedNeighborTypes,
-      dateFilters: dateRanges
+      dateFilters: dateRanges,
+      countType,
+      durationTypeWeights,
+      entityTypesById
     });
   }
 
@@ -259,10 +288,43 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
     );
   }
 
+  getDurationPropertiesForType = (entityTypeId) => {
+    const { entityTypesById, propertyTypesById } = this.props;
+
+    return entityTypesById.getIn([entityTypeId, 'properties'], List())
+      .filter((propertyTypeId) => {
+        const fqn = getFqnString(propertyTypesById.getIn([propertyTypeId, 'type']));
+        return !!DURATION_TYPES[fqn];
+      });
+
+  }
+
+  getAvailableDurationProperties = () => {
+    const { selectedNeighborTypes } = this.state;
+
+    let available = Map();
+
+    selectedNeighborTypes.forEach((neighborTypeObj) => {
+      const assocId = neighborTypeObj[TOP_UTILIZERS_FILTER.ASSOC_ID];
+      const neighborId = neighborTypeObj[TOP_UTILIZERS_FILTER.NEIGHBOR_ID];
+
+      const durationProperties = this.getDurationPropertiesForType(assocId)
+        .concat(this.getDurationPropertiesForType(neighborId))
+
+      if (durationProperties.size) {
+        available = available.set(List.of(assocId, neighborId), durationProperties);
+      }
+    });
+
+    return available;
+  }
+
   renderSearchOption = () => {
-    const { countType } = this.state;
+    const { entityTypesById, propertyTypesById } = this.props;
+    const { countType, durationTypeWeights, selectedNeighborTypes } = this.state;
 
     const onChange = e => this.setState({ countType: e.target.value });
+    const availableDurationProperties = this.getAvailableDurationProperties();
 
     return (
       <DropdownWrapper>
@@ -274,11 +336,48 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
               onChange={onChange}
               label="Events" />
           <StyledRadio
+              disabled={availableDurationProperties.size !== selectedNeighborTypes.length}
               checked={countType === COUNT_TYPES.DURATION}
               value={COUNT_TYPES.DURATION}
               onChange={onChange}
               label="Duration" />
         </RowWrapper>
+        {
+          countType === COUNT_TYPES.DURATION ? (
+            <DropdownWrapper noPadding>
+              <TopBorderRowWrapper>
+                <div>Properties to include</div>
+              </TopBorderRowWrapper>
+              <PropertyTypeWrapper twoCols>
+                {availableDurationProperties.entrySeq().flatMap(([pair, propertyTypeIds]) => {
+                  const assocTitle = entityTypesById.getIn([pair.get(0), 'title'], '');
+                  const neighborTitle = entityTypesById.getIn([pair.get(1), 'title'], '');
+
+                  return propertyTypeIds.map((propertyTypeId) => {
+                    const weight = durationTypeWeights.getIn([pair, propertyTypeId], 0);
+                    const propertyTypeTitle = propertyTypesById.getIn([propertyTypeId, 'title'], '');
+                    const label = `${assocTitle} ${neighborTitle} -- ${propertyTypeTitle}`;
+                    const onDurationChange = (e) => {
+                      const { checked } = e.target;
+                      const newWeight = checked ? 1 : 0;
+                      this.setState({
+                        durationTypeWeights: durationTypeWeights.setIn([pair, propertyTypeId], newWeight)
+                      });
+                    }
+                    return (
+                      <div key={label}>
+                        <StyledCheckbox
+                            checked={weight > 0}
+                            label={label}
+                            onChange={onDurationChange} />
+                      </div>
+                    );
+                  });
+                })}
+              </PropertyTypeWrapper>
+            </DropdownWrapper>
+          ) : null
+        }
       </DropdownWrapper>
     );
   }
@@ -475,6 +574,40 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
     );
   }
 
+  onSelectedNeighborPairChange = (newList) => {
+    const { countType, durationTypeWeights } = this.state;
+
+    let newDurationTypeWeights = Map();
+
+    newList.forEach((neighborTypeObj) => {
+      const assocId = neighborTypeObj[TOP_UTILIZERS_FILTER.ASSOC_ID];
+      const neighborId = neighborTypeObj[TOP_UTILIZERS_FILTER.NEIGHBOR_ID];
+
+      const durationPropertyTypes = this.getDurationPropertiesForType(assocId)
+        .concat(this.getDurationPropertiesForType(neighborId));
+
+      if (durationPropertyTypes.size) {
+        const pair = List.of(assocId, neighborId);
+        durationPropertyTypes.forEach((propertyTypeId) => {
+
+          newDurationTypeWeights = newDurationTypeWeights.setIn(
+            [pair, propertyTypeId],
+            durationTypeWeights.getIn([pair, propertyTypeId], 1)
+          );
+
+        });
+      }
+    });
+
+    const newCountType = newList.length === newDurationTypeWeights.size ? countType : COUNT_TYPES.EVENTS;
+
+    this.setState({
+      selectedNeighborTypes: newList,
+      durationTypeWeights: newDurationTypeWeights,
+      countType: newCountType
+    });
+  }
+
   render() {
     const { selectedNeighborTypes } = this.state;
     const {
@@ -501,12 +634,12 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
                   selectedEntitySet={selectedEntitySet}
                   neighborTypes={neighborTypes}
                   selectedNeighborTypes={selectedNeighborTypes}
-                  onChange={newList => this.setState({ selectedNeighborTypes: newList })} />
+                  onChange={this.onSelectedNeighborPairChange} />
             </InputGroup>
           </InputRow>
           <InputRow>
             <InputGroup>
-              <DropdownButtonWrapper title="Search Option" width={300} short fullSize>
+              <DropdownButtonWrapper title="Search Option" width={550} short fullSize>
                 {this.renderSearchOption()}
               </DropdownButtonWrapper>
             </InputGroup>

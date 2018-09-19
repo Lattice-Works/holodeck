@@ -20,7 +20,7 @@ import {
   getTopUtilizers,
   loadTopUtilizerNeighbors
 } from './TopUtilizersActionFactory';
-import { TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
+import { COUNT_TYPES, TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
 import { getEntityKeyId } from '../../utils/DataUtils';
 import { toISODate } from '../../utils/FormattingUtils';
 
@@ -33,12 +33,14 @@ const getDateFiltersFromMap = (id, dateMap) => {
       let rangeDescriptor = {};
       if (start) {
         rangeDescriptor = Object.assign({}, rangeDescriptor, {
+          '@class': 'com.openlattice.analysis.requests.DateRangeFilter',
           lowerbound: start,
           gte: true
         });
       }
       if (end) {
         rangeDescriptor = Object.assign({}, rangeDescriptor, {
+          '@class': 'com.openlattice.analysis.requests.DateRangeFilter',
           upperbound: end,
           lte: true
         });
@@ -56,7 +58,10 @@ function* getTopUtilizersWorker(action :SequenceAction) {
       entitySetId,
       numResults,
       eventFilters,
-      dateFilters
+      dateFilters,
+      countType,
+      durationTypeWeights,
+      entityTypesById
     } = action.value;
 
     yield put(getTopUtilizers.request(action.id, { eventFilters, dateFilters }));
@@ -79,27 +84,61 @@ function* getTopUtilizersWorker(action :SequenceAction) {
 
     const formattedFilters = eventFilters.map((selectedType) => {
       const assocId = selectedType[TOP_UTILIZERS_FILTER.ASSOC_ID];
-      const neighborId = selectedType[TOP_UTILIZERS_FILTER.NEIGHBOR_ID]
+      const neighborId = selectedType[TOP_UTILIZERS_FILTER.NEIGHBOR_ID];
+      const countWeight = countType === COUNT_TYPES.EVENTS ? selectedType[TOP_UTILIZERS_FILTER.WEIGHT] : 0;
+
+      const getAgg = (entityTypeId) => {
+        let agg = {};
+
+        if (countType === COUNT_TYPES.DURATION) {
+          const pair = List.of(assocId, neighborId);
+          const propertyTypeWeights = durationTypeWeights.get(pair, Map());
+
+          entityTypesById.getIn([entityTypeId, 'properties'], List()).forEach((id) => {
+            if (propertyTypeWeights.has(id)) {
+              const weight = propertyTypeWeights.get(id) * selectedType[TOP_UTILIZERS_FILTER.WEIGHT];
+              if (weight !== 0) {
+                agg = Object.assign({}, agg, {
+                  [id]: {
+                    weight,
+                    aggregationType: 'SUM'
+                  }
+                });
+              }
+            }
+          });
+        }
+        return agg;
+      };
+
       let descriptor = {
         associationTypeId: assocId,
-        neighborTypeIds: [neighborId],
-        utilizerIsSrc: selectedType[TOP_UTILIZERS_FILTER.IS_SRC]
+        neighborTypeId: neighborId,
+        isDst: selectedType[TOP_UTILIZERS_FILTER.IS_SRC],
+        entitySetAggregations: getAgg(neighborId),
+        associationAggregations: getAgg(assocId),
+        weight: countWeight
       };
 
       const assocRangeFilters = getDateFiltersFromMap(assocId, dateFiltersAsMap);
       if (assocRangeFilters.size) {
-        // TODO UPDATE DESCRIPTOR
+        descriptor = Object.assign({}, descriptor, { associationFilters: assocRangeFilters.toJS() });
       }
 
       const neighborRangeFilters = getDateFiltersFromMap(neighborId, dateFiltersAsMap);
       if (neighborRangeFilters.size) {
-        // TODO UPDATE DESCRIPTOR
+        descriptor = Object.assign({}, descriptor, { neighborFilters: neighborRangeFilters.toJS() });
       }
 
       return descriptor;
     });
 
-    const topUtilizers = yield call(AnalysisApi.getTopUtilizers, entitySetId, numResults, formattedFilters);
+    const query = {
+      neighborAggregations: formattedFilters,
+      selfAggregations: []
+    };
+
+    const topUtilizers = yield call(AnalysisApi.getTopUtilizers, entitySetId, numResults, query);
     yield put(getTopUtilizers.success(action.id, topUtilizers));
 
     yield put(loadTopUtilizerNeighbors({
@@ -222,10 +261,8 @@ function* loadTopUtilizerNeighborsWorker(action :SequenceAction) :Generator<*, *
         if (associationEntitySet && neighborEntitySet) {
           const assocId = associationEntitySet.entityTypeId;
           const neighborId = neighborEntitySet.entityTypeId;
-          delete neighbor.associationPropertyTypes;
 
           if (assocId && neighborId) {
-            delete neighbor.neighborPropertyTypes;
             const pair = List.of(assocId, neighborId);
 
             if (counts.has(pair)

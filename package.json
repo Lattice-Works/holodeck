@@ -95,6 +95,7 @@
   },
   "scripts": {
     "app": "better-npm-run webpack-dev-server",
+    "build:dev": "better-npm-run build:dev",
     "build:prod": "better-npm-run build:prod",
     "clean": "rimraf build/*",
     "flow": "flow",
@@ -105,6 +106,12 @@
     "test:watch": "jest --config config/jest/jest.config.js --watch"
   },
   "betterScripts": {
+    "build:dev": {
+      "command": "webpack --config config/webpack/webpack.config.babel.js",
+      "env": {
+        "BUILD": "development"
+      }
+    },
     "build:prod": {
       "command": "webpack --config config/webpack/webpack.config.babel.js",
       "env": {
