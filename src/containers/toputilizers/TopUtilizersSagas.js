@@ -3,7 +3,7 @@
  */
 
 import moment from 'moment';
-import { AnalysisApi, SearchApi } from 'lattice';
+import { AnalysisApi, DataApi, SearchApi } from 'lattice';
 import {
   fromJS,
   List,
@@ -138,7 +138,27 @@ function* getTopUtilizersWorker(action :SequenceAction) {
       selfAggregations: []
     };
 
-    const topUtilizers = yield call(AnalysisApi.getTopUtilizers, entitySetId, numResults, query);
+    let topUtilizers = yield call(AnalysisApi.getTopUtilizers, entitySetId, numResults, query);
+
+    // TODO delete when we have data in response v
+
+    const ID_KEY = 'self_entity_key_id';
+
+    const utilizerData = yield call(DataApi.getEntitySetData, entitySetId, [], topUtilizers.map(u => u[ID_KEY]));
+
+    const entitiesAsMap = {};
+    utilizerData.forEach((utilizer) => {
+      entitiesAsMap[utilizer['openlattice.@id'][0]] = utilizer;
+    });
+
+    topUtilizers = topUtilizers.map(utilizer => Object.assign(
+      {},
+      utilizer,
+      entitiesAsMap[utilizer[ID_KEY]],
+      { 'openlattice.@count': [utilizer.score] }
+    ));
+    // TODO delete when we have data in response ^
+
     yield put(getTopUtilizers.success(action.id, topUtilizers));
 
     yield put(loadTopUtilizerNeighbors({
