@@ -71,11 +71,11 @@ class AppContainer extends React.Component<Props> {
         <AppBodyWrapper>
           <HeaderNav logout={actions.logout} />
           <Switch>
-            <Route path={Routes.EXPLORE} component={ExploreContainer} />
+            {/* <Route path={Routes.EXPLORE} component={ExploreContainer} /> // TODO bring back the routes
             <Route path={Routes.MANAGE} component={DataManagementContainer} />
-            <Route path={Routes.REPORTS} component={ReportsContainer} />
+            <Route path={Routes.REPORTS} component={ReportsContainer} /> */}
             <Route path={Routes.TOP_UTILIZERS} component={TopUtilizersContainer} />
-            <Redirect to={Routes.EXPLORE} />
+            <Redirect to={Routes.TOP_UTILIZERS} />
           </Switch>
         </AppBodyWrapper>
       </AppWrapper>
