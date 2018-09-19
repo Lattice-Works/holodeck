@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import moment from 'moment';
 import {
   Map,
@@ -140,6 +140,13 @@ const RowWrapper = styled.div`
   justify-content: space-between;
   align-items: center;
   width: 100%;
+
+  ${props => (props.radioHalfSize ? css`
+    label {
+      width: 49%;
+      text-align: left;
+    }
+  ` : '')}
 `;
 
 const RightRowWrapper = styled(RowWrapper)`
@@ -326,17 +333,20 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
     const onChange = e => this.setState({ countType: e.target.value });
     const availableDurationProperties = this.getAvailableDurationProperties();
 
+    const isDisabled = !availableDurationProperties.size
+      || availableDurationProperties.size !== selectedNeighborTypes.length;
+
     return (
       <DropdownWrapper>
         <RadioTitle>Count Type</RadioTitle>
-        <RowWrapper>
+        <RowWrapper radioHalfSize>
           <StyledRadio
               checked={countType === COUNT_TYPES.EVENTS}
               value={COUNT_TYPES.EVENTS}
               onChange={onChange}
               label="Events" />
           <StyledRadio
-              disabled={availableDurationProperties.size !== selectedNeighborTypes.length}
+              disabled={isDisabled}
               checked={countType === COUNT_TYPES.DURATION}
               value={COUNT_TYPES.DURATION}
               onChange={onChange}
