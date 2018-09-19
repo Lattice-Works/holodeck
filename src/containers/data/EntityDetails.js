@@ -14,7 +14,8 @@ import DataTable from '../../components/data/DataTable';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import NeighborTables from '../../components/data/NeighborTables';
 import NeighborTimeline from '../../components/data/NeighborTimeline';
-import PersonResultCard from '../../components/people/PersonResultCard';
+import SelectedPersonResultCard from '../../components/people/SelectedPersonResultCard';
+import PersonCountsCard from '../../components/people/PersonCountsCard';
 import Breadcrumbs from '../../components/nav/Breadcrumbs';
 import {
   STATE,
@@ -22,14 +23,19 @@ import {
   EXPLORE,
   TOP_UTILIZERS
 } from '../../utils/constants/StateConstants';
+import { COUNT_FQN } from '../../utils/constants/DataConstants';
 import { BREADCRUMB } from '../../utils/constants/ExploreConstants';
+import { PERSON_ENTITY_TYPE_FQN } from '../../utils/constants/DataModelConstants';
 import { FixedWidthWrapper, TableWrapper } from '../../components/layout/Layout';
-import { getEntityKeyId, getNeighborCountsForFilters, groupNeighbors } from '../../utils/DataUtils';
+import {
+  getEntityKeyId,
+  getFqnString,
+  getNeighborCountsForFilters,
+  groupNeighbors
+} from '../../utils/DataUtils';
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 
 type Props = {
-  withCounts? :boolean,
-  isPersonType :boolean,
   breadcrumbs :List<string>,
   isLoadingNeighbors :boolean,
   neighborsById :Map<string, *>,
@@ -70,10 +76,6 @@ const HEADERS = {
 
 class EntityDetails extends React.Component<Props, State> {
 
-  static defaultProps = {
-    withCounts: false
-  }
-
   constructor(props :Props) {
     super(props);
     this.state = {
@@ -90,19 +92,19 @@ class EntityDetails extends React.Component<Props, State> {
     return Map();
   }
 
-  renderPersonCard = () => {
+  renderCountsCard = () => {
     const {
       neighborsById,
-      topUtilizerFilters,
-      withCounts
+      topUtilizerFilters
     } = this.props;
-    let counts;
     const entity = this.getSelectedEntity();
-    if (withCounts) {
-      const neighbors = neighborsById.get(getEntityKeyId(entity), List());
-      counts = getNeighborCountsForFilters(topUtilizerFilters, neighbors);
-    }
-    return <PersonResultCard person={entity} counts={counts} />;
+    const total = entity.getIn([COUNT_FQN, 0]);
+    if (total === undefined) return null;
+
+    const neighbors = neighborsById.get(getEntityKeyId(entity), List());
+    const counts = getNeighborCountsForFilters(topUtilizerFilters, neighbors);
+
+    return <PersonCountsCard total={total} counts={counts} />;
   }
 
   renderEntityTable = () => {
@@ -207,7 +209,7 @@ class EntityDetails extends React.Component<Props, State> {
         onClick: () => this.updateLayout(LAYOUTS.TIMELINE)
       }
     ];
-    return <ButtonToolbar options={options} value={layout} />
+    return <ButtonToolbar options={options} value={layout} />;
   }
 
   renderBreadcrumbs = () => {
@@ -219,13 +221,29 @@ class EntityDetails extends React.Component<Props, State> {
     return <Breadcrumbs breadcrumbs={crumbs} />;
   }
 
+  isCurrentPersonType = () => {
+    const { breadcrumbs, entitySetsById, entityTypesById } = this.props;
+    if (!breadcrumbs.size) {
+      return false;
+    }
+
+    const entitySetId = breadcrumbs.get(-1)[BREADCRUMB.ENTITY_SET_ID];
+    const entityType = entityTypesById.get(entitySetsById.getIn([entitySetId, 'entityTypeId']));
+
+    if (!entityType) {
+      return false;
+    }
+
+    return getFqnString(entityType.get('type')) === PERSON_ENTITY_TYPE_FQN;
+  }
+
   render() {
-    const { isPersonType } = this.props;
     return (
       <div>
         {this.renderBreadcrumbs()}
         {this.renderLayoutOptions()}
-        {isPersonType ? this.renderPersonCard() : null}
+        {this.isCurrentPersonType() ? <SelectedPersonResultCard person={this.getSelectedEntity()} /> : null}
+        {this.renderCountsCard()}
         {this.renderEntityTable()}
         {this.renderNeighbors()}
       </div>

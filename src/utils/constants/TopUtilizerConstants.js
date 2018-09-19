@@ -5,7 +5,8 @@ export const TOP_UTILIZERS_FILTER = {
   NEIGHBOR_TITLE: 'neighborTitle',
   IS_SRC: 'src',
   VALUE: 'value',
-  LABEL: 'label'
+  LABEL: 'label',
+  WEIGHT: 'weight'
 };
 
 export const RESULT_DISPLAYS = {
@@ -25,4 +26,15 @@ export const PARETO_LABELS = {
   COUNT: 'count',
   INDIVIDUAL_PERCENTAGE: 'Individual percentage',
   CUMULATIVE_PERCENTAGE: 'Cumulative percentage'
+};
+
+export const RESOURCE_TYPES = {
+  EVENTS: 'EVENTS',
+  HOURS: 'HOURS',
+  COST: 'COST'
+};
+
+export const COUNT_TYPES = {
+  EVENTS: 'EVENTS',
+  DURATION: 'DURATION'
 };

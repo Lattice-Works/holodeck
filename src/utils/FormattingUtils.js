@@ -28,3 +28,19 @@ export const formatDateTime = (dateTimeStr :string) :string => {
 
 export const formatDateTimeList = (dateTimeList :List<string>) :string => dateTimeList
   .map(dateTimeStr => formatDateTime(dateTimeStr)).filter(str => str.length).join(', ');
+
+export function toISODateTime(momentObj) {
+  let momentStr;
+  if (momentObj && momentObj.isValid && momentObj.isValid()) {
+    momentStr = momentObj.format('YYYY-MM-DDTHH:mm:ss.SSSZ');
+  }
+  return momentStr;
+}
+
+export function toISODate(momentObj) {
+  let momentStr;
+  if (momentObj && momentObj.isValid && momentObj.isValid()) {
+    momentStr = momentObj.format('YYYY-MM-DD');
+  }
+  return momentStr;
+}

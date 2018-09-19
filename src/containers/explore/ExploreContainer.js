@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { List } from 'immutable';
+import { List, Map, fromJS } from 'immutable';
 
 import { ComponentWrapper } from '../../components/layout/Layout';
 

@@ -24,6 +24,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@atlaskit/datetime-picker": "^6.3.5",
+    "@atlaskit/modal-dialog": "^7.0.1",
     "@fortawesome/fontawesome-svg-core": "^1.2.0",
     "@fortawesome/pro-light-svg-icons": "^5.2.0",
     "@fortawesome/pro-regular-svg-icons": "^5.2.0",
@@ -94,6 +95,7 @@
   },
   "scripts": {
     "app": "better-npm-run webpack-dev-server",
+    "build:dev": "better-npm-run build:dev",
     "build:prod": "better-npm-run build:prod",
     "clean": "rimraf build/*",
     "flow": "flow",
@@ -104,6 +106,12 @@
     "test:watch": "jest --config config/jest/jest.config.js --watch"
   },
   "betterScripts": {
+    "build:dev": {
+      "command": "webpack --config config/webpack/webpack.config.babel.js",
+      "env": {
+        "BUILD": "development"
+      }
+    },
     "build:prod": {
       "command": "webpack --config config/webpack/webpack.config.babel.js",
       "env": {

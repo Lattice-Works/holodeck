@@ -8,7 +8,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronUp } from '@fortawesome/pro-regular-svg-icons';
 
 import BasicButton from './BasicButton';
-import StyledCheckbox from '../controls/StyledCheckbox';
 
 /*
  * styled components
@@ -60,6 +59,7 @@ const SearchButton = styled(BasicButton)`
   font-family: 'Open Sans', sans-serif;
   flex: 1 0 auto;
   font-size: 14px;
+  font-weight: 600;
   letter-spacing: 0;
   padding: 0 45px 0 20px;
   outline: none;
@@ -94,18 +94,6 @@ const DataTableWrapper = styled.div`
   max-width: ${props => (props.fullSize ? '100%' : '400px')};
   min-width: ${props => (props.width ? `${props.width}px` : 'auto')};
   width: ${props => (props.fullSize ? '100%' : 'auto')};
-`;
-
-const SearchOptionContainer = styled.div`
-  max-height: 300px;
-  overflow-x: auto;
-  overflow-y: scroll;
-  padding: 20px;
-  text-align: left;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
 `;
 
 export default class DropdownButtonWrapper extends Component<Props, State> {

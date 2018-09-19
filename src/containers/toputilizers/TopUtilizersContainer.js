@@ -194,6 +194,8 @@ class TopUtilizersContainer extends React.Component<Props, State> {
       actions,
       display,
       neighborTypes,
+      propertyTypesById,
+      entityTypesById,
       results,
       selectedEntitySet,
       selectedEntitySetPropertyTypes
@@ -213,6 +215,8 @@ class TopUtilizersContainer extends React.Component<Props, State> {
                   selectedEntitySetPropertyTypes={selectedEntitySetPropertyTypes}
                   selectedPropertyTypes={selectedPropertyTypes}
                   neighborTypes={neighborTypes}
+                  entityTypesById={entityTypesById}
+                  propertyTypesById={propertyTypesById}
                   getTopUtilizers={actions.getTopUtilizers}
                   onPropertyTypeChange={this.onPropertyTypeChange}
                   changeTopUtilizersDisplay={actions.changeTopUtilizersDisplay}

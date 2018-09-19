@@ -55,7 +55,7 @@ const CheckboxIndicator = styled.div`
   }
 
   ${Control} input:disabled ~ & {
-    background: #E6E6F7;
+    background: #b6bbc6;
     opacity: 0.6;
     pointer-events: none;
   }
@@ -72,6 +72,7 @@ const CheckboxIndicator = styled.div`
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
 
+    ${Control} input:disabled ~ &,
     ${Control} input:checked ~ & {
       display: block;
     }
@@ -84,10 +85,6 @@ const CheckboxIndicator = styled.div`
       border: solid #FFFFFF;
       border-width: 0 2px 2px 0;
       transform: rotate(45deg);
-    }
-
-    ${Control} input:disabled ~ & {
-      border-color: #7B7B7B;
     }
   }
 `;

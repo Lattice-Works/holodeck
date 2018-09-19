@@ -6,6 +6,7 @@ import React from 'react';
 import styled from 'styled-components';
 import moment from 'moment';
 import Select, { components } from 'react-select';
+import Modal, { ModalTransition } from '@atlaskit/modal-dialog';
 import {
   fromJS,
   List,
@@ -19,15 +20,17 @@ import {
   BarChart,
   XAxis,
   YAxis,
-  ComposedChart,
   Tooltip
 } from 'recharts';
 
 import LoadingSpinner from '../LoadingSpinner';
 import ChartWrapper from '../charts/ChartWrapper';
+import CostRateModal from './CostRateModal';
+import UtilityButton from '../buttons/UtilityButton';
 import getTitle from '../../utils/EntityTitleUtils';
+import { CHART_EXPLANATIONS, RESOURCE_TYPES } from '../../utils/constants/TopUtilizerConstants';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { CHART_EXPLANATIONS } from '../../utils/constants/TopUtilizerConstants';
+import { RESOURCE_COLORS } from '../../utils/constants/Colors';
 import {
   CenteredColumnContainer,
   FixedWidthWrapper,
@@ -51,9 +54,26 @@ type Props = {
 type State = {
   processedDates :Map<*, *>,
   processedDurations :Map<*, *>,
+  costRates :Map<List<string>, number>,
+  isSettingCostRate :boolean,
   SELECTED_UTILIZER :{},
   SELECTED_TYPE :{}
 };
+
+const PaddedTitleText = styled(TitleText)`
+  margin-bottom: 30px;
+`;
+
+const RowWrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+`;
+
+const ChartCard = styled.div`
+  width: 49%;
+`;
 
 const SimpleWrapper = styled.div`
   flex-shrink: 1;
@@ -159,6 +179,51 @@ const TimelineTooltip = styled.div`
   visibility: visible;
 `;
 
+const BarChartWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  align-items: flex-start;
+`;
+
+const Subtitle = styled.div`
+  display: block;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #8e929b;
+  margin: -20px 0 30px 0;
+
+  span {
+    color: #555e6f;
+  }
+`;
+
+const CostRateButton = styled(UtilityButton)`
+  position: absolute;
+  top: 30px;
+  right: 30px;
+`;
+
+const FloatingTooltipWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  border-radius: 3px;
+  box-shadow: 0 10px 20px 0 rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+  border: solid 1px #e1e1eb;
+  padding: 5px 15px;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #2e2e34;
+
+  span {
+    padding: 5px 0;
+  }
+`;
+
 const FILTERS = {
   SELECTED_UTILIZER: 'SELECTED_UTILIZER',
   SELECTED_TYPE: 'SELECTED_TYPE'
@@ -169,7 +234,7 @@ const BLANK_OPTION = fromJS({
   label: 'All'
 });
 
-const MONTH_FORMAT = 'MM/YYYY';
+const MONTH_FORMAT = 'M/YYYY';
 
 export default class TopUtilizerResouces extends React.Component<Props, State> {
 
@@ -179,7 +244,9 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
       [FILTERS.SELECTED_UTILIZER]: BLANK_OPTION.toJS(),
       [FILTERS.SELECTED_TYPE]: BLANK_OPTION.toJS(),
       processedDates: Map(),
-      processedDurations: Map()
+      processedDurations: Map(),
+      costRates: Map(),
+      isSettingCostRate: false
     };
   }
 
@@ -233,11 +300,19 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     }
 
     const allPairsMap = detailedCounts.first();
-    const blankMap = this.getBlankMap(allPairsMap.keySeq());
-    const durationTypes = this.getTypesWithDuration(allPairsMap.keySeq(), entityTypesById, propertyTypesById);
+    const allPairs = allPairsMap.keySeq();
+    const blankMap = this.getBlankMap(allPairs);
+    const durationTypes :Set<string> = this.getTypesWithDuration(allPairs, entityTypesById, propertyTypesById);
 
+    let costRates = Map();
     let processedDates = Map();
     let processedDurations = Map();
+
+    allPairs.forEach((pair) => {
+      if (durationTypes.has(pair.get(1))) {
+        costRates = costRates.set(pair, this.state.costRates.get(pair, 0));
+      }
+    });
 
     results.forEach((utilizer) => {
       const id = getEntityKeyId(utilizer);
@@ -285,7 +360,7 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
       processedDurations = processedDurations.set(id, durationMap);
     });
 
-    this.setState({ processedDates, processedDurations });
+    this.setState({ costRates, processedDates, processedDurations });
   }
 
   renderOption = (data, selected, onClick) => (
@@ -341,8 +416,9 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     );
   }
 
-  getCountsByYearAndMonth = () => {
-    const { processedDates } = this.state;
+  getCountsByYearAndMonth = (byDates, withMultiplier) => {
+    const { costRates, processedDates, processedDurations } = this.state;
+    const processedValues = byDates ? processedDates : processedDurations;
 
     /* pair -> year -> month -> count */
     let counts = Map();
@@ -354,25 +430,27 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
           const month = Number.parseInt(monthAndYear[0], 10);
           const year = Number.parseInt(monthAndYear[1], 10);
           if (!Number.isNaN(month) && !Number.isNaN(year)) {
-            counts = counts.setIn([pair, year, month], counts.getIn([pair, year, month], 0) + count);
+            const countValue = withMultiplier ? count * costRates.get(pair) : count;
+            counts = counts.setIn([pair, year, month], counts.getIn([pair, year, month], 0) + countValue);
           }
         });
       });
     };
 
-    if (this.state[FILTERS.SELECTED_UTILIZER].value.length) {
-      updateCounts(processedDates.get(this.state[FILTERS.SELECTED_UTILIZER].value));
+    const { value } = this.state[FILTERS.SELECTED_UTILIZER];
+    if (value && value.length) {
+      updateCounts(processedValues.get(value));
     }
     else {
-      processedDates.valueSeq().forEach(countsMap => updateCounts(countsMap));
+      processedValues.valueSeq().forEach(countsMap => updateCounts(countsMap));
     }
 
     return counts;
   }
 
-  getFilteredCountsForType = (byMonth) => {
+  getFilteredCountsForType = (byDates, byMonth, withMultiplier) => {
     /* either year -> count OR year -> month -> count (depending on byMonth) */
-    const pairDateCounts = this.getCountsByYearAndMonth();
+    const pairDateCounts = this.getCountsByYearAndMonth(byDates, withMultiplier);
     let counts = Map();
 
     const updateCountsByDate = (pair) => {
@@ -389,8 +467,9 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
       });
     };
 
-    if (this.state[FILTERS.SELECTED_TYPE].value.size) {
-      updateCountsByDate(this.state[FILTERS.SELECTED_TYPE].value);
+    const { value } = this.state[FILTERS.SELECTED_TYPE];
+    if (value && value.size) {
+      updateCountsByDate(value);
     }
     else {
       pairDateCounts.keySeq().forEach(pair => updateCountsByDate(pair));
@@ -399,19 +478,63 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     return counts;
   }
 
-  renderEventCountChart = () => {
-    const countsByYear = this.getFilteredCountsForType();
+  formatCostNumber = num => Number.parseFloat(num).toFixed(2);
 
-    const data = countsByYear.entrySeq().map(([year, count]) => ({ year, count }));
+  formatTotalText = (total, resourceType, forTooltip) => {
+    switch (resourceType) {
+      case RESOURCE_TYPES.HOURS:
+        return forTooltip ? `Hours: ${total}` : `${total} hours`;
+
+      case RESOURCE_TYPES.COST: {
+        const costNum = `$${this.formatCostNumber(total)}`
+        return forTooltip ? `Cost: ${costNum}` : costNum;
+      }
+
+      case RESOURCE_TYPES.EVENTS:
+      default:
+        return forTooltip ? `Event count: ${total}` : `${total}`;
+    }
+  }
+
+  renderBarChartTooltip = (resourceType, { label, payload }) => {
+    if (payload && payload.length) {
+      const { value } = payload[0];
+
+      return (
+        <FloatingTooltipWrapper>
+          <span>{`Year: ${label}`}</span>
+          <span>{this.formatTotalText(value, resourceType, true)}</span>
+        </FloatingTooltipWrapper>
+      );
+    }
+
+    return null;
+  }
+
+  renderSimpleBarChart = (resourceType, byDates, withCostMultiplier) => {
+    const colors = RESOURCE_COLORS[resourceType];
+    const data = this.getFilteredCountsForType(byDates, false, withCostMultiplier)
+      .entrySeq()
+      .map(([year, count]) => ({ year, count }));
+    const total = data.map(point => point.count).reduce((t1, t2) => t1 + t2);
+
+    /* workaround -- recharts has a bug which doesn't display number-type data if there is only one data point */
     const xAxisType = data.size > 1 ? 'number' : 'category';
 
     return (
-      <BarChart width={400} height={400} data={[...data.toJS()]}>
-        <YAxis type="number" tickLine={false} />
-        <XAxis type={xAxisType} tickLine={false} dataKey="year" domain={['dataMin', 'dataMax']} />
-        <Tooltip />
-        <Bar dataKey="count" fill="#ffc59e" />
-      </BarChart>
+      <BarChartWrapper>
+        <Subtitle>Total: <span>{this.formatTotalText(total, resourceType)}</span></Subtitle>
+        {withCostMultiplier
+          ? <CostRateButton onClick={() => this.setState({ isSettingCostRate: true })}>Cost Rate</CostRateButton>
+          : null
+        }
+        <BarChart width={400} height={400} data={data.toJS()}>
+          <YAxis type="number" tickLine={false} />
+          <XAxis type={xAxisType} tickLine={false} dataKey="year" domain={['dataMin', 'dataMax']} />
+          <Tooltip content={payloadData => this.renderBarChartTooltip(resourceType, payloadData)} />
+          <Bar dataKey="count" fill={colors[0]} />
+        </BarChart>
+      </BarChartWrapper>
     );
   }
 
@@ -454,13 +577,13 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     return (
       <WideSplitCard>
         <SimpleWrapper>
-          <TitleText>Resources Setup</TitleText>
+          <PaddedTitleText>Resources Option</PaddedTitleText>
           {this.renderSelectDropdown(FILTERS.SELECTED_UTILIZER, selectedEntityType.get('title'), utilizerOptions)}
           {this.renderSelectDropdown(FILTERS.SELECTED_TYPE, 'Event Type', entityTypeOptions)}
         </SimpleWrapper>
         <SimpleWrapper>
-          <TitleText>Event Count</TitleText>
-          {this.renderEventCountChart()}
+          <PaddedTitleText>Event Count</PaddedTitleText>
+          {this.renderSimpleBarChart(RESOURCE_TYPES.EVENTS, true)}
         </SimpleWrapper>
       </WideSplitCard>
     );
@@ -478,15 +601,25 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     const formattedDate = date.isValid() ? date.format('MMM YYYY') : dateStr;
 
     let eventDescriptor;
+    let hoursDescriptor;
     payload.forEach((payloadPoint) => {
       const { color } = payloadPoint;
-      const { count } = payloadPoint.payload;
+      const { count, hours } = payloadPoint.payload;
       if (count !== undefined) {
         eventDescriptor = (
-          <TimelineLineDescriptor color={color}>
+          <TimelineLineDescriptor color={RESOURCE_COLORS.EVENTS[1]}>
             <div color={color} />
             <TimelineTooltipLabel>Event count</TimelineTooltipLabel>
             <div>{count}</div>
+          </TimelineLineDescriptor>
+        );
+      }
+      if (hours !== undefined) {
+        hoursDescriptor = (
+          <TimelineLineDescriptor color={RESOURCE_COLORS.HOURS[1]}>
+            <div color={color} />
+            <TimelineTooltipLabel>Hours</TimelineTooltipLabel>
+            <div>{hours}</div>
           </TimelineLineDescriptor>
         );
       }
@@ -496,18 +629,35 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
       <TimelineTooltip>
         <TimelineTooltipLabel>{formattedDate}</TimelineTooltipLabel>
         {eventDescriptor}
+        {hoursDescriptor}
       </TimelineTooltip>
     );
   }
 
   renderTimeline = () => {
-    const countsByYearAndMonth = this.getFilteredCountsForType(true);
+    const countsByYearAndMonth = this.getFilteredCountsForType(true, true);
+    const hoursByYearAndMonth = this.getFilteredCountsForType(false, true);
 
     const data = [];
+
+    let counts = Map();
     countsByYearAndMonth.entrySeq().forEach(([year, monthCounts]) => {
       monthCounts.entrySeq().forEach(([month, count]) => {
+        counts = counts.setIn([year, month, 'count'], count);
+      });
+    });
+    hoursByYearAndMonth.entrySeq().forEach(([year, monthCounts]) => {
+      monthCounts.entrySeq().forEach(([month, hours]) => {
+        counts = counts.setIn([year, month, 'hours'], hours);
+      });
+    });
+
+    counts.entrySeq().forEach(([year, monthCounts]) => {
+      monthCounts.entrySeq().forEach(([month, map]) => {
+        const count = map.get('count', 0);
+        const hours = map.get('hours', 0);
         const dt = year + ((month - 1) / 12);
-        data.push({ dt, count });
+        data.push({ dt, count, hours });
       });
     });
 
@@ -546,9 +696,61 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
               dot={false}
               strokeWidth={2}
               type="linear"
-              stroke="#ff9a58" />
+              stroke={RESOURCE_COLORS.EVENTS[1]} />
+          {
+            hoursByYearAndMonth.size ? (
+              <Line
+                  dataKey="hours"
+                  dot={false}
+                  strokeWidth={2}
+                  type="linear"
+                  stroke={RESOURCE_COLORS.HOURS[1]} />
+            ) : null
+          }
         </LineChart>
       </ChartWrapper>
+    );
+  }
+
+  renderHoursAndCost = () => {
+    if (!this.getFilteredCountsForType().size) {
+      return null;
+    }
+
+    return (
+      <RowWrapper>
+        <ChartCard>
+          <ChartWrapper title="Hours">
+            {this.renderSimpleBarChart(RESOURCE_TYPES.HOURS, false)}
+          </ChartWrapper>
+        </ChartCard>
+        <ChartCard>
+          <ChartWrapper title="Cost">
+            {this.renderSimpleBarChart(RESOURCE_TYPES.COST, false, true)}
+          </ChartWrapper>
+        </ChartCard>
+      </RowWrapper>
+    );
+  }
+
+  renderCostRateModal = () => {
+    const { entityTypesById } = this.props;
+    const { isSettingCostRate, costRates } = this.state;
+
+    const onClose = () => this.setState({ isSettingCostRate: false });
+    const onSetCostRate = newCostRates => this.setState({ costRates: newCostRates });
+    return (
+      <ModalTransition>
+        {isSettingCostRate && (
+          <Modal onClose={onClose}>
+            <CostRateModal
+                costRates={costRates}
+                entityTypesById={entityTypesById}
+                onClose={onClose}
+                onSetCostRate={onSetCostRate} />
+          </Modal>
+        )}
+      </ModalTransition>
     );
   }
 
@@ -567,7 +769,9 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     return (
       <CenteredColumnContainer>
         {this.renderBasicSetup()}
+        {this.renderHoursAndCost()}
         {this.renderTimeline()}
+        {this.renderCostRateModal()}
       </CenteredColumnContainer>
     );
   }

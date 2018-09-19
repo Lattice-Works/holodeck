@@ -19,8 +19,23 @@ export const PROPERTY_TYPES = {
 
   ENTRY_UPDATED: 'general.entryupdated',
 
-  DURATION: 'ol.durationinterval',
-  DATETIME_ALERTED: 'datetime.alerted'
+  DURATION_MINUTES: 'ol.durationinterval',
+  DURATION_HOURS: 'ol.durationhours',
+  DURATION_DAYS: 'ol.durationdays',
+  TIME_SERVED_DAYS: 'criminaljustice.timeserveddays',
+  HOUSING_LENGTH_OF_STAY: 'housing.lengthofstay',
+
+  DATETIME_ALERTED: 'datetime.alerted',
+  DATE_BOOKED: 'publicsafety.datebooked',
+  BOOKING_DATE: 'date.booking',
+  INCIDENT_START_DATETIME: 'incident.startdatetime',
+  ADMISSION_DATE: 'date.admission',
+
+  TIME_COMPLETED: 'time.completed',
+  DATETIME_RELEASED: 'ol.datetime_released',
+  RELEASE_DATE: 'publicsafety.ReleaseDate',
+  INCIDENT_END_DATETIME: 'incident.enddatetime',
+  DATETIME_RELEASE: 'ol.datetime_release'
 };
 
 export const DEFAULT_PERSON_PROPERTY_TYPES = [
@@ -39,6 +54,27 @@ export const DEFAULT_PERSON_PROPERTY_TYPES = [
   PROPERTY_TYPES.MUGSHOT,
   PROPERTY_TYPES.PICTURE
 ];
+
+export const DURATION_MINUTE_TYPES = {
+  [PROPERTY_TYPES.DURATION_MINUTES]: PROPERTY_TYPES.DATETIME_ALERTED
+};
+
+export const DURATION_HOUR_TYPES = {
+  [PROPERTY_TYPES.DURATION_HOURS]: PROPERTY_TYPES.INCIDENT_START_DATETIME
+};
+
+export const DURATION_DAY_TYPES = {
+  [PROPERTY_TYPES.DURATION_DAYS]: PROPERTY_TYPES.DATE_BOOKED,
+  [PROPERTY_TYPES.TIME_SERVED_DAYS]: PROPERTY_TYPES.BOOKING_DATE,
+  [PROPERTY_TYPES.HOUSING_LENGTH_OF_STAY]: PROPERTY_TYPES.ADMISSION_DATE
+};
+
+export const DURATION_TYPES = Object.assign(
+  {},
+  DURATION_MINUTE_TYPES,
+  DURATION_HOUR_TYPES,
+  DURATION_DAY_TYPES
+);
 
 export const DEFAULT_IGNORE_PROPERTY_TYPES = [
   PROPERTY_TYPES.ENTRY_UPDATED
