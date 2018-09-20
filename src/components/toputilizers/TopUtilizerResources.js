@@ -582,13 +582,38 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     return counts;
   }
 
-  formatCostNumber = num => Number.parseFloat(num).toFixed(2);
+  formatCostNumber = (num) => {
+    let parsedNum = this.formatNumber(num);
+    if (parsedNum.length > 1) {
+      if (parsedNum.endsWith('.')) {
+        parsedNum = `${parsedNum}00`;
+      }
+      if (parsedNum[parsedNum.length - 2] === '.') {
+        parsedNum = `${parsedNum}0`;
+      }
+    }
+
+    return parsedNum;
+  }
+
+  formatNumber = (num) => {
+    if (num === undefined) return num;
+
+    const val = Number.parseFloat(num);
+    if (!Number.isNaN(val)) {
+      return val.toLocaleString();
+    }
+
+    return num;
+  }
 
   formatTotalText = (total, resourceType, forTooltip) => {
     const timeUnit = this.getTimeUnit();
+    const num = this.formatNumber(total);
+
     switch (resourceType) {
       case RESOURCE_TYPES.DURATION:
-        return forTooltip ? `${timeUnit}: ${total}` : `${total} ${timeUnit.toLowerCase()}`;
+        return forTooltip ? `${timeUnit}: ${num}` : `${num} ${timeUnit.toLowerCase()}`;
 
       case RESOURCE_TYPES.COST: {
         const costNum = `$${this.formatCostNumber(total)}`
@@ -597,7 +622,7 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
 
       case RESOURCE_TYPES.EVENTS:
       default:
-        return forTooltip ? `Event count: ${total}` : `${total}`;
+        return forTooltip ? `Event count: ${num}` : `${num}`;
     }
   }
 
