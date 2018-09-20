@@ -30,9 +30,8 @@ import CostRateModal from './CostRateModal';
 import UtilityButton from '../buttons/UtilityButton';
 import getTitle from '../../utils/EntityTitleUtils';
 import { COUNT_FQN } from '../../utils/constants/DataConstants';
-import { CHART_EXPLANATIONS, RESOURCE_TYPES } from '../../utils/constants/TopUtilizerConstants';
+import { CHART_EXPLANATIONS, RESOURCE_TYPES, DEFAULT_COST_RATES } from '../../utils/constants/TopUtilizerConstants';
 import {
-  PROPERTY_TYPES,
   DURATION_TYPES,
   DURATION_DAY_TYPES,
   DURATION_HOUR_TYPES,
@@ -359,8 +358,10 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
 
     durationTypes.entrySeq().forEach(([pair, properties]) => {
       properties.forEach((propertyTypeId) => {
-        const triplet = pair.push(propertyTypeId)
-        costRates = costRates.set(triplet, this.state.costRates.get(triplet, 0))
+        const triplet = pair.push(propertyTypeId);
+        const fqn = getFqnString(propertyTypesById.getIn([propertyTypeId, 'type'], Map()));
+        const defaultCost = DEFAULT_COST_RATES[fqn] || 0;
+        costRates = costRates.set(triplet, this.state.costRates.get(triplet, defaultCost));
       });
     });
 
