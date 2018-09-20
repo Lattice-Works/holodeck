@@ -31,7 +31,13 @@ import UtilityButton from '../buttons/UtilityButton';
 import getTitle from '../../utils/EntityTitleUtils';
 import { COUNT_FQN } from '../../utils/constants/DataConstants';
 import { CHART_EXPLANATIONS, RESOURCE_TYPES } from '../../utils/constants/TopUtilizerConstants';
-import { PROPERTY_TYPES, DURATION_TYPES } from '../../utils/constants/DataModelConstants';
+import {
+  PROPERTY_TYPES,
+  DURATION_TYPES,
+  DURATION_DAY_TYPES,
+  DURATION_HOUR_TYPES,
+  DURATION_MINUTE_TYPES
+} from '../../utils/constants/DataModelConstants';
 import { RESOURCE_COLORS } from '../../utils/constants/Colors';
 import {
   CenteredColumnContainer,
@@ -237,6 +243,12 @@ const BLANK_OPTION = fromJS({
 
 const MONTH_FORMAT = 'M/YYYY';
 
+const TIME_UNIT = {
+  MINUTES: 'Minutes',
+  HOURS: 'Hours',
+  DAYS: 'Days'
+};
+
 export default class TopUtilizerResouces extends React.Component<Props, State> {
 
   constructor(props :Props) {
@@ -272,21 +284,6 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     return map;
   }
 
-  getTypesWithDuration = (allPairs, entityTypesById, propertyTypesById) => {
-    let ids = Set();
-
-    allPairs.forEach((pair) => {
-      const id = pair.get(1);
-      entityTypesById.getIn([id, 'properties']).forEach((propertyTypeId) => {
-        if (DURATION_TYPES[getFqnString(propertyTypesById.getIn([propertyTypeId, 'type']))]) {
-          ids = ids.add(id);
-        }
-      });
-    });
-
-    return ids;
-  }
-
   getAllPairs = () => {
     const { countBreakdown } = this.props;
 
@@ -311,6 +308,33 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     }
 
     return durationTypes;
+  }
+
+  getTimeUnit = () => {
+    const { propertyTypesById } = this.props;
+
+    const durationTypes = this.getDurationTypes();
+    if (!durationTypes.size) {
+      return '';
+    }
+
+    const propertyTypeId = durationTypes.valueSeq().first().first();
+
+    const fqn = getFqnString(propertyTypesById.getIn([propertyTypeId, 'type'], Map()));
+
+    if (DURATION_MINUTE_TYPES[fqn]) {
+      return TIME_UNIT.MINUTES;
+    }
+
+    if (DURATION_HOUR_TYPES[fqn]) {
+      return TIME_UNIT.HOURS;
+    }
+
+    if (DURATION_DAY_TYPES[fqn]) {
+      return TIME_UNIT.DAYS;
+    }
+
+    return '';
   }
 
   preprocess = (props :Props) => {
@@ -518,9 +542,10 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
   formatCostNumber = num => Number.parseFloat(num).toFixed(2);
 
   formatTotalText = (total, resourceType, forTooltip) => {
+    const timeUnit = this.getTimeUnit();
     switch (resourceType) {
-      case RESOURCE_TYPES.HOURS:
-        return forTooltip ? `Hours: ${total}` : `${total} hours`;
+      case RESOURCE_TYPES.DURATION:
+        return forTooltip ? `${timeUnit}: ${total}` : `${total} ${timeUnit.toLowerCase()}`;
 
       case RESOURCE_TYPES.COST: {
         const costNum = `$${this.formatCostNumber(total)}`
@@ -653,10 +678,10 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     const formattedDate = date.isValid() ? date.format('MMM YYYY') : dateStr;
 
     let eventDescriptor;
-    let hoursDescriptor;
+    let durationDescriptor;
     payload.forEach((payloadPoint) => {
       const { color } = payloadPoint;
-      const { count, hours } = payloadPoint.payload;
+      const { count, time } = payloadPoint.payload;
       if (count !== undefined) {
         eventDescriptor = (
           <TimelineLineDescriptor color={RESOURCE_COLORS.EVENTS[1]}>
@@ -666,12 +691,12 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
           </TimelineLineDescriptor>
         );
       }
-      if (hours !== undefined) {
-        hoursDescriptor = (
-          <TimelineLineDescriptor color={RESOURCE_COLORS.HOURS[1]}>
+      if (time !== undefined) {
+        durationDescriptor = (
+          <TimelineLineDescriptor color={RESOURCE_COLORS.DURATION[1]}>
             <div color={color} />
-            <TimelineTooltipLabel>Hours</TimelineTooltipLabel>
-            <div>{hours}</div>
+            <TimelineTooltipLabel>{this.getTimeUnit()}</TimelineTooltipLabel>
+            <div>{time}</div>
           </TimelineLineDescriptor>
         );
       }
@@ -681,16 +706,18 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
       <TimelineTooltip>
         <TimelineTooltipLabel>{formattedDate}</TimelineTooltipLabel>
         {eventDescriptor}
-        {hoursDescriptor}
+        {durationDescriptor}
       </TimelineTooltip>
     );
   }
 
   renderTimeline = () => {
     const countsByYearAndMonth = this.getFilteredCountsForType(true, true);
-    const hoursByYearAndMonth = this.getFilteredCountsForType(false, true);
+    const durationByYearAndMonth = this.getFilteredCountsForType(false, true);
 
     const data = [];
+
+    const timeUnit = this.getTimeUnit();
 
     let counts = Map();
     countsByYearAndMonth.entrySeq().forEach(([year, monthCounts]) => {
@@ -698,18 +725,18 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
         counts = counts.setIn([year, month, 'count'], count);
       });
     });
-    hoursByYearAndMonth.entrySeq().forEach(([year, monthCounts]) => {
-      monthCounts.entrySeq().forEach(([month, hours]) => {
-        counts = counts.setIn([year, month, 'hours'], hours);
+    durationByYearAndMonth.entrySeq().forEach(([year, monthCounts]) => {
+      monthCounts.entrySeq().forEach(([month, duration]) => {
+        counts = counts.setIn([year, month, 'duration'], duration);
       });
     });
 
     counts.entrySeq().forEach(([year, monthCounts]) => {
       monthCounts.entrySeq().forEach(([month, map]) => {
         const count = map.get('count', 0);
-        const hours = map.get('hours', 0);
+        const duration = map.get('duration', 0);
         const dt = year + ((month - 1) / 12);
-        data.push({ dt, count, hours });
+        data.push({ dt, count, duration });
       });
     });
 
@@ -750,13 +777,13 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
               type="linear"
               stroke={RESOURCE_COLORS.EVENTS[1]} />
           {
-            hoursByYearAndMonth.size ? (
+            durationByYearAndMonth.size ? (
               <Line
-                  dataKey="hours"
+                  dataKey="duration"
                   dot={false}
                   strokeWidth={2}
                   type="linear"
-                  stroke={RESOURCE_COLORS.HOURS[1]} />
+                  stroke={RESOURCE_COLORS.DURATION[1]} />
             ) : null
           }
         </LineChart>
@@ -764,7 +791,7 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     );
   }
 
-  renderHoursAndCost = () => {
+  renderDurationAndCost = () => {
     const { durationTypes } = this.state;
     if (!durationTypes.size) {
       return null;
@@ -773,8 +800,8 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     return (
       <RowWrapper>
         <ChartCard>
-          <ChartWrapper title="Hours">
-            {this.renderSimpleBarChart(RESOURCE_TYPES.HOURS, false)}
+          <ChartWrapper title={this.getTimeUnit()}>
+            {this.renderSimpleBarChart(RESOURCE_TYPES.DURATION, false)}
           </ChartWrapper>
         </ChartCard>
         <ChartCard>
@@ -798,6 +825,7 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
           <Modal onClose={onClose}>
             <CostRateModal
                 costRates={costRates}
+                timeUnit={this.getTimeUnit()}
                 entityTypesById={entityTypesById}
                 propertyTypesById={propertyTypesById}
                 onClose={onClose}
@@ -823,7 +851,7 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     return (
       <CenteredColumnContainer>
         {this.renderBasicSetup()}
-        {this.renderHoursAndCost()}
+        {this.renderDurationAndCost()}
         {this.renderTimeline()}
         {this.renderCostRateModal()}
       </CenteredColumnContainer>

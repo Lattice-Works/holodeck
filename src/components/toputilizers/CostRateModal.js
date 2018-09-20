@@ -17,6 +17,7 @@ type Props = {
   costRates :Map<List<string>, number>,
   entityTypesById :Map<string, *>,
   propertyTypesById :Map<string, *>,
+  timeUnit :string,
   onSetCostRate :(newCostRates :Map<List<string>, number>) => void,
   onClose :() => void
 };
@@ -86,7 +87,7 @@ export default class CostRateModal extends React.Component<Props, State> {
   }
 
   renderTable = () => {
-    const { entityTypesById } = this.props;
+    const { entityTypesById, timeUnit } = this.props;
     const { costRateValues } = this.state;
 
     const rows = costRateValues.entrySeq().map(([triplet, cost]) => fromJS({
@@ -102,7 +103,7 @@ export default class CostRateModal extends React.Component<Props, State> {
     return (
       <NumberInputTable
           keyHeader="Event"
-          valueHeader="Cost/hour"
+          valueHeader={`Cost/${timeUnit.toLowerCase().slice(0, -1)}`}
           rows={rows}
           onChange={onChange}
           withDollarSign />

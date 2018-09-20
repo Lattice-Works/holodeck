@@ -43,6 +43,6 @@ export const CHART_COLORS = [
 
 export const RESOURCE_COLORS = {
   [RESOURCE_TYPES.EVENTS]: ['#ffc59e', '#ff9a58'],
-  [RESOURCE_TYPES.HOURS]: ['#a57cff', '#6124e2'],
+  [RESOURCE_TYPES.DURATION]: ['#a57cff', '#6124e2'],
   [RESOURCE_TYPES.COST]: ['#75d6b7', '#00be84']
 };
