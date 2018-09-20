@@ -719,12 +719,13 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     const dateStr = `${month}/${year}`;
     const date = moment(dateStr, 'M/YYYY');
     const formattedDate = date.isValid() ? date.format('MMM YYYY') : dateStr;
+    const timeUnit = this.getTimeUnit();
 
     let eventDescriptor;
     let durationDescriptor;
     payload.forEach((payloadPoint) => {
       const { color } = payloadPoint;
-      const { count, time } = payloadPoint.payload;
+      const { count, duration } = payloadPoint.payload;
       if (count !== undefined) {
         eventDescriptor = (
           <TimelineLineDescriptor color={RESOURCE_COLORS.EVENTS[1]}>
@@ -734,12 +735,13 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
           </TimelineLineDescriptor>
         );
       }
-      if (time !== undefined) {
+
+      if (timeUnit && duration !== undefined) {
         durationDescriptor = (
           <TimelineLineDescriptor color={RESOURCE_COLORS.DURATION[1]}>
             <div color={color} />
-            <TimelineTooltipLabel>{this.getTimeUnit()}</TimelineTooltipLabel>
-            <div>{time}</div>
+            <TimelineTooltipLabel>{timeUnit}</TimelineTooltipLabel>
+            <div>{duration}</div>
           </TimelineLineDescriptor>
         );
       }
@@ -777,8 +779,6 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
 
     const data = [];
 
-    const timeUnit = this.getTimeUnit();
-
     let counts = Map();
     countsByYearAndMonth.entrySeq().forEach(([year, monthCounts]) => {
       monthCounts.entrySeq().forEach(([month, count]) => {
@@ -794,7 +794,7 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     counts.entrySeq().forEach(([year, monthCounts]) => {
       monthCounts.entrySeq().forEach(([month, map]) => {
         const count = map.get('count', 0);
-        const duration = map.get('duration', 0);
+        const duration = map.get('duration');
         const dt = year + ((month - 1) / 12);
         data.push({ dt, count, duration });
       });
