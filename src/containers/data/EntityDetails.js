@@ -25,17 +25,18 @@ import {
 } from '../../utils/constants/StateConstants';
 import { COUNT_FQN } from '../../utils/constants/DataConstants';
 import { BREADCRUMB } from '../../utils/constants/ExploreConstants';
+import { TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
 import { PERSON_ENTITY_TYPE_FQN } from '../../utils/constants/DataModelConstants';
 import { FixedWidthWrapper, TableWrapper } from '../../components/layout/Layout';
 import {
   getEntityKeyId,
   getFqnString,
-  getNeighborCountsForFilters,
   groupNeighbors
 } from '../../utils/DataUtils';
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 
 type Props = {
+  rankingsById? :Map<string, number>,
   breadcrumbs :List<string>,
   isLoadingNeighbors :boolean,
   neighborsById :Map<string, *>,
@@ -44,7 +45,7 @@ type Props = {
   entitySetsById :Map<string, *>,
   propertyTypesByFqn :Map<string, *>,
   propertyTypesById :Map<string, *>,
-  topUtilizerFilters :List<*>,
+  countBreakdown :Map<*, *>,
   actions :{
     selectBreadcrumb :(index :number) => void,
     selectEntity :(entityKeyId :string) => void,
@@ -76,6 +77,10 @@ const HEADERS = {
 
 class EntityDetails extends React.Component<Props, State> {
 
+  static defaultProps = {
+    rankingsById: Map()
+  }
+
   constructor(props :Props) {
     super(props);
     this.state = {
@@ -83,28 +88,42 @@ class EntityDetails extends React.Component<Props, State> {
     };
   }
 
+  getSelectedEntityKeyId = () => {
+    const { breadcrumbs } = this.props;
+    return (breadcrumbs.size) ? breadcrumbs.get(-1)[BREADCRUMB.ENTITY_KEY_ID] : null;
+  }
+
   getSelectedEntity = () => {
     const { breadcrumbs, entitiesById } = this.props;
     if (breadcrumbs.size) {
-      const selectedEntityKeyId = breadcrumbs.get(-1)[BREADCRUMB.ENTITY_KEY_ID];
-      return entitiesById.get(selectedEntityKeyId, Map());
+      return entitiesById.get(this.getSelectedEntityKeyId(), Map());
     }
     return Map();
   }
 
+  getCounts = () => {
+    const { countBreakdown, entityTypesById, propertyTypesById } = this.props;
+
+    const getEntityTypeTitle = id => entityTypesById.getIn([id, 'title'], '');
+
+    return countBreakdown.get(this.getSelectedEntityKeyId(), Map()).entrySeq()
+      .filter(([pair]) => pair !== 'score')
+      .flatMap(([pair, pairMap]) => {
+        const pairTitle = `${getEntityTypeTitle(pair.get(0))} ${getEntityTypeTitle(pair.get(1))}`;
+        return pairMap.entrySeq().map(([key, count]) => {
+          const title = key === COUNT_FQN
+            ? pairTitle
+            : `${pairTitle} -- ${propertyTypesById.getIn([key, 'title'], '')}`;
+          return Map().set(TOP_UTILIZERS_FILTER.LABEL, title).set(COUNT_FQN, count);
+        });
+      });
+  }
+
   renderCountsCard = () => {
-    const {
-      neighborsById,
-      topUtilizerFilters
-    } = this.props;
     const entity = this.getSelectedEntity();
     const total = entity.getIn([COUNT_FQN, 0]);
-    if (total === undefined) return null;
 
-    const neighbors = neighborsById.get(getEntityKeyId(entity), List());
-    const counts = getNeighborCountsForFilters(topUtilizerFilters, neighbors);
-
-    return <PersonCountsCard total={total} counts={counts} />;
+    return total === undefined ? null : <PersonCountsCard total={total} counts={this.getCounts()} />;
   }
 
   renderEntityTable = () => {
@@ -238,11 +257,19 @@ class EntityDetails extends React.Component<Props, State> {
   }
 
   render() {
+    const { rankingsById } = this.props;
+
     return (
       <div>
         {this.renderBreadcrumbs()}
         {this.renderLayoutOptions()}
-        {this.isCurrentPersonType() ? <SelectedPersonResultCard person={this.getSelectedEntity()} /> : null}
+        {this.isCurrentPersonType()
+          ? (
+            <SelectedPersonResultCard
+                person={this.getSelectedEntity()}
+                index={rankingsById.get(this.getSelectedEntityKeyId())} />
+          )
+          : null}
         {this.renderCountsCard()}
         {this.renderEntityTable()}
         {this.renderNeighbors()}
@@ -265,7 +292,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     entitySetsById: edm.get(EDM.ENTITY_SETS_BY_ID),
     propertyTypesById: edm.get(EDM.PROPERTY_TYPES_BY_ID),
     propertyTypesByFqn: edm.get(EDM.PROPERTY_TYPES_BY_FQN),
-    topUtilizerFilters: topUtilizers.get(TOP_UTILIZERS.TOP_UTILIZER_FILTERS)
+    countBreakdown: topUtilizers.get(TOP_UTILIZERS.COUNT_BREAKDOWN)
   };
 }
 
