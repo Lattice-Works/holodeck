@@ -1,7 +1,7 @@
 /*
  * @flow
  */
-import moment from 'moment';
+
 import { List, Map, fromJS } from 'immutable';
 
 import getTitle from '../../utils/EntityTitleUtils';
