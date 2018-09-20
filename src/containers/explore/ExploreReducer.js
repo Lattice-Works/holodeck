@@ -31,38 +31,47 @@ const INITIAL_STATE :Map<> = fromJS({
   [BREADCRUMBS]: List()
 });
 
+const updateEntitiesIdForNeighbors = (initEntitiesById, neighborList) => {
+  let entitiesById = initEntitiesById;
+  neighborList.forEach((neighborObj) => {
+    const association = neighborObj.get('associationDetails', Map());
+    const neighbor = neighborObj.get('neighborDetails', Map());
+    if (association) {
+      const associationEntityKeyId = getEntityKeyId(association);
+      entitiesById = entitiesById.set(
+        associationEntityKeyId,
+        entitiesById.get(associationEntityKeyId, Map()).merge(association)
+      );
+    }
+    if (neighbor) {
+      const neighborEntityKeyId = getEntityKeyId(neighbor);
+      entitiesById = entitiesById.set(
+        neighborEntityKeyId,
+        entitiesById.get(neighborEntityKeyId, Map()).merge(neighbor)
+      );
+    }
+  });
+
+  return entitiesById;
+}
+
 function reducer(state :Map<> = INITIAL_STATE, action :Object) {
   switch (action.type) {
 
     case loadEntityNeighbors.case(action.type): {
       return loadEntityNeighbors.reducer(state, action, {
-        REQUEST: () => state
-          .set(IS_LOADING_ENTITY_NEIGHBORS, true)
-          .setIn([ENTITY_NEIGHBORS_BY_ID, getEntityKeyId(action.value.entity)], List()),
+        REQUEST: () => {
+          const id = getEntityKeyId(action.value.entity);
+          return state
+            .set(IS_LOADING_ENTITY_NEIGHBORS, true)
+            .setIn([ENTITY_NEIGHBORS_BY_ID, id], state.getIn([ENTITY_NEIGHBORS_BY_ID, id], List()));
+        },
         SUCCESS: () => {
           const { entity, neighbors } = action.value;
           const neighborList = fromJS(neighbors);
           const entityKeyId = getEntityKeyId(entity);
 
-          let entitiesById = state.get(ENTITIES_BY_ID);
-          neighborList.forEach((neighborObj) => {
-            const association = neighborObj.get('associationDetails', Map());
-            const neighbor = neighborObj.get('neighborDetails', Map());
-            if (association) {
-              const associationEntityKeyId = getEntityKeyId(association);
-              entitiesById = entitiesById.set(
-                associationEntityKeyId,
-                entitiesById.get(associationEntityKeyId, Map()).merge(association)
-              );
-            }
-            if (neighbor) {
-              const neighborEntityKeyId = getEntityKeyId(neighbor);
-              entitiesById = entitiesById.set(
-                neighborEntityKeyId,
-                entitiesById.get(neighborEntityKeyId, Map()).merge(neighbor)
-              );
-            }
-          });
+          const entitiesById = updateEntitiesIdForNeighbors(state.get(ENTITIES_BY_ID), neighborList);
 
           return state
             .setIn([ENTITY_NEIGHBORS_BY_ID, entityKeyId], neighborList)
@@ -94,8 +103,15 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
 
     case loadTopUtilizerNeighbors.case(action.type): {
       return loadTopUtilizerNeighbors.reducer(state, action, {
-        SUCCESS: () => state
-          .set(ENTITY_NEIGHBORS_BY_ID, state.get(ENTITY_NEIGHBORS_BY_ID).merge(fromJS(action.value.neighborsById)))
+        SUCCESS: () => {
+          const immutableNeighborsById = fromJS(action.value.neighborsById);
+          const neighborsById = state.get(ENTITY_NEIGHBORS_BY_ID).merge(immutableNeighborsById);
+          let entitiesById = state.get(ENTITIES_BY_ID);
+          immutableNeighborsById.valueSeq().forEach((neighborList) => {
+            entitiesById = updateEntitiesIdForNeighbors(entitiesById, neighborList);
+          });
+          return state.set(ENTITY_NEIGHBORS_BY_ID, neighborsById).set(ENTITIES_BY_ID, entitiesById);
+        }
       });
     }
 
