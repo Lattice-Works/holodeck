@@ -35,7 +35,6 @@ export const TOP_UTILIZERS = {
   IS_LOADING_TOP_UTILIZERS: 'isLoadingTopUtilizers',
   IS_LOADING_TOP_UTILIZER_NEIGHBORS: 'isLoadingTopUtilizerNeighbors',
   TOP_UTILIZER_FILTERS: 'topUtilizerFilters',
-  TOP_UTILIZER_NEIGHBOR_DETAILS: 'topUtilizerNeighborDetails',
   NEIGHBOR_TYPES: 'neighborTypes',
   RESULT_DISPLAY: 'topUtilizerResultDisplay',
   TOP_UTILIZER_RESULTS: 'topUtilizerResults',

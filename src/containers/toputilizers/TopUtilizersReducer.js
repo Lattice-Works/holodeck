@@ -23,7 +23,6 @@ const {
   QUERY_HAS_RUN,
   RESULT_DISPLAY,
   TOP_UTILIZER_FILTERS,
-  TOP_UTILIZER_NEIGHBOR_DETAILS,
   TOP_UTILIZER_RESULTS
 } = TOP_UTILIZERS;
 
@@ -36,7 +35,6 @@ const INITIAL_STATE :Map<> = fromJS({
   [QUERY_HAS_RUN]: false,
   [RESULT_DISPLAY]: RESULT_DISPLAYS.SEARCH_RESULTS,
   [TOP_UTILIZER_FILTERS]: List(),
-  [TOP_UTILIZER_NEIGHBOR_DETAILS]: Map(),
   [TOP_UTILIZER_RESULTS]: List()
 });
 
@@ -70,8 +68,6 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
     case loadTopUtilizerNeighbors.case(action.type): {
       return loadTopUtilizerNeighbors.reducer(state, action, {
         REQUEST: () => state.set(IS_LOADING_TOP_UTILIZER_NEIGHBORS, true),
-        SUCCESS: () => state.set(TOP_UTILIZER_NEIGHBOR_DETAILS, action.value.neighborCounts),
-        FAILURE: () => state.set(TOP_UTILIZER_NEIGHBOR_DETAILS, Map()),
         FINALLY: () => state.set(IS_LOADING_TOP_UTILIZER_NEIGHBORS, false)
       });
     }
@@ -84,8 +80,7 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
         .set(COUNT_BREAKDOWN, Map())
         .set(QUERY_HAS_RUN, false)
         .set(TOP_UTILIZER_RESULTS, List())
-        .set(TOP_UTILIZER_FILTERS, List())
-        .set(TOP_UTILIZER_NEIGHBOR_DETAILS, Map());
+        .set(TOP_UTILIZER_FILTERS, List());
 
     default:
       return state;
