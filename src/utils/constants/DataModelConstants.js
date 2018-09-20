@@ -20,6 +20,10 @@ export const PROPERTY_TYPES = {
   ENTRY_UPDATED: 'general.entryupdated',
 
   DURATION_MINUTES: 'ol.durationinterval',
+  POLICE_MINUTES: 'ol.policeminutes',
+  FIRE_DEPT_MINUTES: 'ol.firedeptminutes',
+  EMS_MINUTES: 'ol.emsminutes',
+  ORGANIZATION_TIME: 'ol.organizationtime',
   DURATION_HOURS: 'ol.durationhours',
   DURATION_DAYS: 'ol.durationdays',
   TIME_SERVED_DAYS: 'criminaljustice.timeserveddays',
@@ -30,12 +34,14 @@ export const PROPERTY_TYPES = {
   BOOKING_DATE: 'date.booking',
   INCIDENT_START_DATETIME: 'incident.startdatetime',
   ADMISSION_DATE: 'date.admission',
+  DATETIME_START: 'ol.datetimestart',
 
   TIME_COMPLETED: 'time.completed',
   DATETIME_RELEASED: 'ol.datetime_released',
   RELEASE_DATE: 'publicsafety.ReleaseDate',
   INCIDENT_END_DATETIME: 'incident.enddatetime',
-  DATETIME_RELEASE: 'ol.datetime_release'
+  DATETIME_RELEASE: 'ol.datetime_release',
+  DATETIME_END: 'ol.datetimeend'
 };
 
 export const DEFAULT_PERSON_PROPERTY_TYPES = [
@@ -56,7 +62,11 @@ export const DEFAULT_PERSON_PROPERTY_TYPES = [
 ];
 
 export const DURATION_MINUTE_TYPES = {
-  [PROPERTY_TYPES.DURATION_MINUTES]: PROPERTY_TYPES.DATETIME_ALERTED
+  [PROPERTY_TYPES.DURATION_MINUTES]: PROPERTY_TYPES.DATETIME_ALERTED,
+  [PROPERTY_TYPES.POLICE_MINUTES]: PROPERTY_TYPES.DATETIME_ALERTED,
+  [PROPERTY_TYPES.FIRE_DEPT_MINUTES]: PROPERTY_TYPES.DATETIME_ALERTED,
+  [PROPERTY_TYPES.EMS_MINUTES]: PROPERTY_TYPES.DATETIME_ALERTED,
+  [PROPERTY_TYPES.ORGANIZATION_TIME]: PROPERTY_TYPES.DATETIME_START,
 };
 
 export const DURATION_HOUR_TYPES = {

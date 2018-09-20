@@ -11,7 +11,8 @@ import {
   fromJS,
   List,
   Map,
-  Set
+  Set,
+  OrderedSet
 } from 'immutable';
 import {
   LineChart,
@@ -28,8 +29,9 @@ import ChartWrapper from '../charts/ChartWrapper';
 import CostRateModal from './CostRateModal';
 import UtilityButton from '../buttons/UtilityButton';
 import getTitle from '../../utils/EntityTitleUtils';
+import { COUNT_FQN } from '../../utils/constants/DataConstants';
 import { CHART_EXPLANATIONS, RESOURCE_TYPES } from '../../utils/constants/TopUtilizerConstants';
-import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { PROPERTY_TYPES, DURATION_TYPES } from '../../utils/constants/DataModelConstants';
 import { RESOURCE_COLORS } from '../../utils/constants/Colors';
 import {
   CenteredColumnContainer,
@@ -42,10 +44,10 @@ import { getEntityDates } from '../../utils/EntityDateUtils';
 
 type Props = {
   results :List<*>,
+  countBreakdown :Map<string, *>,
   entityTypesById :Map<string, *>,
   neighborsById :Map<string, *>,
   selectedEntityType :Map<string, *>,
-  detailedCounts :Map<string, *>,
   isLoading :boolean,
   propertyTypesByFqn :Map<string, *>,
   propertyTypesById :Map<string, *>
@@ -53,7 +55,6 @@ type Props = {
 
 type State = {
   processedDates :Map<*, *>,
-  processedDurations :Map<*, *>,
   costRates :Map<List<string>, number>,
   isSettingCostRate :boolean,
   SELECTED_UTILIZER :{},
@@ -244,9 +245,9 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
       [FILTERS.SELECTED_UTILIZER]: BLANK_OPTION.toJS(),
       [FILTERS.SELECTED_TYPE]: BLANK_OPTION.toJS(),
       processedDates: Map(),
-      processedDurations: Map(),
       costRates: Map(),
-      isSettingCostRate: false
+      isSettingCostRate: false,
+      durationTypes: Map()
     };
   }
 
@@ -277,7 +278,7 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     allPairs.forEach((pair) => {
       const id = pair.get(1);
       entityTypesById.getIn([id, 'properties']).forEach((propertyTypeId) => {
-        if (getFqnString(propertyTypesById.getIn([propertyTypeId, 'type'])) === PROPERTY_TYPES.DURATION) {
+        if (DURATION_TYPES[getFqnString(propertyTypesById.getIn([propertyTypeId, 'type']))]) {
           ids = ids.add(id);
         }
       });
@@ -286,38 +287,62 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     return ids;
   }
 
+  getAllPairs = () => {
+    const { countBreakdown } = this.props;
+
+    if (!countBreakdown.size) {
+      return OrderedSet();
+    }
+
+    return countBreakdown.first().keySeq().filter(key => key !== 'score').toOrderedSet();
+  }
+
+  getDurationTypes = () => {
+    const { countBreakdown } = this.props;
+
+    let durationTypes = Map();
+
+    if (countBreakdown) {
+      countBreakdown.first().entrySeq().filter(([pair]) => pair !== 'score').forEach(([pair, propertyTypeMap]) => {
+        propertyTypeMap.keySeq().filter(ptId => ptId !== COUNT_FQN).forEach((ptId) => {
+          durationTypes = durationTypes.set(pair, durationTypes.get(pair, OrderedSet()).add(ptId));
+        });
+      });
+    }
+
+    return durationTypes;
+  }
+
   preprocess = (props :Props) => {
     const {
-      detailedCounts,
+      countBreakdown,
       entityTypesById,
       neighborsById,
       propertyTypesById,
       results
     } = props;
 
-    if (!detailedCounts.size) {
+    if (!countBreakdown.size) {
       return;
     }
 
-    const allPairsMap = detailedCounts.first();
-    const allPairs = allPairsMap.keySeq();
+    const allPairs = this.getAllPairs();
     const blankMap = this.getBlankMap(allPairs);
-    const durationTypes :Set<string> = this.getTypesWithDuration(allPairs, entityTypesById, propertyTypesById);
+    const durationTypes = this.getDurationTypes();
 
     let costRates = Map();
     let processedDates = Map();
-    let processedDurations = Map();
 
-    allPairs.forEach((pair) => {
-      if (durationTypes.has(pair.get(1))) {
-        costRates = costRates.set(pair, this.state.costRates.get(pair, 0));
-      }
+    durationTypes.entrySeq().forEach(([pair, properties]) => {
+      properties.forEach((propertyTypeId) => {
+        const triplet = pair.push(propertyTypeId)
+        costRates = costRates.set(triplet, this.state.costRates.get(triplet, 0))
+      });
     });
 
     results.forEach((utilizer) => {
       const id = getEntityKeyId(utilizer);
       let dateMap = blankMap;
-      let durationMap = blankMap;
 
       neighborsById.get(id, List()).forEach((neighbor) => {
         const assocId = neighbor.getIn(['associationEntitySet', 'entityTypeId']);
@@ -326,12 +351,13 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
         if (assocId && neighborId) {
           const pair = List.of(assocId, neighborId);
 
-          if (allPairsMap.has(pair)) {
+          if (allPairs.has(pair)) {
             const neighborDetails = neighbor.get('neighborDetails', Map());
+            const associationDetails = neighbor.get('associationDetails', Map());
 
             /* Deal with dates */
             [
-              ...getEntityDates(entityTypesById.get(assocId, Map()), neighbor.get('associationDetails')),
+              ...getEntityDates(entityTypesById.get(assocId, Map()), associationDetails),
               ...getEntityDates(entityTypesById.get(neighborId, Map()), neighborDetails),
             ].forEach((date) => {
               const dateStr = date.format(MONTH_FORMAT);
@@ -339,28 +365,35 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
             });
 
             /* Deal with durations */
-            if (durationTypes.has(pair.get(1))) {
-              const startDateTime = moment(neighborDetails.getIn([PROPERTY_TYPES.DATETIME_ALERTED, 0], ''));
+            durationTypes.get(pair, Set()).forEach((propertyTypeId) => {
+              const getValue = fqn => neighborDetails.getIn([fqn, 0], associationDetails.getIn([fqn, 0]));
+
+              const durationFqn = getFqnString(propertyTypesById.getIn([propertyTypeId, 'type'], Map()));
+              const dateFqn = DURATION_TYPES[durationFqn];
+
+              const startDateTime = moment(getValue(dateFqn));
               if (startDateTime.isValid()) {
                 const dt = startDateTime.format(MONTH_FORMAT);
-                const duration = Number.parseInt(neighborDetails.getIn([PROPERTY_TYPES.DURATION, 0]), 10);
+                const duration = Number.parseInt(getValue(durationFqn), 10);
                 if (!Number.isNaN(duration)) {
-                  durationMap = durationMap.setIn([pair, dt], durationMap.getIn([pair, dt], 0) + duration);
+                  const triplet = pair.push(propertyTypeId);
+                  dateMap = dateMap.setIn([triplet, dt], dateMap.getIn([triplet, dt], 0) + duration);
                 }
               }
-
-            }
-
+            });
           }
         }
 
       });
 
       processedDates = processedDates.set(id, dateMap);
-      processedDurations = processedDurations.set(id, durationMap);
     });
 
-    this.setState({ costRates, processedDates, processedDurations });
+    this.setState({
+      costRates,
+      durationTypes,
+      processedDates
+    });
   }
 
   renderOption = (data, selected, onClick) => (
@@ -416,9 +449,9 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     );
   }
 
-  getCountsByYearAndMonth = (byDates, withMultiplier) => {
-    const { costRates, processedDates, processedDurations } = this.state;
-    const processedValues = byDates ? processedDates : processedDurations;
+  getCountsByYearAndMonth = (useCounts, withMultiplier) => {
+    const { costRates, processedDates } = this.state;
+    const processedValues = useCounts ? processedDates : processedDates; // HANDLE BY DURATION
 
     /* pair -> year -> month -> count */
     let counts = Map();
@@ -448,9 +481,9 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     return counts;
   }
 
-  getFilteredCountsForType = (byDates, byMonth, withMultiplier) => {
+  getFilteredCountsForType = (useCounts, byMonth, withMultiplier) => {
     /* either year -> count OR year -> month -> count (depending on byMonth) */
-    const pairDateCounts = this.getCountsByYearAndMonth(byDates, withMultiplier);
+    const pairDateCounts = this.getCountsByYearAndMonth(useCounts, withMultiplier);
     let counts = Map();
 
     const updateCountsByDate = (pair) => {
@@ -469,10 +502,14 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
 
     const { value } = this.state[FILTERS.SELECTED_TYPE];
     if (value && value.size) {
-      updateCountsByDate(value);
+      const key = useCounts ? value.slice(0, 2) : value;
+      updateCountsByDate(key);
     }
     else {
-      pairDateCounts.keySeq().forEach(pair => updateCountsByDate(pair));
+      pairDateCounts
+        .keySeq()
+        .filter(key => useCounts ? key.size === 2 : key.size === 3)
+        .forEach(pair => updateCountsByDate(pair));
     }
 
     return counts;
@@ -515,11 +552,10 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     const colors = RESOURCE_COLORS[resourceType];
     const data = this.getFilteredCountsForType(byDates, false, withCostMultiplier)
       .entrySeq()
+      .sort(([year1], [year2]) => year1 > year2 ? 1 : -1)
       .map(([year, count]) => ({ year, count }));
-    const total = data.map(point => point.count).reduce((t1, t2) => t1 + t2);
 
-    /* workaround -- recharts has a bug which doesn't display number-type data if there is only one data point */
-    const xAxisType = data.size > 1 ? 'number' : 'category';
+    const total = data.map(point => point.count).reduce((t1, t2) => t1 + t2) || 0;
 
     return (
       <BarChartWrapper>
@@ -530,7 +566,7 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
         }
         <BarChart width={400} height={400} data={data.toJS()}>
           <YAxis type="number" tickLine={false} />
-          <XAxis type={xAxisType} tickLine={false} dataKey="year" domain={['dataMin', 'dataMax']} />
+          <XAxis type="category" tickLine={false} dataKey="year" domain={['dataMin', 'dataMax']} allowDecimals={false} />
           <Tooltip content={payloadData => this.renderBarChartTooltip(resourceType, payloadData)} />
           <Bar dataKey="count" fill={colors[0]} />
         </BarChart>
@@ -538,17 +574,45 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     );
   }
 
+  getEventTypeOptions = () => {
+    const { entityTypesById, propertyTypesById } = this.props;
+    const { durationTypes } = this.state;
+    if (!durationTypes.size) {
+      return [
+        BLANK_OPTION.toJS(),
+        ...this.getAllPairs().map((pair) => {
+          const entityTypeId = pair.get(1);
+          const label = entityTypesById.getIn([entityTypeId, 'title']);
+          return {
+            value: pair,
+            label
+          };
+        }).toArray()
+      ];
+    }
+
+    return [
+      BLANK_OPTION.toJS(),
+      ...durationTypes.entrySeq().flatMap(([pair, properties]) => {
+        const prefix = `${entityTypesById.getIn([pair.get(0), 'title'])} ${entityTypesById.getIn([pair.get(1), 'title'])}`;
+        return properties.map((propertyTypeId) => {
+          const label = `${prefix} -- ${propertyTypesById.getIn([propertyTypeId, 'title'], '')}`;
+          const value = pair.push(propertyTypeId);
+          return { label, value };
+        });
+      }).toArray()
+    ];
+  }
+
   renderBasicSetup = () => {
     const {
       results,
-      detailedCounts,
-      entityTypesById,
       selectedEntityType
     } = this.props;
 
-    const countMaps = detailedCounts.valueSeq();
+    const allPairs = this.getAllPairs();
 
-    if (!countMaps.size) {
+    if (!allPairs.size) {
       return null;
     }
 
@@ -562,24 +626,12 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
       }).toJS()
     ];
 
-    const entityTypeOptions = [
-      BLANK_OPTION.toJS(),
-      ...countMaps.first().keySeq().map((pair) => {
-        const entityTypeId = pair.get(1);
-        const label = entityTypesById.getIn([entityTypeId, 'title']);
-        return {
-          value: pair,
-          label
-        };
-      }).toArray()
-    ];
-
     return (
       <WideSplitCard>
         <SimpleWrapper>
           <PaddedTitleText>Resources Option</PaddedTitleText>
           {this.renderSelectDropdown(FILTERS.SELECTED_UTILIZER, selectedEntityType.get('title'), utilizerOptions)}
-          {this.renderSelectDropdown(FILTERS.SELECTED_TYPE, 'Event Type', entityTypeOptions)}
+          {this.renderSelectDropdown(FILTERS.SELECTED_TYPE, 'Event Type', this.getEventTypeOptions())}
         </SimpleWrapper>
         <SimpleWrapper>
           <PaddedTitleText>Event Count</PaddedTitleText>
@@ -713,7 +765,8 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
   }
 
   renderHoursAndCost = () => {
-    if (!this.getFilteredCountsForType().size) {
+    const { durationTypes } = this.state;
+    if (!durationTypes.size) {
       return null;
     }
 
@@ -734,7 +787,7 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
   }
 
   renderCostRateModal = () => {
-    const { entityTypesById } = this.props;
+    const { entityTypesById, propertyTypesById } = this.props;
     const { isSettingCostRate, costRates } = this.state;
 
     const onClose = () => this.setState({ isSettingCostRate: false });
@@ -746,6 +799,7 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
             <CostRateModal
                 costRates={costRates}
                 entityTypesById={entityTypesById}
+                propertyTypesById={propertyTypesById}
                 onClose={onClose}
                 onSetCostRate={onSetCostRate} />
           </Modal>
