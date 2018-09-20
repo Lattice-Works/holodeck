@@ -8,7 +8,7 @@ import styled, { css } from 'styled-components';
 const ToolbarWrapper = styled.div`
   display: flex;
   flex-direction: row;
-  margin-bottom: 20px
+  margin-bottom: ${props => (props.noPadding ? 0 : '20px')};
 `;
 
 const StyledButton = styled.button`
@@ -60,8 +60,14 @@ type SearchOption = {
   label :string
 };
 
-const ButtonToolbar = ({ options, value } :{ options :SearchOption[], value :string }) => (
-  <ToolbarWrapper>
+type Props = {
+  options :SearchOption[],
+  value :string,
+  noPadding? :boolean
+}
+
+const ButtonToolbar = ({ options, value, noPadding } :Props) => (
+  <ToolbarWrapper noPadding={noPadding}>
     { options.map(option => (
       <StyledButton
           key={option.value}
@@ -72,5 +78,9 @@ const ButtonToolbar = ({ options, value } :{ options :SearchOption[], value :str
     )) }
   </ToolbarWrapper>
 );
+
+ButtonToolbar.defaultProps = {
+  noPadding: false
+};
 
 export default ButtonToolbar;

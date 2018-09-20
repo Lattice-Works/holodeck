@@ -3,7 +3,12 @@
  */
 
 import moment from 'moment';
-import { AnalysisApi, DataApi, SearchApi } from 'lattice';
+import {
+  Constants,
+  AnalysisApi,
+  DataApi,
+  SearchApi
+} from 'lattice';
 import {
   fromJS,
   List,
@@ -21,8 +26,11 @@ import {
   loadTopUtilizerNeighbors
 } from './TopUtilizersActionFactory';
 import { COUNT_TYPES, TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
+import { COUNT_FQN } from '../../utils/constants/DataConstants';
 import { getEntityKeyId } from '../../utils/DataUtils';
 import { toISODate } from '../../utils/FormattingUtils';
+
+const { OPENLATTICE_ID_FQN } = Constants;
 
 const getDateFiltersFromMap = (id, dateMap) => {
   let result = Map();
@@ -50,6 +58,41 @@ const getDateFiltersFromMap = (id, dateMap) => {
   });
 
   return result;
+};
+
+const getCountBreakdown = (query, topUtilizers) => {
+  let breakdown = Map();
+  topUtilizers.forEach((utilizer) => {
+    const id = utilizer[OPENLATTICE_ID_FQN][0];
+
+    let utilizerBreakdown = Map().set('score', utilizer[COUNT_FQN][0]);
+
+    query.forEach((pairDetails, index) => {
+      const {
+        associationTypeId,
+        neighborTypeId,
+        associationAggregations,
+        entitySetAggregations
+      } = pairDetails;
+      const pair = List.of(associationTypeId, neighborTypeId);
+
+      let pairMap = Map().set(COUNT_FQN, utilizer[`assoc_${index}_count`]);
+
+      Object.keys(associationAggregations).forEach((propertyTypeId) => {
+        pairMap = pairMap.set(propertyTypeId, utilizer[`assoc_${index}_${propertyTypeId}`]);
+      });
+
+      Object.keys(entitySetAggregations).forEach((propertyTypeId) => {
+        pairMap = pairMap.set(propertyTypeId, utilizer[`entity_${index}_${propertyTypeId}`]);
+      });
+
+      utilizerBreakdown = utilizerBreakdown.set(pair, pairMap);
+    });
+
+    breakdown = breakdown.set(id, utilizerBreakdown);
+  });
+
+  return breakdown;
 };
 
 function* getTopUtilizersWorker(action :SequenceAction) {
@@ -141,25 +184,26 @@ function* getTopUtilizersWorker(action :SequenceAction) {
     let topUtilizers = yield call(AnalysisApi.getTopUtilizers, entitySetId, numResults, query);
 
     // TODO delete when we have data in response v
-
     const ID_KEY = 'self_entity_key_id';
 
     const utilizerData = yield call(DataApi.getEntitySetData, entitySetId, [], topUtilizers.map(u => u[ID_KEY]));
 
     const entitiesAsMap = {};
     utilizerData.forEach((utilizer) => {
-      entitiesAsMap[utilizer['openlattice.@id'][0]] = utilizer;
+      entitiesAsMap[utilizer[OPENLATTICE_ID_FQN][0]] = utilizer;
     });
 
     topUtilizers = topUtilizers.map(utilizer => Object.assign(
       {},
       utilizer,
       entitiesAsMap[utilizer[ID_KEY]],
-      { 'openlattice.@count': [utilizer.score] }
+      { [COUNT_FQN]: [utilizer.score] }
     ));
     // TODO delete when we have data in response ^
 
-    yield put(getTopUtilizers.success(action.id, topUtilizers));
+    const scoresByUtilizer = getCountBreakdown(formattedFilters, topUtilizers);
+
+    yield put(getTopUtilizers.success(action.id, { topUtilizers, scoresByUtilizer }));
 
     yield put(loadTopUtilizerNeighbors({
       entitySetId,
