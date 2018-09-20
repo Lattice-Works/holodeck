@@ -26,7 +26,7 @@ import {
 import { COUNT_FQN } from '../../utils/constants/DataConstants';
 import { BREADCRUMB } from '../../utils/constants/ExploreConstants';
 import { TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
-import { PERSON_ENTITY_TYPE_FQN } from '../../utils/constants/DataModelConstants';
+import { IMAGE_PROPERTY_TYPES, PERSON_ENTITY_TYPE_FQN } from '../../utils/constants/DataModelConstants';
 import { FixedWidthWrapper, TableWrapper } from '../../components/layout/Layout';
 import {
   getEntityKeyId,
@@ -143,7 +143,8 @@ class EntityDetails extends React.Component<Props, State> {
       if (ptTitle) {
         entityTable = entityTable.push(fromJS({
           [HEADERS.PROPERTY]: ptTitle,
-          [HEADERS.DATA]: values
+          [HEADERS.DATA]: values,
+          isImg: IMAGE_PROPERTY_TYPES.includes(fqn)
         }));
       }
     });

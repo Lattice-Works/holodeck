@@ -10,6 +10,7 @@ import { faChevronDown, faChevronUp } from '@fortawesome/pro-regular-svg-icons';
 
 import DataTable from './DataTable';
 import Banner from '../cards/Banner';
+import { IMAGE_PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { TableWrapper } from '../layout/Layout';
 import { getFqnString } from '../../utils/DataUtils';
 
@@ -111,8 +112,9 @@ export default class AssociationGroup extends React.Component<Props, State> {
     return entityTypesById.getIn([entityTypeId, 'properties'], List()).map((propertyTypeId) => {
       const propertyType = propertyTypesById.get(propertyTypeId, Map());
       const id = getFqnString(propertyType.get('type', Map()));
+      const isImg = IMAGE_PROPERTY_TYPES.includes(id);
       const value = propertyType.get('title', '');
-      return fromJS({ id, value });
+      return fromJS({ id, value, isImg });
     });
   }
 

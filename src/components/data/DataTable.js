@@ -10,6 +10,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSort } from '@fortawesome/pro-solid-svg-icons';
 import { Grid, ScrollSync } from 'react-virtualized';
 
+import { IMAGE_PREFIX } from '../../utils/constants/DataConstants';
+
 /*
  * constants
  */
@@ -120,6 +122,17 @@ const SortIcon = styled.span`
 
 const HeaderText = styled.span`
   margin-left: 5px;
+`;
+
+const TableImg = styled.img.attrs({
+  alt: ''
+})`
+  max-height: 40px;
+  margin-right: 10px;
+
+  &:last-child {
+    margin-right: 0;
+  }
 `;
 
 type SetMultiMap = Map<string, Set<any>>;
@@ -329,27 +342,48 @@ class DataTable extends React.Component<Props, State> {
     return ROW_MIN_HEIGHT; // TODO: implement more intelligently
   };
 
-  getCellValue = (rowIndex :number, columnIndex :number) => {
+  formatImg = (srcString) => {
+    const src = srcString.startsWith(IMAGE_PREFIX) ? srcString : `${IMAGE_PREFIX}${srcString}`;
+    return <TableImg src={src} key={src} />
+  }
 
-    const header :string = this.props.headers.getIn([columnIndex, 'id']);
-    let cellValue :string = this.state.data.getIn([rowIndex, header], '');
+  getCellContentFromValue = (str, isImg) => {
+    let cellValue :string = str;
+
     if (Immutable.isIndexed(cellValue)) {
-      cellValue = cellValue.join(' ; ');
+      if (!isImg) {
+        cellValue = cellValue.join(' ; ');
+      }
+      else {
+        cellValue = cellValue.map(this.formatImg);
+      }
+    }
+    else if (isImg) {
+      cellValue = this.formatImg(cellValue)
     }
 
     return cellValue;
   }
 
+  getCellValue = (rowIndex :number, columnIndex :number) => {
+    const { headers } = this.props;
+    const { data } = this.state;
+
+    const header :string = headers.getIn([columnIndex, 'id']);
+    const isImg :boolean = data.getIn([rowIndex, 'isImg']) || headers.getIn([columnIndex, 'isImg']);
+    const cellValue :string = data.getIn([rowIndex, header], '');
+
+    return this.getCellContentFromValue(cellValue, isImg);
+  }
+
   getCellValueInRow = (row :Map<string, any>, columnIndex :number) => {
+    const { headers } = this.props;
 
-    const header :string = this.props.headers.getIn([columnIndex, 'id'], '');
+    const header :string = headers.getIn([columnIndex, 'id'], '');
+    const isImg :boolean = row.get('isImg') || headers.getIn([columnIndex, 'isImg']);
+    const cellValue :string = row.get(header, '');
 
-    let cellValue :string = row.get(header, '');
-    if (Immutable.isIndexed(cellValue)) {
-      cellValue = cellValue.join(' ; ');
-    }
-
-    return cellValue;
+    return this.getCellContentFromValue(cellValue, isImg);
   }
 
   sortDataByColumn = (columnIndex :number) => {
@@ -370,10 +404,10 @@ class DataTable extends React.Component<Props, State> {
       const sortedData = this.state.data.sort((row1, row2) => {
         const cellValue1 :string = getCellValueInRow(row1, columnIndex);
         const cellValue2 :string = getCellValueInRow(row2, columnIndex);
-        if (cellValue1.length === 0) {
+        if (!cellValue1) {
           return 1; // move empty string to the end
         }
-        else if (cellValue2.length === 0) {
+        else if (!cellValue) {
           return -1; // keep empty string at the end
         }
         if (React.isValidElement(cellValue1)) {
