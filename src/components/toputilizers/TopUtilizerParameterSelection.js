@@ -466,13 +466,9 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
 
   getDateProperties = () => {
     const { selectedNeighborTypes } = this.state;
-    const {
-      selectedEntitySet,
-      entityTypesById,
-      propertyTypesById
-    } = this.props;
+    const { entityTypesById, propertyTypesById } = this.props;
     let dateProperties = OrderedSet();
-    let entityTypeIds = OrderedSet.of(selectedEntitySet.get('entityTypeId'));
+    let entityTypeIds = OrderedSet();
     selectedNeighborTypes.forEach((neighborTypes) => {
       entityTypeIds = entityTypeIds.add(neighborTypes[TOP_UTILIZERS_FILTER.ASSOC_ID]);
       entityTypeIds = entityTypeIds.add(neighborTypes[TOP_UTILIZERS_FILTER.NEIGHBOR_ID]);
