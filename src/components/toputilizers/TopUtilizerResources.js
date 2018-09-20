@@ -911,8 +911,8 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     return (
       <CenteredColumnContainer>
         {this.renderBasicSetup()}
-        {this.renderDurationAndCost()}
         {this.renderDefaultCostBanner()}
+        {this.renderDurationAndCost()}
         {this.renderTimeline()}
         {this.renderCostRateModal()}
       </CenteredColumnContainer>
