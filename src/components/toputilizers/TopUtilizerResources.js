@@ -302,7 +302,7 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
 
     let durationTypes = Map();
 
-    if (!!countBreakdown) {
+    if (countBreakdown) {
       countBreakdown.first().entrySeq().filter(([pair]) => pair !== 'score').forEach(([pair, propertyTypeMap]) => {
         propertyTypeMap.keySeq().filter(ptId => ptId !== COUNT_FQN).forEach((ptId) => {
           durationTypes = durationTypes.set(pair, durationTypes.get(pair, OrderedSet()).add(ptId));
@@ -339,9 +339,6 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
         costRates = costRates.set(triplet, this.state.costRates.get(triplet, 0))
       });
     });
-
-    console.log('cost rates')
-    console.log(costRates.toJS())
 
     results.forEach((utilizer) => {
       const id = getEntityKeyId(utilizer);
@@ -452,9 +449,9 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     );
   }
 
-  getCountsByYearAndMonth = (byDates, withMultiplier) => {
+  getCountsByYearAndMonth = (useCounts, withMultiplier) => {
     const { costRates, processedDates } = this.state;
-    const processedValues = byDates ? processedDates : processedDates; // HANDLE BY DURATION
+    const processedValues = useCounts ? processedDates : processedDates; // HANDLE BY DURATION
 
     /* pair -> year -> month -> count */
     let counts = Map();
@@ -484,9 +481,9 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     return counts;
   }
 
-  getFilteredCountsForType = (byDates, byMonth, withMultiplier) => {
+  getFilteredCountsForType = (useCounts, byMonth, withMultiplier) => {
     /* either year -> count OR year -> month -> count (depending on byMonth) */
-    const pairDateCounts = this.getCountsByYearAndMonth(byDates, withMultiplier);
+    const pairDateCounts = this.getCountsByYearAndMonth(useCounts, withMultiplier);
     let counts = Map();
 
     const updateCountsByDate = (pair) => {
@@ -505,10 +502,14 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
 
     const { value } = this.state[FILTERS.SELECTED_TYPE];
     if (value && value.size) {
-      updateCountsByDate(value);
+      const key = useCounts ? value.slice(0, 2) : value;
+      updateCountsByDate(key);
     }
     else {
-      pairDateCounts.keySeq().forEach(pair => updateCountsByDate(pair));
+      pairDateCounts
+        .keySeq()
+        .filter(key => useCounts ? key.size === 2 : key.size === 3)
+        .forEach(pair => updateCountsByDate(pair));
     }
 
     return counts;
