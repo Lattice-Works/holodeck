@@ -7,6 +7,8 @@ import styled from 'styled-components';
 import moment from 'moment';
 import Select, { components } from 'react-select';
 import Modal, { ModalTransition } from '@atlaskit/modal-dialog';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faExclamationCircle, faTimes } from '@fortawesome/pro-solid-svg-icons';
 import {
   fromJS,
   List,
@@ -30,9 +32,8 @@ import CostRateModal from './CostRateModal';
 import UtilityButton from '../buttons/UtilityButton';
 import getTitle from '../../utils/EntityTitleUtils';
 import { COUNT_FQN } from '../../utils/constants/DataConstants';
-import { CHART_EXPLANATIONS, RESOURCE_TYPES } from '../../utils/constants/TopUtilizerConstants';
+import { CHART_EXPLANATIONS, RESOURCE_TYPES, DEFAULT_COST_RATES } from '../../utils/constants/TopUtilizerConstants';
 import {
-  PROPERTY_TYPES,
   DURATION_TYPES,
   DURATION_DAY_TYPES,
   DURATION_HOUR_TYPES,
@@ -63,6 +64,7 @@ type State = {
   processedDates :Map<*, *>,
   costRates :Map<List<string>, number>,
   isSettingCostRate :boolean,
+  displayDefaultCostBanner :boolean,
   SELECTED_UTILIZER :{},
   SELECTED_TYPE :{}
 };
@@ -231,6 +233,34 @@ const FloatingTooltipWrapper = styled.div`
   }
 `;
 
+const NotificationBanner = styled.div`
+  width: 100%;
+  margin-top: 20px;
+  padding: 15px 30px;
+  border-radius: 5px;
+  background-color: #555e6f;
+  font-family: 'Open Sans';
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  line-height: normal;
+
+  span {
+    width: 812px;
+  }
+
+  button {
+    border: none;
+    cursor: pointer;
+    background: transparent;
+    color: #ffffff;
+  }
+`;
+
 const FILTERS = {
   SELECTED_UTILIZER: 'SELECTED_UTILIZER',
   SELECTED_TYPE: 'SELECTED_TYPE'
@@ -259,6 +289,7 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
       processedDates: Map(),
       costRates: Map(),
       isSettingCostRate: false,
+      displayDefaultCostBanner: false,
       durationTypes: Map()
     };
   }
@@ -337,6 +368,12 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     return '';
   }
 
+  getDefaultCostRate = (propertyTypeId) => {
+    const { propertyTypesById } = this.props;
+    const fqn = getFqnString(propertyTypesById.getIn([propertyTypeId, 'type'], Map()));
+    return DEFAULT_COST_RATES[fqn] || 0;
+  }
+
   preprocess = (props :Props) => {
     const {
       countBreakdown,
@@ -356,11 +393,16 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
 
     let costRates = Map();
     let processedDates = Map();
+    let displayDefaultCostBanner = false;
 
     durationTypes.entrySeq().forEach(([pair, properties]) => {
       properties.forEach((propertyTypeId) => {
-        const triplet = pair.push(propertyTypeId)
-        costRates = costRates.set(triplet, this.state.costRates.get(triplet, 0))
+        const triplet = pair.push(propertyTypeId);
+        const defaultCost = this.getDefaultCostRate(propertyTypeId);
+        if (defaultCost > 0) {
+          displayDefaultCostBanner = true;
+        }
+        costRates = costRates.set(triplet, this.state.costRates.get(triplet, defaultCost));
       });
     });
 
@@ -415,6 +457,7 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
 
     this.setState({
       costRates,
+      displayDefaultCostBanner,
       durationTypes,
       processedDates
     });
@@ -711,6 +754,23 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     );
   }
 
+  renderDefaultCostBanner = () => {
+    const { displayDefaultCostBanner } = this.state;
+    if (!displayDefaultCostBanner) {
+      return null;
+    }
+
+    return (
+      <NotificationBanner>
+        <FontAwesomeIcon icon={faExclamationCircle} size="2x" />
+        <span>Default costs shown are based on rough estimates or national averages. See Cost Rate for more details, and set custom cost rates to get more accurate results.</span>
+        <button onClick={() => this.setState({ displayDefaultCostBanner: false })}>
+          <FontAwesomeIcon icon={faTimes} size="2x" />
+        </button>
+      </NotificationBanner>
+    )
+  }
+
   renderTimeline = () => {
     const countsByYearAndMonth = this.getFilteredCountsForType(true, true);
     const durationByYearAndMonth = this.getFilteredCountsForType(false, true);
@@ -852,6 +912,7 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
       <CenteredColumnContainer>
         {this.renderBasicSetup()}
         {this.renderDurationAndCost()}
+        {this.renderDefaultCostBanner()}
         {this.renderTimeline()}
         {this.renderCostRateModal()}
       </CenteredColumnContainer>

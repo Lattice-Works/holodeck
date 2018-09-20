@@ -1,3 +1,5 @@
+import { PROPERTY_TYPES } from './DataModelConstants';
+
 export const TOP_UTILIZERS_FILTER = {
   ASSOC_ID: 'assocId',
   ASSOC_TITLE: 'assocTitle',
@@ -37,4 +39,12 @@ export const RESOURCE_TYPES = {
 export const COUNT_TYPES = {
   EVENTS: 'EVENTS',
   DURATION: 'DURATION'
+};
+
+export const DEFAULT_COST_RATES = {
+  [PROPERTY_TYPES.DURATION_DAYS]: 99.45,
+  [PROPERTY_TYPES.TIME_SERVED_DAYS]: 99.45,
+  [PROPERTY_TYPES.EMS_MINUTES_PER_PERSON]: 8.33,
+  'psa.ftaScale': 15.2,
+  'psa.ncaScale': 42
 };

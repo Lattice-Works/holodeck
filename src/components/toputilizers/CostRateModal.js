@@ -6,12 +6,14 @@ import React from 'react';
 import styled from 'styled-components';
 import { List, Map, fromJS } from 'immutable';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes } from '@fortawesome/pro-light-svg-icons';
+import { faTimes, faChevronUp, faChevronDown } from '@fortawesome/pro-light-svg-icons';
 
 import NumberInputTable from '../tables/NumberInputTable';
 import InfoButton from '../buttons/InfoButton';
+import DefaultCostExplanations from './DefaultCostExplanations';
 import { TitleText } from '../layout/Layout';
 import { isNotNumber } from '../../utils/ValidationUtils';
+import { getFqnString } from '../../utils/DataUtils';
 
 type Props = {
   costRates :Map<List<string>, number>,
@@ -23,7 +25,8 @@ type Props = {
 };
 
 type State = {
-  costRateValues :Map<List<string>, number>
+  costRateValues :Map<List<string>, number>,
+  showingJustifications :boolean
 };
 
 const Wrapper = styled.div`
@@ -57,7 +60,31 @@ const CloseButton = styled.button`
 `;
 
 const InfoButtonWide = styled(InfoButton)`
-  width: 100%;
+  width: 190px;
+  justify-self: flex-end;
+`;
+
+const JustificationButton = styled.button`
+  border: none;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #8e929b;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  span {
+    margin-right: 7px;
+  }
+
+  &:hover {
+    cursor: pointer;
+  }
+
+  &:focus {
+    outline: none;
+  }
 `;
 
 export default class CostRateModal extends React.Component<Props, State> {
@@ -65,7 +92,8 @@ export default class CostRateModal extends React.Component<Props, State> {
   constructor(props :Props) {
     super(props);
     this.state = {
-      costRateValues: props.costRates
+      costRateValues: props.costRates,
+      showingJustifications: false
     };
   }
 
@@ -87,7 +115,7 @@ export default class CostRateModal extends React.Component<Props, State> {
   }
 
   renderTable = () => {
-    const { entityTypesById, timeUnit } = this.props;
+    const { timeUnit } = this.props;
     const { costRateValues } = this.state;
 
     const rows = costRateValues.entrySeq().map(([triplet, cost]) => fromJS({
@@ -123,8 +151,37 @@ export default class CostRateModal extends React.Component<Props, State> {
     onSetCostRate(formattedValues);
   }
 
+  renderJustificationsButton = () => {
+    const { showingJustifications } = this.state;
+    const icon = showingJustifications ? faChevronUp : faChevronDown;
+    return (
+      <JustificationButton onClick={() => this.setState({ showingJustifications: !showingJustifications })}>
+        <span>Default cost sources</span>
+        <FontAwesomeIcon icon={icon} />
+      </JustificationButton>
+    );
+  }
+
+  renderButtons = (hasJustifications) => (
+    <HeaderRow>
+      {hasJustifications ? this.renderJustificationsButton() : <div />}
+      <InfoButtonWide onClick={this.onSubmit}>Set Cost Rate</InfoButtonWide>
+    </HeaderRow>
+  )
+
+  renderJustifications = () => {
+    const { costRates, propertyTypesById } = this.props;
+    return costRates.keySeq().map((triplet) => {
+      const fqn = getFqnString(propertyTypesById.getIn([triplet.get(2), 'type'], Map()));
+      return DefaultCostExplanations[fqn];
+    }).filter(val => !!val);
+  }
+
   render() {
+    const { showingJustifications } = this.state;
     const { onClose } = this.props;
+
+    const justifications = this.renderJustifications();
 
     return (
       <Wrapper>
@@ -133,7 +190,8 @@ export default class CostRateModal extends React.Component<Props, State> {
           <CloseButton onClick={onClose}><FontAwesomeIcon icon={faTimes} size="1x" /></CloseButton>
         </HeaderRow>
         {this.renderTable()}
-        <InfoButtonWide onClick={this.onSubmit}>Set Cost Rate</InfoButtonWide>
+        {this.renderButtons(justifications.toSet().size)}
+        {showingJustifications ? justifications : null}
       </Wrapper>
     );
   }
