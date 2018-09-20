@@ -44,7 +44,6 @@ type Props = {
   display :string,
   isLoadingResults :boolean,
   isLoadingResultCounts :boolean,
-  detailedCounts :Map<*, *>,
   results :List<*>,
   actions :{
     changeTopUtilizersDisplay :(display :string) => void,
@@ -126,7 +125,6 @@ class TopUtilizersContainer extends React.Component<Props, State> {
     const {
       breadcrumbs,
       countBreakdown,
-      detailedCounts,
       display,
       entityTypesById,
       isLoadingResults,
@@ -155,9 +153,9 @@ class TopUtilizersContainer extends React.Component<Props, State> {
           return (
             <TopUtilizerDashboard
                 entityTypesById={entityTypesById}
+                propertyTypesById={propertyTypesById}
                 selectedEntityType={selectedEntityType}
-                detailedCounts={detailedCounts}
-                isLoading={isLoadingResultCounts} />
+                countBreakdown={countBreakdown} />
           );
 
         case RESULT_DISPLAYS.RESOURCES:
@@ -258,7 +256,6 @@ function mapStateToProps(state :Map<*, *>) :Object {
     neighborTypes: topUtilizers.get(TOP_UTILIZERS.NEIGHBOR_TYPES),
     isLoadingResults: topUtilizers.get(TOP_UTILIZERS.IS_LOADING_TOP_UTILIZERS),
     isLoadingResultCounts: topUtilizers.get(TOP_UTILIZERS.IS_LOADING_TOP_UTILIZER_NEIGHBORS),
-    detailedCounts: topUtilizers.get(TOP_UTILIZERS.TOP_UTILIZER_NEIGHBOR_DETAILS),
     results: topUtilizers.get(TOP_UTILIZERS.TOP_UTILIZER_RESULTS),
     countBreakdown: topUtilizers.get(TOP_UTILIZERS.COUNT_BREAKDOWN)
   };
