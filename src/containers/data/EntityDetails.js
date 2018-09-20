@@ -36,6 +36,7 @@ import {
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 
 type Props = {
+  rankingsById? :Map<string, number>,
   breadcrumbs :List<string>,
   isLoadingNeighbors :boolean,
   neighborsById :Map<string, *>,
@@ -76,6 +77,10 @@ const HEADERS = {
 
 class EntityDetails extends React.Component<Props, State> {
 
+  static defaultProps = {
+    rankingsById: Map()
+  }
+
   constructor(props :Props) {
     super(props);
     this.state = {
@@ -83,11 +88,15 @@ class EntityDetails extends React.Component<Props, State> {
     };
   }
 
+  getSelectedEntityKeyId = () => {
+    const { breadcrumbs } = this.props;
+    return (breadcrumbs.size) ? breadcrumbs.get(-1)[BREADCRUMB.ENTITY_KEY_ID] : null;
+  }
+
   getSelectedEntity = () => {
     const { breadcrumbs, entitiesById } = this.props;
     if (breadcrumbs.size) {
-      const selectedEntityKeyId = breadcrumbs.get(-1)[BREADCRUMB.ENTITY_KEY_ID];
-      return entitiesById.get(selectedEntityKeyId, Map());
+      return entitiesById.get(this.getSelectedEntityKeyId(), Map());
     }
     return Map();
   }
@@ -238,11 +247,19 @@ class EntityDetails extends React.Component<Props, State> {
   }
 
   render() {
+    const { rankingsById } = this.props;
+
     return (
       <div>
         {this.renderBreadcrumbs()}
         {this.renderLayoutOptions()}
-        {this.isCurrentPersonType() ? <SelectedPersonResultCard person={this.getSelectedEntity()} /> : null}
+        {this.isCurrentPersonType()
+          ? (
+            <SelectedPersonResultCard
+                person={this.getSelectedEntity()}
+                index={rankingsById.get(this.getSelectedEntityKeyId())} />
+          )
+          : null}
         {this.renderCountsCard()}
         {this.renderEntityTable()}
         {this.renderNeighbors()}

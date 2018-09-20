@@ -71,6 +71,30 @@ const PersonDetailsRow = styled.div`
   margin: 20px 50px;
 `;
 
+const ImgWrapper = styled.div`
+  position: relative;
+  height: 100%;
+  width: fit-content;
+`;
+
+const UtilizerTag = styled.div`
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: fit-content;
+  padding: 7px 10px;
+  border-radius: 15px;
+  background-color: #ffffff;
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.1);
+  font-family: 'Open Sans', sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  color: #2e2e34;
+  text-transform: uppercase;
+`;
+
 type Props = {
   index? :number,
   person :Map<*, *>
@@ -124,7 +148,10 @@ const renderPersonDetails = (index, person) => {
 
 const SelectedPersonResultCard = ({ index, person } :Props) => (
   <CardWrapper>
-    <img src={getProfileImgSrc(person)} />
+    <ImgWrapper>
+      <img src={getProfileImgSrc(person)} alt="" />
+      {index !== undefined ? <UtilizerTag>{`#${index} Utilizer`}</UtilizerTag> : null}
+    </ImgWrapper>
     {renderPersonDetails(index, person)}
   </CardWrapper>
 );

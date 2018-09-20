@@ -159,9 +159,16 @@ export default class TopUtilizerSearchResults extends React.Component<Props, Sta
   }
 
   render() {
-    const { exploring, isPersonType } = this.props;
+    const { exploring, isPersonType, results } = this.props;
 
-    const resultContent = exploring ? <EntityDetails /> : this.renderTopUtilizerSearchResults();
+    let rankingsById = Map();
+    results.forEach((utilizer, index) => {
+      rankingsById = rankingsById.set(getEntityKeyId(utilizer), index + 1);
+    })
+
+    const resultContent = exploring
+      ? <EntityDetails rankingsById={rankingsById} />
+      : this.renderTopUtilizerSearchResults();
 
     return (
       <CenteredColumnContainer>
