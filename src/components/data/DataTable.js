@@ -407,7 +407,7 @@ class DataTable extends React.Component<Props, State> {
         if (!cellValue1) {
           return 1; // move empty string to the end
         }
-        else if (!cellValue) {
+        else if (!cellValue2) {
           return -1; // keep empty string at the end
         }
         if (React.isValidElement(cellValue1)) {
