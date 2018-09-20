@@ -79,7 +79,7 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
         SUCCESS: () => {
           let entitiesById = state.get(ENTITIES_BY_ID);
 
-          fromJS(action.value).forEach((entity) => {
+          fromJS(action.value.topUtilizers).forEach((entity) => {
             const entityKeyId = getEntityKeyId(entity);
             entitiesById = entitiesById.set(
               entityKeyId,
