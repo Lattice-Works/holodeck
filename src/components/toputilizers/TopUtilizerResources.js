@@ -597,6 +597,8 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
   }
 
   formatNumber = (num) => {
+    if (num === undefined) return num;
+
     const val = Number.parseFloat(num);
     if (!Number.isNaN(val)) {
       return val.toLocaleString();
