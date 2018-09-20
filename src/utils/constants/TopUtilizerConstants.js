@@ -30,7 +30,7 @@ export const PARETO_LABELS = {
 
 export const RESOURCE_TYPES = {
   EVENTS: 'EVENTS',
-  HOURS: 'HOURS',
+  DURATION: 'DURATION',
   COST: 'COST'
 };
 
