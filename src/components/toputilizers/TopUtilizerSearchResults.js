@@ -107,7 +107,7 @@ export default class TopUtilizerSearchResults extends React.Component<Props, Sta
     let propertyTypeHeaders = List();
     propertyTypeHeaders = propertyTypeHeaders.push(fromJS({
       id: COUNT_FQN,
-      value: 'Count'
+      value: 'Score'
     }));
 
     propertyTypes.forEach((propertyType) => {
@@ -144,7 +144,7 @@ export default class TopUtilizerSearchResults extends React.Component<Props, Sta
         <ButtonToolbar options={options} value={layout} noPadding />
         { layout === LAYOUTS.PERSON ? (
           <SmallInfoButton onClick={() => this.setState({ showCountDetails: !showCountDetails })}>
-            {`${showCountDetails ? 'Hide' : 'Show'} Count Details`}
+            {`${showCountDetails ? 'Hide' : 'Show'} Score Details`}
           </SmallInfoButton>
         ) : null}
       </ToolbarWrapper>
