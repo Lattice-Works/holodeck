@@ -157,8 +157,8 @@ const renderCounts = (counts) => {
   return (
     <CountCard>
       <CountRow>
-        <Label>COUNT DETAILS</Label>
-        <Label>COUNT</Label>
+        <Label>SCORE DETAILS</Label>
+        <Label>SCORE</Label>
       </CountRow>
       {counts.map(countItem => (
         <CountRow key={countItem.get(TOP_UTILIZERS_FILTER.LABEL)}>
@@ -182,10 +182,10 @@ const renderPersonDetails = (index, person) => {
       {renderValueWithLabel(person, 'FIRST NAME', FIRST_NAME, 180)}
       {renderValueWithLabel(person, 'LAST NAME', LAST_NAME, 330)}
       {renderValueWithLabel(person, 'DATE OF BIRTH', DOB, 100, true)}
-      {renderValueWithLabel(person, 'COUNT', COUNT_FQN, 40)}
+      {renderValueWithLabel(person, 'SCORE', COUNT_FQN, 40)}
     </Card>
   );
-}
+};
 
 const PersonResultCard = ({
   counts,
