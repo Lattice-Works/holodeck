@@ -44,6 +44,10 @@ const ToolbarWrapper = styled.div`
   margin-bottom: 20px;
 `;
 
+const SmallInfoButton = styled(InfoButton)`
+  font-size: 12px;
+`;
+
 const LAYOUTS = {
   PERSON: 'PERSON',
   TABLE: 'TABLE'
@@ -139,9 +143,9 @@ export default class TopUtilizerSearchResults extends React.Component<Props, Sta
       <ToolbarWrapper>
         <ButtonToolbar options={options} value={layout} noPadding />
         { layout === LAYOUTS.PERSON ? (
-          <InfoButton onClick={() => this.setState({ showCountDetails: !showCountDetails })}>
+          <SmallInfoButton onClick={() => this.setState({ showCountDetails: !showCountDetails })}>
             {`${showCountDetails ? 'Hide' : 'Show'} Count Details`}
-          </InfoButton>
+          </SmallInfoButton>
         ) : null}
       </ToolbarWrapper>
     );
