@@ -78,6 +78,10 @@ const JustificationButton = styled.button`
     margin-right: 7px;
   }
 
+  &:hover {
+    cursor: pointer;
+  }
+
   &:focus {
     outline: none;
   }
