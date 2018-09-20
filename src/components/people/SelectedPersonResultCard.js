@@ -75,6 +75,10 @@ const ImgWrapper = styled.div`
   position: relative;
   height: 100%;
   width: fit-content;
+
+  img {
+    max-height: 100%;
+  }
 `;
 
 const UtilizerTag = styled.div`
