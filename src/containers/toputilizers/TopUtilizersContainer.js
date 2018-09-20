@@ -30,6 +30,7 @@ import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 import * as TopUtilizersActionFactory from './TopUtilizersActionFactory';
 
 type Props = {
+  countBreakdown :Map<*, *>,
   selectedEntitySet :Map<*, *>,
   selectedEntitySetPropertyTypes :List<*>,
   isPersonType :boolean,
@@ -124,6 +125,7 @@ class TopUtilizersContainer extends React.Component<Props, State> {
   renderResults = () => {
     const {
       breadcrumbs,
+      countBreakdown,
       detailedCounts,
       display,
       entityTypesById,
@@ -176,6 +178,9 @@ class TopUtilizersContainer extends React.Component<Props, State> {
           return (
             <TopUtilizerSearchResults
                 results={results}
+                countBreakdown={countBreakdown}
+                propertyTypesById={propertyTypesById}
+                entityTypesById={entityTypesById}
                 selectedPropertyTypes={selectedPropertyTypes}
                 isPersonType={isPersonType}
                 entitySetId={selectedEntitySet.get('id')}
@@ -254,7 +259,8 @@ function mapStateToProps(state :Map<*, *>) :Object {
     isLoadingResults: topUtilizers.get(TOP_UTILIZERS.IS_LOADING_TOP_UTILIZERS),
     isLoadingResultCounts: topUtilizers.get(TOP_UTILIZERS.IS_LOADING_TOP_UTILIZER_NEIGHBORS),
     detailedCounts: topUtilizers.get(TOP_UTILIZERS.TOP_UTILIZER_NEIGHBOR_DETAILS),
-    results: topUtilizers.get(TOP_UTILIZERS.TOP_UTILIZER_RESULTS)
+    results: topUtilizers.get(TOP_UTILIZERS.TOP_UTILIZER_RESULTS),
+    countBreakdown: topUtilizers.get(TOP_UTILIZERS.COUNT_BREAKDOWN)
   };
 }
 

@@ -33,7 +33,7 @@ const CardWrapper = styled(FixedWidthWrapper)`
 
   &:hover {
     ${(props) => {
-      if (!props.disabled) {
+    if (!props.disabled) {
         return css`
           cursor: pointer;
           box-shadow: 0 5px 15px 0 rgba(0, 0, 0, 0.07);
@@ -64,6 +64,10 @@ const CountRow = styled.div`
   flex-direction: row;
   justify-content: space-between;
   padding: 10px 0;
+
+  &:first-child {
+    padding: 0;
+  }
 
   &:not(:first-child):not(:last-child) {
     border-bottom: 1px solid #e6e6eb;

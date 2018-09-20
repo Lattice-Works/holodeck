@@ -15,6 +15,7 @@ import {
 } from './TopUtilizersActionFactory';
 
 const {
+  COUNT_BREAKDOWN,
   IS_LOADING_NEIGHBOR_TYPES,
   IS_LOADING_TOP_UTILIZERS,
   IS_LOADING_TOP_UTILIZER_NEIGHBORS,
@@ -27,6 +28,7 @@ const {
 } = TOP_UTILIZERS;
 
 const INITIAL_STATE :Map<> = fromJS({
+  [COUNT_BREAKDOWN]: Map(),
   [IS_LOADING_TOP_UTILIZERS]: false,
   [IS_LOADING_NEIGHBOR_TYPES]: false,
   [IS_LOADING_TOP_UTILIZER_NEIGHBORS]: false,
@@ -55,9 +57,12 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
         REQUEST: () => state
           .set(IS_LOADING_TOP_UTILIZERS, true)
           .set(TOP_UTILIZER_RESULTS, List())
+          .set(COUNT_BREAKDOWN, Map())
           .set(TOP_UTILIZER_FILTERS, fromJS(action.value.eventFilters)),
-        SUCCESS: () => state.set(TOP_UTILIZER_RESULTS, fromJS(action.value)),
-        FAILURE: () => state.set(TOP_UTILIZER_RESULTS, List()),
+        SUCCESS: () => state
+          .set(TOP_UTILIZER_RESULTS, fromJS(action.value.topUtilizers))
+          .set(COUNT_BREAKDOWN, action.value.scoresByUtilizer),
+        FAILURE: () => state.set(TOP_UTILIZER_RESULTS, List()).set(COUNT_BREAKDOWN, Map()),
         FINALLY: () => state.set(IS_LOADING_TOP_UTILIZERS, false).set(QUERY_HAS_RUN, true)
       });
     }
@@ -76,6 +81,7 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
 
     case CLEAR_TOP_UTILIZERS:
       return state
+        .set(COUNT_BREAKDOWN, Map())
         .set(QUERY_HAS_RUN, false)
         .set(TOP_UTILIZER_RESULTS, List())
         .set(TOP_UTILIZER_FILTERS, List())
