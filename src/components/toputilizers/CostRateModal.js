@@ -16,6 +16,7 @@ import { isNotNumber } from '../../utils/ValidationUtils';
 type Props = {
   costRates :Map<List<string>, number>,
   entityTypesById :Map<string, *>,
+  propertyTypesById :Map<string, *>,
   onSetCostRate :(newCostRates :Map<List<string>, number>) => void,
   onClose :() => void
 };
@@ -74,18 +75,28 @@ export default class CostRateModal extends React.Component<Props, State> {
     }
   }
 
+  getTitle = (triplet) => {
+    const { entityTypesById, propertyTypesById } = this.props;
+
+    const assocTitle = entityTypesById.getIn([triplet.get(0), 'title'], '');
+    const neighborTitle = entityTypesById.getIn([triplet.get(1), 'title'], '');
+    const ptTitle = propertyTypesById.getIn([triplet.get(2), 'title'], '');
+
+    return `${assocTitle} ${neighborTitle} -- ${ptTitle}`;
+  }
+
   renderTable = () => {
     const { entityTypesById } = this.props;
     const { costRateValues } = this.state;
 
-    const rows = costRateValues.entrySeq().map(([pair, cost]) => fromJS({
-      key: pair,
-      label: entityTypesById.getIn([pair.get(1), 'title'], ''),
+    const rows = costRateValues.entrySeq().map(([triplet, cost]) => fromJS({
+      key: triplet,
+      label: this.getTitle(triplet),
       value: cost
     }));
 
-    const onChange = (pair, value) => this.setState({
-      costRateValues: costRateValues.set(pair, value)
+    const onChange = (triplet, value) => this.setState({
+      costRateValues: costRateValues.set(triplet, value)
     });
 
     return (
@@ -103,9 +114,9 @@ export default class CostRateModal extends React.Component<Props, State> {
     const { costRateValues } = this.state;
 
     let formattedValues = Map();
-    costRateValues.entrySeq().forEach(([pair, numStr]) => {
-      const value = isNotNumber(numStr) ? costRates.get(pair) : Number.parseFloat(numStr);
-      formattedValues = formattedValues.set(pair, value);
+    costRateValues.entrySeq().forEach(([triplet, numStr]) => {
+      const value = isNotNumber(numStr) ? costRates.get(triplet) : Number.parseFloat(numStr);
+      formattedValues = formattedValues.set(triplet, value);
     });
 
     onSetCostRate(formattedValues);

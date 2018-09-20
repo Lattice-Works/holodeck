@@ -164,10 +164,10 @@ class TopUtilizersContainer extends React.Component<Props, State> {
           return (
             <TopUtilizerResouces
                 results={results}
+                countBreakdown={countBreakdown}
                 neighborsById={neighborsById}
                 entityTypesById={entityTypesById}
                 selectedEntityType={selectedEntityType}
-                detailedCounts={detailedCounts}
                 isLoading={isLoadingResultCounts}
                 propertyTypesByFqn={propertyTypesByFqn}
                 propertyTypesById={propertyTypesById} />
