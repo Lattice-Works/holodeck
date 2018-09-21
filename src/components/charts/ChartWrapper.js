@@ -182,7 +182,7 @@ const ChartWrapper = ({
         {children}
         {yLabelRight ? (
           <YLabelWrapper secondary>
-            <YLabel secondary>{yLabelRight}</YLabel>
+            <YLabel noMargin={noMargin} secondary>{yLabelRight}</YLabel>
           </YLabelWrapper>
         ) : null}
       </BodyWrapper>

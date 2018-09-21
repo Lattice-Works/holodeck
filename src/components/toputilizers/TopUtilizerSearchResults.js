@@ -12,6 +12,7 @@ import InfoButton from '../buttons/InfoButton';
 import DataTable from '../data/DataTable';
 import EntityDetails from '../../containers/data/EntityDetails';
 import { COUNT_FQN } from '../../utils/constants/DataConstants';
+import { IMAGE_PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
 import { CenteredColumnContainer, FixedWidthWrapper, TableWrapper } from '../layout/Layout';
 import { getEntityKeyId, getFqnString } from '../../utils/DataUtils';
@@ -114,7 +115,8 @@ export default class TopUtilizerSearchResults extends React.Component<Props, Sta
       const id = getFqnString(propertyType.get('type'));
       const value = propertyType.get('title');
       if (selectedPropertyTypes.has(propertyType.get('id'))) {
-        propertyTypeHeaders = propertyTypeHeaders.push(fromJS({ id, value }));
+        const isImg = IMAGE_PROPERTY_TYPES.includes(id);
+        propertyTypeHeaders = propertyTypeHeaders.push(fromJS({ id, value, isImg }));
       }
     });
 

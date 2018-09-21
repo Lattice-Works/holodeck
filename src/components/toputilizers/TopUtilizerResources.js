@@ -835,14 +835,18 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
       maxYear = Math.ceil(data[data.length - 1].dt);
     }
 
+    const timeUnit = this.getTimeUnit();
+
     return (
       <ChartWrapper
           title="Timeline"
           yLabel="Count"
+          yLabelRight={timeUnit.length ? timeUnit : undefined}
           noMargin
           infoText={CHART_EXPLANATIONS.RESOURCE_TIMELINE}>
         <LineChart width={840} height={250} data={data}>
-          <YAxis type="number" tickLine={false} />
+          <YAxis yAxisId="left" orientation="left" type="number" tickLine={false} />
+          {timeUnit.length ? <YAxis yAxisId="right" orientation="right" type="number" tickLine={false} /> : null}
           <XAxis
               type="number"
               tickLine={false}
@@ -857,14 +861,16 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
               content={this.renderTimelineTooltip} />
           <Line
               dataKey="count"
+              yAxisId="left"
               dot={false}
               strokeWidth={2}
               type="linear"
               stroke={RESOURCE_COLORS.EVENTS[1]} />
           {
-            durationByYearAndMonth.size ? (
+            durationByYearAndMonth.size && timeUnit.length ? (
               <Line
                   dataKey="duration"
+                  yAxisId="right"
                   dot={false}
                   strokeWidth={2}
                   type="linear"
