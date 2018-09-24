@@ -17,16 +17,16 @@ export const EDM = {
 export const ENTITY_SETS = {
   ENTITY_SET_SEARCH_RESULTS: 'entitySetSearchResults',
   IS_LOADING_ENTITY_SETS: 'isLoadingEntitySets',
-  SELECTED_ENTITY_SET: 'selectedEntitySet',
-  SELECTED_ENTITY_SET_PROPERTY_TYPES: 'selectedEntitySetPropertyTypes',
-  IS_PERSON_TYPE: 'isPersonType'
+  SELECTED_ENTITY_SET: 'selectedEntitySet'
 };
 
 export const EXPLORE = {
-  IS_LOADING_ENTITY_NEIGHBORS: 'isLoadingEntityNeighbors',
+  BREADCRUMBS: 'breadcrumbs',
   ENTITIES_BY_ID: 'entitiesById',
   ENTITY_NEIGHBORS_BY_ID: 'entityNeighborsById',
-  BREADCRUMBS: 'breadcrumbs'
+  IS_LOADING_ENTITY_NEIGHBORS: 'isLoadingEntityNeighbors',
+  IS_SEARCHING_DATA: 'isSearchingData',
+  SEARCH_RESULTS: 'searchResults'
 };
 
 export const TOP_UTILIZERS = {

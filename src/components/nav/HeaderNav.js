@@ -171,9 +171,9 @@ const HeaderNav = ({ logout } :HeaderNavProps) => (
           <span>Holodeck</span>
         </BrandLink>
         <StyledNavWrapper>
-          {/* <NavButton // TODO bring back the nav buttons
+          <NavButton
               path={Routes.EXPLORE}
-              label="Data Explorer" /> */}
+              label="Data Explorer" />
           <NavButton
               path={Routes.TOP_UTILIZERS}
               label="Top Utilizers" />

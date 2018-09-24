@@ -4,3 +4,5 @@ export const BREADCRUMB = {
   ON_CLICK: 'onClick',
   TITLE: 'title'
 };
+
+export const PAGE_SIZE = 20;
