@@ -3,9 +3,15 @@
 */
 
 import { Constants } from 'lattice';
-import { List, Map, fromJS, isImmutable } from 'immutable';
+import {
+  List,
+  Map,
+  fromJS,
+  isImmutable
+} from 'immutable';
 
 import { COUNT_FQN } from './constants/DataConstants';
+import { PERSON_ENTITY_TYPE_FQN } from './constants/DataModelConstants';
 import { TOP_UTILIZERS_FILTER } from './constants/TopUtilizerConstants';
 
 const {
@@ -78,4 +84,18 @@ export const groupNeighbors = (neighbors) => {
   });
 
   return groupedNeighbors;
-}
+};
+
+export const getEntitySetPropertyTypes = ({ selectedEntitySet, entityTypesById, propertyTypesById }) => {
+  if (!selectedEntitySet) {
+    return List();
+  }
+
+  return entityTypesById
+    .getIn([selectedEntitySet.get('entityTypeId'), 'properties'], List())
+    .map(propertyTypeId => propertyTypesById.get(propertyTypeId));
+};
+
+export const isPersonType = ({ selectedEntitySet, entityTypesById }) => !!selectedEntitySet && getFqnString(
+  entityTypesById.getIn([selectedEntitySet.get('entityTypeId'), 'type'], Map())
+) === PERSON_ENTITY_TYPE_FQN;

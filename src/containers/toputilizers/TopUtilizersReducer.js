@@ -8,7 +8,8 @@ import { TOP_UTILIZERS } from '../../utils/constants/StateConstants';
 import { RESULT_DISPLAYS } from '../../utils/constants/TopUtilizerConstants';
 import {
   CHANGE_TOP_UTILIZERS_DISPLAY,
-  CLEAR_TOP_UTILIZERS,
+  CLEAR_TOP_UTILIZERS_RESULTS,
+  UNMOUNT_TOP_UTILIZERS,
   getNeighborTypes,
   getTopUtilizers,
   loadTopUtilizerNeighbors
@@ -75,7 +76,8 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
     case CHANGE_TOP_UTILIZERS_DISPLAY:
       return state.set(RESULT_DISPLAY, action.value);
 
-    case CLEAR_TOP_UTILIZERS:
+    case CLEAR_TOP_UTILIZERS_RESULTS:
+    case UNMOUNT_TOP_UTILIZERS:
       return state
         .set(COUNT_BREAKDOWN, Map())
         .set(QUERY_HAS_RUN, false)

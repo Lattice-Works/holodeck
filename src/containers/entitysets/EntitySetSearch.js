@@ -21,6 +21,7 @@ import * as EntitySetActionFactory from './EntitySetActionFactory';
 import * as TopUtilizersActionFactory from '../toputilizers/TopUtilizersActionFactory';
 
 type Props = {
+  actionText :string,
   history :string[],
   isLoadingEntitySets :boolean,
   entitySetSearchResults :Immutable.List<*>,
@@ -115,8 +116,7 @@ class EntitySetSearch extends React.Component<Props, State> {
   handleSelect = (entitySetObj) => {
     const { actions } = this.props;
     const entitySet = entitySetObj.get('entitySet', Immutable.Map());
-    const propertyTypes = entitySetObj.get('propertyTypes', Immutable.List());
-    actions.selectEntitySet({ entitySet, propertyTypes });
+    actions.selectEntitySet(entitySet);
     actions.getNeighborTypes(entitySet.get('id'));
   }
 
@@ -139,15 +139,17 @@ class EntitySetSearch extends React.Component<Props, State> {
   }
 
   render() {
+    const { actionText } = this.props;
+
     return (
       <div>
         <HeaderContainer>
           <HeaderContent>
             <Title>Select a dataset to search</Title>
             <Subtitle>
-              Choose a dataset you want to find to utilizers in. If you
+              {`Choose a dataset you want to ${actionText}. If you
               don't see the dataset you're looking for,
-              check <StyledLink onClick={this.routeToManage}>Data Management</StyledLink>
+              check`} <StyledLink onClick={this.routeToManage}>Data Management</StyledLink>
             </Subtitle>
             <StyledInput
                 value={this.state.searchTerm}

@@ -9,26 +9,38 @@ import { EXPLORE } from '../../utils/constants/StateConstants';
 import { BREADCRUMB } from '../../utils/constants/ExploreConstants';
 import { getEntityKeyId } from '../../utils/DataUtils';
 import {
+  CLEAR_EXPLORE_SEARCH_RESULTS,
   SELECT_BREADCRUMB,
   SELECT_ENTITY,
+  UNMOUNT_EXPLORE,
   loadEntityNeighbors,
+  searchEntitySetData,
   selectEntity
 } from './ExploreActionFactory';
 
-import { getTopUtilizers, loadTopUtilizerNeighbors } from '../toputilizers/TopUtilizersActionFactory';
+import {
+  CLEAR_TOP_UTILIZERS_RESULTS,
+  UNMOUNT_TOP_UTILIZERS,
+  getTopUtilizers,
+  loadTopUtilizerNeighbors
+} from '../toputilizers/TopUtilizersActionFactory';
 
 const {
-  IS_LOADING_ENTITY_NEIGHBORS,
+  BREADCRUMBS,
   ENTITY_NEIGHBORS_BY_ID,
   ENTITIES_BY_ID,
-  BREADCRUMBS
+  IS_LOADING_ENTITY_NEIGHBORS,
+  IS_SEARCHING_DATA,
+  SEARCH_RESULTS,
 } = EXPLORE;
 
 const INITIAL_STATE :Map<> = fromJS({
-  [IS_LOADING_ENTITY_NEIGHBORS]: false,
+  [BREADCRUMBS]: List(),
   [ENTITY_NEIGHBORS_BY_ID]: Map(),
   [ENTITIES_BY_ID]: Map(),
-  [BREADCRUMBS]: List()
+  [IS_LOADING_ENTITY_NEIGHBORS]: false,
+  [IS_SEARCHING_DATA]: false,
+  [SEARCH_RESULTS]: List()
 });
 
 const updateEntitiesIdForNeighbors = (initEntitiesById, neighborList) => {
@@ -53,7 +65,7 @@ const updateEntitiesIdForNeighbors = (initEntitiesById, neighborList) => {
   });
 
   return entitiesById;
-}
+};
 
 function reducer(state :Map<> = INITIAL_STATE, action :Object) {
   switch (action.type) {
@@ -115,6 +127,22 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
       });
     }
 
+    case searchEntitySetData.case(action.type): {
+      return searchEntitySetData.reducer(state, action, {
+        REQUEST: () => state.set(IS_SEARCHING_DATA, true).set(SEARCH_RESULTS, List()),
+        SUCCESS: () => {
+          const results = fromJS(action.value);
+          let entitiesById = state.get(ENTITIES_BY_ID);
+          results.get('hits', List()).forEach((result) => {
+            entitiesById = entitiesById.set(getEntityKeyId(result), result);
+          });
+          return state.set(SEARCH_RESULTS, results).set(ENTITIES_BY_ID, entitiesById);
+        },
+        FAILURE: () => state.set(SEARCH_RESULTS, List()),
+        FINALLY: () => state.set(IS_SEARCHING_DATA, false)
+      });
+    }
+
     case SELECT_BREADCRUMB:
       return state.set(BREADCRUMBS, state.get(BREADCRUMBS).slice(0, action.value));
 
@@ -128,6 +156,15 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
       };
       return state.set(BREADCRUMBS, state.get(BREADCRUMBS).push(crumb));
     }
+
+    case CLEAR_EXPLORE_SEARCH_RESULTS:
+    case CLEAR_TOP_UTILIZERS_RESULTS:
+    case UNMOUNT_TOP_UTILIZERS:
+    case UNMOUNT_EXPLORE:
+      return state.set(BREADCRUMBS, List())
+        .set(IS_LOADING_ENTITY_NEIGHBORS, false)
+        .set(IS_SEARCHING_DATA, false)
+        .set(SEARCH_RESULTS, List());
 
     default:
       return state;

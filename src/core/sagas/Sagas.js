@@ -25,10 +25,10 @@ export default function* sagas() :Generator<*, *, *> {
 
     /* EntitySetSagas */
     fork(EntitySetSagas.searchEntitySetsWatcher),
-    fork(EntitySetSagas.selectEntitySetWatcher),
 
     /* ExploreSagas */
     fork(ExploreSagas.loadEntityNeighborsWatcher),
+    fork(ExploreSagas.searchEntitySetDataWatcher),
 
     /* TopUtilizersSagas */
     fork(TopUtilizersSagas.getNeighborTypesWatcher),
