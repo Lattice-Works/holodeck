@@ -49,7 +49,6 @@ type Props = {
 
 type State = {
   countType :string,
-  joinType :string,
   dateRanges :List,
   dateRangeViewing :boolean,
   selectedNeighborTypes :Object[],
@@ -245,7 +244,6 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
       dateRanges: List.of(newDateRange),
       dateRangeViewing: 0,
       countType: COUNT_TYPES.EVENTS,
-      joinType: 'And',
       durationTypeWeights: Map()
     };
   }
@@ -337,14 +335,9 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
 
   renderSearchOption = () => {
     const { entityTypesById, propertyTypesById } = this.props;
-    const {
-      countType,
-      joinType,
-      durationTypeWeights,
-      selectedNeighborTypes
-    } = this.state;
+    const { countType, durationTypeWeights, selectedNeighborTypes } = this.state;
 
-    const onChange = e => this.setState({ [e.target.name]: e.target.value });
+    const onChange = e => this.setState({ countType: e.target.value });
     const availableDurationProperties = this.getAvailableDurationProperties();
 
     const isDisabled = !availableDurationProperties.size
@@ -358,14 +351,12 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
               checked={countType === COUNT_TYPES.EVENTS}
               value={COUNT_TYPES.EVENTS}
               onChange={onChange}
-              name="countType"
               label="Events" />
           <StyledRadio
               disabled={isDisabled}
               checked={countType === COUNT_TYPES.DURATION}
               value={COUNT_TYPES.DURATION}
               onChange={onChange}
-              name="countType"
               label="Duration" />
         </RowWrapper>
         {
@@ -389,7 +380,7 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
                       this.setState({
                         durationTypeWeights: durationTypeWeights.setIn([pair, propertyTypeId], newWeight)
                       });
-                    }
+                    };
                     return (
                       <div key={label}>
                         <StyledCheckbox
@@ -404,21 +395,6 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
             </DropdownWrapper>
           ) : null
         }
-        <RadioTitle>Join Type</RadioTitle>
-        <RowWrapper radioHalfSize>
-          <StyledRadio
-              checked={joinType === 'And'}
-              value="And"
-              onChange={onChange}
-              name="joinType"
-              label="And" />
-          <StyledRadio
-              checked={joinType === 'Or'}
-              value="Or"
-              onChange={onChange}
-              name="joinType"
-              label="Or" />
-        </RowWrapper>
       </DropdownWrapper>
     );
   }
