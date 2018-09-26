@@ -5,7 +5,6 @@
 import React from 'react';
 import styled from 'styled-components';
 import moment from 'moment';
-import Select, { components } from 'react-select';
 import Modal, { ModalTransition } from '@atlaskit/modal-dialog';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationCircle, faTimes } from '@fortawesome/pro-solid-svg-icons';
@@ -16,30 +15,22 @@ import {
   Set,
   OrderedSet
 } from 'immutable';
-import {
-  LineChart,
-  Line,
-  Bar,
-  BarChart,
-  XAxis,
-  YAxis,
-  Tooltip
-} from 'recharts';
 
 import LoadingSpinner from '../LoadingSpinner';
 import ChartWrapper from '../charts/ChartWrapper';
 import CostRateModal from './CostRateModal';
-import UtilityButton from '../buttons/UtilityButton';
+import ResourceBarChart from './resources/ResourceBarChart';
+import ResourceTimeline from './resources/ResourceTimeline';
+import ResourceDropdownFilter from './resources/ResourceDropdownFilter';
 import getTitle from '../../utils/EntityTitleUtils';
 import { COUNT_FQN } from '../../utils/constants/DataConstants';
-import { CHART_EXPLANATIONS, RESOURCE_TYPES, DEFAULT_COST_RATES } from '../../utils/constants/TopUtilizerConstants';
+import { RESOURCE_TYPES, DEFAULT_COST_RATES } from '../../utils/constants/TopUtilizerConstants';
 import {
   DURATION_TYPES,
   DURATION_DAY_TYPES,
   DURATION_HOUR_TYPES,
   DURATION_MINUTE_TYPES
 } from '../../utils/constants/DataModelConstants';
-import { RESOURCE_COLORS } from '../../utils/constants/Colors';
 import {
   CenteredColumnContainer,
   FixedWidthWrapper,
@@ -101,135 +92,6 @@ const WideSplitCard = styled.div`
 
   ${SimpleWrapper}:first-child {
     border-right: 1px solid #e1e1eb;
-  }
-`;
-
-const Option = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: center;
-  padding: 8px 20px;
-  background-color: transparent;
-  color: #555e6f;
-  font-family: 'Open Sans';
-  font-size: 14px;
-  margin-bottom: ${props => (props.selected ? 0 : '10px')};
-
-  &:hover {
-    background-color: ${props => (props.selected ? 'transparent' : '#f0f0f7')};
-    cursor: pointer;
-  }
-
-  span {
-    width: 30px;
-    text-align: left;
-    font-weight: 600;
-  }
-`;
-
-const SelectWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  width: 100%;
-  margin-top: 30px;
-`;
-
-const SelectLabel = styled.span`
-  font-family: 'Open Sans', sans-serif;
-  font-size: 14px;
-  color: #555e6f;
-  margin-bottom: 10px;
-`;
-
-const WideSelect = styled(Select)`
-  width: 100%;
-`;
-
-const TimelineTooltipLabel = styled.span`
-  font-family: 'Open Sans', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  color: #8e929b;
-  margin: 0 5px;
-`;
-
-const TimelineLineDescriptor = styled.div`
-  font-family: 'Open Sans', sans-serif;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  width: fit-content;
-
-  div:first-child {
-    width: 30px;
-    height: 2px;
-    margin-left: 40px;
-    background-color: ${props => props.color};
-  }
-
-  div:last-child {
-    color: #555e6f;
-    font-size: 14px;
-    font-weight: 600;
-  }
-`;
-
-const TimelineTooltip = styled.div`
-  position: absolute;
-  top: -50px;
-  right: 10px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  width: fit-content;
-  height: 20px;
-  visibility: visible;
-`;
-
-const BarChartWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  align-items: flex-start;
-`;
-
-const Subtitle = styled.div`
-  display: block;
-  font-family: 'Open Sans', sans-serif;
-  font-size: 16px;
-  font-weight: 600;
-  color: #8e929b;
-  margin: -20px 0 30px 0;
-
-  span {
-    color: #555e6f;
-  }
-`;
-
-const CostRateButton = styled(UtilityButton)`
-  position: absolute;
-  top: 30px;
-  right: 30px;
-`;
-
-const FloatingTooltipWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  border-radius: 3px;
-  box-shadow: 0 10px 20px 0 rgba(0, 0, 0, 0.1);
-  background-color: #ffffff;
-  border: solid 1px #e1e1eb;
-  padding: 5px 15px;
-  font-family: 'Open Sans', sans-serif;
-  font-size: 12px;
-  font-weight: 600;
-  color: #2e2e34;
-
-  span {
-    padding: 5px 0;
   }
 `;
 
@@ -463,57 +325,11 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     });
   }
 
-  renderOption = (data, selected, onClick) => (
-    <Option selected={selected} onClick={onClick ? onClick : () => {}}>
-      {data.num > 0 ? <span>{data.num}</span> : null}
-      <div>{data.label}</div>
-    </Option>
-  );
-
-  renderSelectOption = (props) => {
-    const { setValue, data } = props;
-    return this.renderOption(data, false, () => setValue(data), !!data.num);
-  }
-
-  renderSingleValue = (props) => {
-    const { data } = props;
-
-    return (
-      <components.SingleValue {...props}>
-        {this.renderOption(data, true, null, !!data.num)}
-      </components.SingleValue>
-    );
-  }
-
   renderSelectDropdown = (key, label, options) => {
-    const value = this.state[key];
-
     const onChange = (newValue) => {
       this.setState({ [key]: newValue });
     };
-
-    return (
-      <SelectWrapper>
-        <SelectLabel>{label}</SelectLabel>
-        <WideSelect
-            value={value}
-            onChange={onChange}
-            options={options}
-            placeholder="Select"
-            isClearable={false}
-            components={{
-              Option: this.renderSelectOption,
-              SingleValue: this.renderSingleValue
-            }}
-            styles={{
-              container: base => ({
-                ...base,
-                outline: 'none',
-                border: '0'
-              })
-            }} />
-      </SelectWrapper>
-    );
+    return <ResourceDropdownFilter value={this.state[key]} label={label} options={options} onChange={onChange} />;
   }
 
   getCountsByYearAndMonth = (useCounts, withMultiplier) => {
@@ -575,97 +391,21 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     else {
       pairDateCounts
         .keySeq()
-        .filter(key => useCounts ? key.size === 2 : key.size === 3)
+        .filter(key => (useCounts ? key.size === 2 : key.size === 3))
         .forEach(pair => updateCountsByDate(pair));
     }
 
     return counts;
   }
 
-  formatCostNumber = (num) => {
-    let parsedNum = this.formatNumber(num);
-    if (parsedNum.length > 1) {
-      if (parsedNum.endsWith('.')) {
-        parsedNum = `${parsedNum}00`;
-      }
-      if (parsedNum[parsedNum.length - 2] === '.') {
-        parsedNum = `${parsedNum}0`;
-      }
-    }
-
-    return parsedNum;
-  }
-
-  formatNumber = (num) => {
-    if (num === undefined) return num;
-
-    const val = Number.parseFloat(num);
-    if (!Number.isNaN(val)) {
-      return val.toLocaleString();
-    }
-
-    return num;
-  }
-
-  formatTotalText = (total, resourceType, forTooltip) => {
-    const timeUnit = this.getTimeUnit();
-    const num = this.formatNumber(total);
-
-    switch (resourceType) {
-      case RESOURCE_TYPES.DURATION:
-        return forTooltip ? `${timeUnit}: ${num}` : `${num} ${timeUnit.toLowerCase()}`;
-
-      case RESOURCE_TYPES.COST: {
-        const costNum = `$${this.formatCostNumber(total)}`
-        return forTooltip ? `Cost: ${costNum}` : costNum;
-      }
-
-      case RESOURCE_TYPES.EVENTS:
-      default:
-        return forTooltip ? `Event count: ${num}` : `${num}`;
-    }
-  }
-
-  renderBarChartTooltip = (resourceType, { label, payload }) => {
-    if (payload && payload.length) {
-      const { value } = payload[0];
-
-      return (
-        <FloatingTooltipWrapper>
-          <span>{`Year: ${label}`}</span>
-          <span>{this.formatTotalText(value, resourceType, true)}</span>
-        </FloatingTooltipWrapper>
-      );
-    }
-
-    return null;
-  }
-
-  renderSimpleBarChart = (resourceType, byDates, withCostMultiplier) => {
-    const colors = RESOURCE_COLORS[resourceType];
-    const data = this.getFilteredCountsForType(byDates, false, withCostMultiplier)
-      .entrySeq()
-      .sort(([year1], [year2]) => year1 > year2 ? 1 : -1)
-      .map(([year, count]) => ({ year, count }));
-
-    const total = data.map(point => point.count).reduce((t1, t2) => t1 + t2) || 0;
-
-    return (
-      <BarChartWrapper>
-        <Subtitle>Total: <span>{this.formatTotalText(total, resourceType)}</span></Subtitle>
-        {withCostMultiplier
-          ? <CostRateButton onClick={() => this.setState({ isSettingCostRate: true })}>Cost Rate</CostRateButton>
-          : null
-        }
-        <BarChart width={400} height={400} data={data.toJS()}>
-          <YAxis type="number" tickLine={false} />
-          <XAxis type="category" tickLine={false} dataKey="year" domain={['dataMin', 'dataMax']} allowDecimals={false} />
-          <Tooltip content={payloadData => this.renderBarChartTooltip(resourceType, payloadData)} />
-          <Bar dataKey="count" fill={colors[0]} />
-        </BarChart>
-      </BarChartWrapper>
-    );
-  }
+  renderSimpleBarChart = (resourceType, byDates, withCostMultiplier) => (
+    <ResourceBarChart
+        resourceType={resourceType}
+        withCostMultiplier={withCostMultiplier}
+        timeUnit={this.getTimeUnit()}
+        setCostRate={() => this.setState({ isSettingCostRate: true })}
+        countsMap={this.getFilteredCountsForType(byDates, false, withCostMultiplier)} />
+  )
 
   getEventTypeOptions = () => {
     const { entityTypesById, propertyTypesById } = this.props;
@@ -734,53 +474,6 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     );
   }
 
-  renderTimelineTooltip = ({ label, payload }) => {
-    if (!payload || !payload.length) {
-      return null;
-    }
-
-    const year = Math.floor(label);
-    const month = Math.round((label - year) * 12) + 1;
-    const dateStr = `${month}/${year}`;
-    const date = moment(dateStr, 'M/YYYY');
-    const formattedDate = date.isValid() ? date.format('MMM YYYY') : dateStr;
-    const timeUnit = this.getTimeUnit();
-
-    let eventDescriptor;
-    let durationDescriptor;
-    payload.forEach((payloadPoint) => {
-      const { color } = payloadPoint;
-      const { count, duration } = payloadPoint.payload;
-      if (count !== undefined) {
-        eventDescriptor = (
-          <TimelineLineDescriptor color={RESOURCE_COLORS.EVENTS[1]}>
-            <div color={color} />
-            <TimelineTooltipLabel>Event count</TimelineTooltipLabel>
-            <div>{count}</div>
-          </TimelineLineDescriptor>
-        );
-      }
-
-      if (timeUnit && duration !== undefined) {
-        durationDescriptor = (
-          <TimelineLineDescriptor color={RESOURCE_COLORS.DURATION[1]}>
-            <div color={color} />
-            <TimelineTooltipLabel>{timeUnit}</TimelineTooltipLabel>
-            <div>{duration}</div>
-          </TimelineLineDescriptor>
-        );
-      }
-    });
-
-    return (
-      <TimelineTooltip>
-        <TimelineTooltipLabel>{formattedDate}</TimelineTooltipLabel>
-        {eventDescriptor}
-        {durationDescriptor}
-      </TimelineTooltip>
-    );
-  }
-
   renderDefaultCostBanner = () => {
     const { displayDefaultCostBanner } = this.state;
     if (!displayDefaultCostBanner) {
@@ -798,89 +491,12 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     )
   }
 
-  renderTimeline = () => {
-    const countsByYearAndMonth = this.getFilteredCountsForType(true, true);
-    const durationByYearAndMonth = this.getFilteredCountsForType(false, true);
-
-    const data = [];
-
-    let counts = Map();
-    countsByYearAndMonth.entrySeq().forEach(([year, monthCounts]) => {
-      monthCounts.entrySeq().forEach(([month, count]) => {
-        counts = counts.setIn([year, month, 'count'], count);
-      });
-    });
-    durationByYearAndMonth.entrySeq().forEach(([year, monthCounts]) => {
-      monthCounts.entrySeq().forEach(([month, duration]) => {
-        counts = counts.setIn([year, month, 'duration'], duration);
-      });
-    });
-
-    counts.entrySeq().forEach(([year, monthCounts]) => {
-      monthCounts.entrySeq().forEach(([month, map]) => {
-        const count = map.get('count', 0);
-        const duration = map.get('duration');
-        const dt = year + ((month - 1) / 12);
-        data.push({ dt, count, duration });
-      });
-    });
-
-    data.sort((d1, d2) => (d1.dt < d2.dt ? -1 : 1));
-
-    let minYear = 0;
-    let maxYear = 0;
-
-    if (data.length > 0) {
-      minYear = Math.floor(data[0].dt);
-      maxYear = Math.ceil(data[data.length - 1].dt);
-    }
-
-    const timeUnit = this.getTimeUnit();
-
-    return (
-      <ChartWrapper
-          title="Timeline"
-          yLabel="Count"
-          yLabelRight={timeUnit.length ? timeUnit : undefined}
-          noMargin
-          infoText={CHART_EXPLANATIONS.RESOURCE_TIMELINE}>
-        <LineChart width={840} height={250} data={data}>
-          <YAxis yAxisId="left" orientation="left" type="number" tickLine={false} />
-          {timeUnit.length ? <YAxis yAxisId="right" orientation="right" type="number" tickLine={false} /> : null}
-          <XAxis
-              type="number"
-              tickLine={false}
-              allowDecimals={false}
-              dataKey="dt"
-              domain={[minYear, maxYear]} />
-          <Tooltip
-              wrapperStyle={{
-                position: 'static',
-                transform: 'none !important'
-              }}
-              content={this.renderTimelineTooltip} />
-          <Line
-              dataKey="count"
-              yAxisId="left"
-              dot={false}
-              strokeWidth={2}
-              type="linear"
-              stroke={RESOURCE_COLORS.EVENTS[1]} />
-          {
-            durationByYearAndMonth.size && timeUnit.length ? (
-              <Line
-                  dataKey="duration"
-                  yAxisId="right"
-                  dot={false}
-                  strokeWidth={2}
-                  type="linear"
-                  stroke={RESOURCE_COLORS.DURATION[1]} />
-            ) : null
-          }
-        </LineChart>
-      </ChartWrapper>
-    );
-  }
+  renderTimeline = () => (
+    <ResourceTimeline
+        countsByYearAndMonth={this.getFilteredCountsForType(true, true)}
+        durationByYearAndMonth={this.getFilteredCountsForType(false, true)}
+        timeUnit={this.getTimeUnit()} />
+  )
 
   renderDurationAndCost = () => {
     const { durationTypes } = this.state;
