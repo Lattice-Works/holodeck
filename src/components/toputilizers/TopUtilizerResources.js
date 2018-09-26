@@ -427,7 +427,8 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     return [
       BLANK_OPTION.toJS(),
       ...durationTypes.entrySeq().flatMap(([pair, properties]) => {
-        const prefix = `${entityTypesById.getIn([pair.get(0), 'title'])} ${entityTypesById.getIn([pair.get(1), 'title'])}`;
+        const toTitle = index => entityTypesById.getIn([pair.get(index), 'title'], '');
+        const prefix = `${toTitle(0)} ${toTitle(1)}`;
         return properties.map((propertyTypeId) => {
           const label = `${prefix} -- ${propertyTypesById.getIn([propertyTypeId, 'title'], '')}`;
           const value = pair.push(propertyTypeId);
@@ -488,7 +489,7 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
           <FontAwesomeIcon icon={faTimes} size="2x" />
         </button>
       </NotificationBanner>
-    )
+    );
   }
 
   renderTimeline = () => (
