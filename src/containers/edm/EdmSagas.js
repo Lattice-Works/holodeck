@@ -20,10 +20,16 @@ function* loadEdmWorker(action :SequenceAction) :Generator<*, *, *> {
       call(EntityDataModelApi.getAllEntitySets)
     ]);
 
+    const entitySetMetadata = yield call(
+      EntityDataModelApi.getPropertyMetadataForEntitySets,
+      entitySets.map(es => es.id)
+    );
+
     yield put(loadEdm.success(action.id, {
       propertyTypes,
       entityTypes,
-      entitySets
+      entitySets,
+      entitySetMetadata
     }));
   }
   catch (error) {
