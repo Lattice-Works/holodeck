@@ -24,7 +24,8 @@ import {
 } from '../../utils/constants/StateConstants';
 import {
   DEFAULT_IGNORE_PROPERTY_TYPES,
-  DEFAULT_PERSON_PROPERTY_TYPES
+  DEFAULT_PERSON_PROPERTY_TYPES,
+  PROPERTY_TAGS
 } from '../../utils/constants/DataModelConstants';
 import { RESULT_DISPLAYS } from '../../utils/constants/TopUtilizerConstants';
 import {
@@ -45,6 +46,7 @@ type Props = {
   entitySetsById :Map<string, *>,
   propertyTypesByFqn :Map<string, *>,
   propertyTypesById :Map<string, *>,
+  entitySetPropertyMetadata :Map<string, *>,
   neighborTypes :List<*>,
   display :string,
   isLoadingResults :boolean,
@@ -92,15 +94,21 @@ class TopUtilizersContainer extends React.Component<Props, State> {
   }
 
   getDefaultSelectedPropertyTypes = (props :Props) => {
+    const { entitySetPropertyMetadata, selectedEntitySet } = props;
     let result = Set();
-    getEntitySetPropertyTypes(props).forEach((propertyType) => {
-      const fqn = getFqnString(propertyType.get('type', Map()));
-      const shouldIgnore = DEFAULT_IGNORE_PROPERTY_TYPES.includes(fqn);
-      const shouldExcludeForPerson = isPersonType(props) && !DEFAULT_PERSON_PROPERTY_TYPES.includes(fqn);
-      if (!shouldIgnore && !shouldExcludeForPerson) {
-        result = result.add(propertyType.get('id'));
-      }
-    });
+    if (selectedEntitySet) {
+      const entitySetId = selectedEntitySet.get('id');
+      getEntitySetPropertyTypes(props).forEach((propertyType) => {
+        const fqn = getFqnString(propertyType.get('type', Map()));
+        const propertyTypeId = propertyType.get('id');
+        const shouldShow = !entitySetPropertyMetadata
+          .getIn([entitySetId, propertyTypeId, 'propertyTags'], List())
+          .includes(PROPERTY_TAGS.HIDE);
+        if (shouldShow) {
+          result = result.add(propertyType.get('id'));
+        }
+      });
+    }
 
     return result;
   }
@@ -247,6 +255,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     entitySetsById: edm.get(EDM.ENTITY_SETS_BY_ID),
     propertyTypesByFqn: edm.get(EDM.PROPERTY_TYPES_BY_FQN),
     propertyTypesById: edm.get(EDM.PROPERTY_TYPES_BY_ID),
+    entitySetPropertyMetadata: edm.get(EDM.ENTITY_SET_METADATA_BY_ID),
     selectedEntitySet: entitySets.get(ENTITY_SETS.SELECTED_ENTITY_SET),
     neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
     display: topUtilizers.get(TOP_UTILIZERS.RESULT_DISPLAY),

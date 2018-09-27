@@ -16,7 +16,7 @@ import TimelineRow from './TimelineRow';
 import DropdownButtonWrapper from '../buttons/DropdownButtonWrapper';
 import StyledCheckbox from '../controls/StyledCheckbox';
 import DateRangePicker from '../controls/DateRangePicker';
-import { DATE_DATATYPES, DEFAULT_IGNORE_PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { DATE_DATATYPES, PROPERTY_TAGS } from '../../utils/constants/DataModelConstants';
 import { DEFAULT_COLORS } from '../../utils/constants/Colors';
 import { getEntityKeyId, getFqnString } from '../../utils/DataUtils';
 
@@ -27,6 +27,7 @@ type Props = {
   entityTypesById :Map<string, *>,
   entitySetsById :Map<string, *>,
   entitiesById :Map<string, *>,
+  entitySetPropertyMetadata :Map<string, *>,
   onSelectEntity :({ entitySetId :string, entity :Map<*, *> }) => void
 };
 
@@ -182,22 +183,33 @@ export default class NeighborTimeline extends React.Component<Props, State> {
     super(props);
 
     const { orderedNeighbors, dateTypeOptions, dateTypeColors } = this.preprocessProps(props);
+    const selectedDateTypes = this.getDefaultSelectedDateTypes(
+      props.entitySetPropertyMetadata,
+      props.propertyTypesByFqn,
+      dateTypeOptions
+    );
 
     this.state = {
       orderedNeighbors,
       dateTypeOptions,
       dateTypeColors,
-      selectedDateTypes: this.getDefaultSelectedDateTypes(dateTypeOptions),
+      selectedDateTypes,
       reverse: false,
       startDate: undefined,
       endDate: undefined
     };
   }
 
-  getDefaultSelectedDateTypes = (dateTypeOptions) => {
+  getDefaultSelectedDateTypes = (entitySetPropertyMetadata, propertyTypesByFqn, dateTypeOptions) => {
     let result = Map();
-    dateTypeOptions.entrySeq().forEach(([entitySet, ptList]) => {
-      result = result.set(entitySet, ptList.filter(fqn => !DEFAULT_IGNORE_PROPERTY_TYPES.includes(fqn)));
+    dateTypeOptions.entrySeq().forEach(([pair, ptList]) => {
+      result = result.set(pair, ptList.filter((fqn) => {
+        const ptId = propertyTypesByFqn.getIn([fqn, 'id']);
+        const shouldShowForIndex = index => entitySetPropertyMetadata
+          .getIn([pair.get(index), ptId, 'propertyTags'], List())
+          .includes(PROPERTY_TAGS.TIMELINE);
+        return shouldShowForIndex(0) || shouldShowForIndex(1);
+      }));
     });
 
     return result;

@@ -43,6 +43,7 @@ type Props = {
   entitiesById :Map<string, *>,
   entityTypesById :Map<string, *>,
   entitySetsById :Map<string, *>,
+  entitySetPropertyMetadata :Map<string, *>,
   propertyTypesByFqn :Map<string, *>,
   propertyTypesById :Map<string, *>,
   countBreakdown :Map<*, *>,
@@ -172,6 +173,7 @@ class EntityDetails extends React.Component<Props, State> {
       entitiesById,
       entitySetsById,
       entityTypesById,
+      entitySetPropertyMetadata,
       isLoadingNeighbors,
       neighborsById,
       propertyTypesById,
@@ -203,6 +205,7 @@ class EntityDetails extends React.Component<Props, State> {
               entitySetsById={entitySetsById}
               entityTypesById={entityTypesById}
               entitiesById={entitiesById}
+              entitySetPropertyMetadata={entitySetPropertyMetadata}
               propertyTypesByFqn={propertyTypesByFqn}
               propertyTypesById={propertyTypesById} />
         );
@@ -291,6 +294,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
     entityTypesById: edm.get(EDM.ENTITY_TYPES_BY_ID),
     entitySetsById: edm.get(EDM.ENTITY_SETS_BY_ID),
+    entitySetPropertyMetadata: edm.get(EDM.ENTITY_SET_METADATA_BY_ID),
     propertyTypesById: edm.get(EDM.PROPERTY_TYPES_BY_ID),
     propertyTypesByFqn: edm.get(EDM.PROPERTY_TYPES_BY_FQN),
     countBreakdown: topUtilizers.get(TOP_UTILIZERS.COUNT_BREAKDOWN)

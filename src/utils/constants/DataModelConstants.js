@@ -102,3 +102,11 @@ export const DATE_DATATYPES = [
   'Date',
   'DateTimeOffset'
 ];
+
+export const PROPERTY_TAGS = {
+  HIDE: 'hidebydefault',
+  TITLE: 'breadcrumbs',
+  TIMELINE: 'timeline',
+  DURATION: 'duration',
+  START: 'startdatetag'
+};
