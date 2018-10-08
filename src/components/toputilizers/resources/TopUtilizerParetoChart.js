@@ -25,6 +25,14 @@ type Props = {
   pair :List<string>
 }
 
+const TooltipRow = styled.div`
+  margin: 5px 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+`;
+
 const ParetoTooltip = ({ payload, eventType }) => {
   if (!payload.length) return null;
 
@@ -87,7 +95,7 @@ const TopUtilizerParetoChart = ({
         <XAxis type="category" dataKey={PARETO_LABELS.UTILIZER_NUM} tickLine={false} />
         <YAxis type="number" tickLine={false} yAxisId="left" orientation="left" />
         <YAxis type="number" tickLine={false} yAxisId="right" orientation="right" />
-        <Tooltip content={({ payload }) => <ParetoTooltip payload={payload} entityTypeTitle={entityTypeTitle} />} />
+        <Tooltip content={({ payload }) => <ParetoTooltip payload={payload} eventType={entityTypeTitle} />} />
         <Bar dataKey={PARETO_LABELS.COUNT} barSize={20} fill="#cdd1db" yAxisId="left" />
         <Line
             dataKey={PARETO_LABELS.CUMULATIVE_PERCENTAGE}
