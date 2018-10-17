@@ -11,7 +11,12 @@ import { Redirect, Route, Switch } from 'react-router';
 import { bindActionCreators } from 'redux';
 
 import HeaderNav from '../../components/nav/HeaderNav';
-import StyledButton from '../../components/buttons/StyledButton';
+import DataManagementContainer from '../manage/DataManagementContainer';
+import ExploreContainer from '../explore/ExploreContainer';
+import ReportsContainer from '../reports/ReportsContainer';
+import TopUtilizersContainer from '../toputilizers/TopUtilizersContainer';
+import { STATE, EDM } from '../../utils/constants/StateConstants';
+import { loadEdm } from '../edm/EdmActionFactory';
 import * as Routes from '../../core/router/Routes';
 
 const { logout } = AuthActionFactory;
@@ -33,8 +38,7 @@ const AppBodyWrapper = styled.div`
   display: flex;
   flex: 1 0 auto;
   flex-direction: column;
-  padding: 30px 170px;
-  margin: 0 auto;
+  max-height: fit-content;
 `;
 
 /*
@@ -42,35 +46,55 @@ const AppBodyWrapper = styled.div`
  */
 
 type Props = {
+  edmWasLoaded :boolean,
   actions :{
     login :() => void;
     logout :() => void;
+    loadEdm :() => void
   };
 };
 
-const HelloWorldComponent = () => (
-  <div>
-    Hello, World!
-  </div>
-);
+class AppContainer extends React.Component<Props> {
 
-const AppContainer = ({ actions } :Props) => (
-  <AppWrapper>
-    <HeaderNav logout={actions.logout} />
-    <AppBodyWrapper>
-      <Switch>
-        <Route path={Routes.ROOT} component={HelloWorldComponent} />
-        <Redirect to={Routes.ROOT} />
-      </Switch>
-    </AppBodyWrapper>
-  </AppWrapper>
-);
+  componentDidMount() {
+    const { actions, edmWasLoaded } = this.props;
+    if (!edmWasLoaded) {
+      actions.loadEdm();
+    }
+  }
+
+  render() {
+    const { actions } = this.props;
+
+    return (
+      <AppWrapper>
+        <AppBodyWrapper>
+          <HeaderNav logout={actions.logout} />
+          <Switch>
+            <Route path={Routes.EXPLORE} component={ExploreContainer} />
+            <Route path={Routes.TOP_UTILIZERS} component={TopUtilizersContainer} />
+            {/* <Route path={Routes.MANAGE} component={DataManagementContainer} />
+            <Route path={Routes.REPORTS} component={ReportsContainer} /> */}
+            <Redirect to={Routes.TOP_UTILIZERS} />
+          </Switch>
+        </AppBodyWrapper>
+      </AppWrapper>
+    );
+  }
+}
+
+function mapStateToProps(state :Map<*, *>) :Object {
+  const edm = state.get(STATE.EDM);
+  return {
+    edmWasLoaded: edm.get(EDM.EDM_WAS_LOADED)
+  };
+}
 
 function mapDispatchToProps(dispatch :Function) :Object {
 
   return {
-    actions: bindActionCreators({ logout }, dispatch)
+    actions: bindActionCreators({ logout, loadEdm }, dispatch)
   };
 }
 
-export default connect(null, mapDispatchToProps)(AppContainer);
+export default connect(mapStateToProps, mapDispatchToProps)(AppContainer);
