@@ -16,6 +16,8 @@ export const PROPERTY_TYPES = {
   MARITAL_STATUS: 'person.maritalstatus',
   MUGSHOT: 'publicsafety.mugshot',
   PICTURE: 'person.picture',
+  LICENSE_PLATE: 'ol.licenseplateimage',
+  VEHICLE_IMAGE: 'ol.vehicleimage',
 
   ENTRY_UPDATED: 'general.entryupdated',
 
@@ -91,7 +93,9 @@ export const DURATION_TYPES = Object.assign(
 
 export const IMAGE_PROPERTY_TYPES = [
   PROPERTY_TYPES.MUGSHOT,
-  PROPERTY_TYPES.PICTURE
+  PROPERTY_TYPES.PICTURE,
+  PROPERTY_TYPES.LICENSE_PLATE,
+  PROPERTY_TYPES.VEHICLE_IMAGE
 ];
 
 export const DEFAULT_IGNORE_PROPERTY_TYPES = [
