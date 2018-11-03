@@ -44,7 +44,7 @@ function* searchEntitySetDataWorker(action :SequenceAction) :Generator<*, *, *> 
     const results = yield call(SearchApi.searchEntitySetData, entitySetId, {
       searchTerm,
       start,
-      maxHits: PAGE_SIZE
+      maxHits: 20
     });
 
     yield put(searchEntitySetData.success(action.id, results));
