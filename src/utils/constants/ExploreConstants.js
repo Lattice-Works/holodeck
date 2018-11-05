@@ -5,4 +5,4 @@ export const BREADCRUMB = {
   TITLE: 'title'
 };
 
-export const PAGE_SIZE = 20;
+export const PAGE_SIZE = 1000;
