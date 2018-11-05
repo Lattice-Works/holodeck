@@ -124,13 +124,14 @@ class SearchResultsContainer extends React.Component<Props, State> {
 
   renderPersonResults = () => {
     const { isTopUtilizers, results } = this.props;
-    const { showCountDetails } = this.state;
+    const { showCountDetails, start } = this.state;
+    const items = results.slice(start, start + MAX_RESULTS);
 
-    return results.map((person, index) => (
+    return items.map((person, index) => (
       <PersonResultCard
           key={getEntityKeyId(person)}
           counts={isTopUtilizers && showCountDetails ? this.getCountsForUtilizer(getEntityKeyId(person)) : null}
-          index={index + 1}
+          index={index + 1 + start}
           person={person}
           onClick={() => this.onSelect(index, person)} />
     ));
@@ -223,8 +224,6 @@ class SearchResultsContainer extends React.Component<Props, State> {
     const isExploring = !!breadcrumbs.size;
     const { start } = this.state; // CHANGE
 
-    console.log('start: ', start); // CHANGE
-
     let rankingsById = Map();
     results.forEach((utilizer, index) => {
       rankingsById = rankingsById.set(getEntityKeyId(utilizer), index + 1);
@@ -238,6 +237,7 @@ class SearchResultsContainer extends React.Component<Props, State> {
     const numResults = results.size;
     const numPages = Math.ceil(numResults / MAX_RESULTS);
     const currPage = (start / MAX_RESULTS) + 1;
+
     // CHANGE:
     return (
       <CenteredColumnContainer>
