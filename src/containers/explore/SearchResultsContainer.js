@@ -14,6 +14,7 @@ import ButtonToolbar from '../../components/buttons/ButtonToolbar';
 import InfoButton from '../../components/buttons/InfoButton';
 import DataTable from '../../components/data/DataTable';
 import EntityDetails from '../data/EntityDetails';
+import Pagination from '../../components/explore/Pagination'; // CHANGE
 import { COUNT_FQN } from '../../utils/constants/DataConstants';
 import { PERSON_ENTITY_TYPE_FQN, IMAGE_PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
@@ -48,7 +49,8 @@ type Props = {
 
 type State = {
   layout :string,
-  showCountDetails :boolean
+  showCountDetails :boolean,
+  start :number // CHANGE
 }
 
 
@@ -70,13 +72,16 @@ const LAYOUTS = {
   TABLE: 'TABLE'
 };
 
+const MAX_RESULTS = 4; // CHANGE
+
 class SearchResultsContainer extends React.Component<Props, State> {
 
   constructor(props :Props) {
     super(props);
     this.state = {
       layout: isPersonType(props) ? LAYOUTS.PERSON : LAYOUTS.TABLE,
-      showCountDetails: false
+      showCountDetails: false,
+      start: 0 // CHANGE
     };
   }
 
@@ -205,10 +210,20 @@ class SearchResultsContainer extends React.Component<Props, State> {
       : this.renderTableResults();
   }
 
+  updatePage = (start) => {
+    this.setState({ start });
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  }
+
   render() {
     const { breadcrumbs, results } = this.props;
-
     const isExploring = !!breadcrumbs.size;
+    const { start } = this.state; // CHANGE
+
+    console.log('start: ', start); // CHANGE
 
     let rankingsById = Map();
     results.forEach((utilizer, index) => {
@@ -219,11 +234,20 @@ class SearchResultsContainer extends React.Component<Props, State> {
       ? <EntityDetails rankingsById={rankingsById} />
       : this.renderTopUtilizerSearchResults();
 
+    // CHANGE:
+    const numResults = results.size;
+    const numPages = Math.ceil(numResults / MAX_RESULTS);
+    const currPage = (start / MAX_RESULTS) + 1;
+    // CHANGE:
     return (
       <CenteredColumnContainer>
         <FixedWidthWrapper>
           {(isPersonType(this.props) && !isExploring) ? this.renderLayoutToolbar() : null}
           {resultContent}
+          <Pagination
+              numPages={numPages}
+              activePage={currPage}
+              onChangePage={page => this.updatePage((page - 1) * MAX_RESULTS)} />
         </FixedWidthWrapper>
       </CenteredColumnContainer>
     );

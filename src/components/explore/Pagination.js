@@ -5,9 +5,10 @@
 import React from 'react';
 import styled from 'styled-components';
 
-import leftArrow from '../assets/svg/left-arrow-dark.svg';
-import rightArrow from '../assets/svg/right-arrow-dark.svg';
-import { OL } from '../utils/consts/Colors'; // NEED TO EDIT
+import leftArrow from '../../assets/svg/left-arrow-dark.svg';
+import rightArrow from '../../assets/svg/right-arrow-dark.svg';
+import { CHART_COLORS } from '../../utils/constants/Colors';
+
 const PageList = styled.ul`
   display: flex;
   flex-direction: row;
@@ -24,8 +25,8 @@ const PageListItem = styled.li`
   width: ${props => ((props.disabled) ? '0' : 'auto')};
   visibility: ${props => ((props.disabled) ? 'hidden' : '')};
   a {
-    color: ${props => (props.active ? OL.WHITE : OL.GREY01)};
-    background-color: ${props => (props.active ? OL.PURPLE02 : '')};
+    color: ${props => (props.active ? 'white' : CHART_COLORS[0])};
+    background-color: ${props => (props.active ? CHART_COLORS[0] : '')};
     border-radius: ${props => (props.active ? '2px' : '')};
     width: 24px;
     height: 24px;
@@ -33,6 +34,9 @@ const PageListItem = styled.li`
     justify-content: center;
     align-items: center;
     border: none;
+  }
+  &:hover {
+    cursor: pointer;
   }
 `;
 
