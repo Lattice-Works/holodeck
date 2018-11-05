@@ -147,6 +147,10 @@ class SearchResultsContainer extends React.Component<Props, State> {
       selectedEntitySet
     } = this.props;
 
+    const { start } = this.state;
+    
+    const items = results.slice(start, start + MAX_RESULTS);
+
     let propertyTypeHeaders = List();
 
     if (isTopUtilizers) {
@@ -171,7 +175,7 @@ class SearchResultsContainer extends React.Component<Props, State> {
 
     return (
       <TableWrapper>
-        <DataTable headers={propertyTypeHeaders} data={results} onRowClick={this.onSelect} />
+        <DataTable headers={propertyTypeHeaders} data={items} onRowClick={this.onSelect} />
       </TableWrapper>
     );
   };
