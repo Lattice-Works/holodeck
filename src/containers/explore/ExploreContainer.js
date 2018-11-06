@@ -54,7 +54,6 @@ type Props = {
 
 type State = {
   searchTerm :string,
-  page :number,
   searchStart :number,
   currLayout :string
 };
@@ -69,7 +68,6 @@ class ExploreContainer extends React.Component<Props, State> {
     super(props);
     this.state = {
       searchTerm: '',
-      page: 1,
       searchStart: 0,
       currLayout: ''
     };
@@ -93,7 +91,9 @@ class ExploreContainer extends React.Component<Props, State> {
                 searchStart={searchStart}
                 currLayout={currLayout}
                 results={results.get('hits', List())}
-                executeSearch={this.executeSearch} />;
+                totalHits={results.get('numHits')}
+                executeSearch={this.executeSearch}
+                renderLayout={this.renderLayout} />;
     }
 
     return null;
@@ -104,7 +104,7 @@ class ExploreContainer extends React.Component<Props, State> {
     this.setState({ searchTerm: value });
   }
 
-  executeSearch = (start, layout) => {
+  executeSearch = (start) => {
     const { searchTerm } = this.state;
     const { actions, selectedEntitySet } = this.props;
 
@@ -113,14 +113,19 @@ class ExploreContainer extends React.Component<Props, State> {
     }
 
     this.setState({
-      searchStart: start,
-      currLayout: layout
+      searchStart: start
     });
 
     actions.searchEntitySetData({
       entitySetId: selectedEntitySet.get('id'),
       start,
       searchTerm
+    });
+  }
+
+  renderLayout = (layout) => {
+    this.setState({
+      currLayout: layout
     });
   }
 

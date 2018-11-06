@@ -75,9 +75,10 @@ const SearchParameterSelection = ({
   const entitySetTitle = selectedEntitySet.get('title');
 
   const onKeyPress = (e) => {
+    console.log(e);
     const { key } = e;
     if (key === 'Enter') {
-      executeSearch();
+      executeSearch(0);
     }
   };
 

@@ -212,13 +212,12 @@ class SearchResultsContainer extends React.Component<Props, State> {
       : this.renderTableResults();
   }
 
-  updatePage = (startVal, layout) => {
-    const { executeSearch } = this.props;
+  updatePage = (start, layout) => {
+    const { executeSearch, renderLayout } = this.props;
 
-    this.setState({
-      start: startVal
-    }, () => {
-      executeSearch(startVal, layout);
+    this.setState({ start }, () => {
+      executeSearch(start);
+      renderLayout(layout);
     });
 
     window.scrollTo({
@@ -229,20 +228,16 @@ class SearchResultsContainer extends React.Component<Props, State> {
 
   componentDidMount() {
     const { searchStart, currLayout } = this.props;
+    const { layout } = this.state;
 
     this.setState({
-      start: searchStart
+      start: searchStart,
+      layout: currLayout || layout
     });
-
-    if (currLayout) {
-      this.setState({
-        layout: currLayout
-      })
-    }
   }
 
   render() {
-    const { breadcrumbs, results } = this.props;
+    const { breadcrumbs, results, totalHits } = this.props;
     const isExploring = !!breadcrumbs.size;
     const { start, layout } = this.state;
 
@@ -255,7 +250,7 @@ class SearchResultsContainer extends React.Component<Props, State> {
       ? <EntityDetails rankingsById={rankingsById} />
       : this.renderTopUtilizerSearchResults();
 
-    const numResults = results.size;
+    const numPages = Math.ceil(totalHits / MAX_RESULTS);
     const currPage = (start / MAX_RESULTS) + 1;
 
     return (
@@ -264,7 +259,7 @@ class SearchResultsContainer extends React.Component<Props, State> {
           {(isPersonType(this.props) && !isExploring) ? this.renderLayoutToolbar() : null}
           {resultContent}
           <Pagination
-              numResults={numResults}
+              numPages={numPages}
               activePage={currPage}
               onChangePage={page => this.updatePage(((page - 1) * MAX_RESULTS), layout)} />
         </FixedWidthWrapper>
