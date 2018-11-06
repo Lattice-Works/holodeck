@@ -8,7 +8,6 @@ import { List, Map, fromJS } from 'immutable';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Route } from 'react-router-dom';
 
 import PersonResultCard from '../../components/people/PersonResultCard';
 import ButtonToolbar from '../../components/buttons/ButtonToolbar';
@@ -213,13 +212,13 @@ class SearchResultsContainer extends React.Component<Props, State> {
       : this.renderTableResults();
   }
 
-  updatePage = (startVal) => {
+  updatePage = (startVal, layout) => {
     const { executeSearch } = this.props;
 
     this.setState({
       start: startVal
     }, () => {
-      executeSearch(startVal);
+      executeSearch(startVal, layout);
     });
 
     window.scrollTo({
@@ -229,17 +228,23 @@ class SearchResultsContainer extends React.Component<Props, State> {
   }
 
   componentDidMount() {
-    const { searchStart } = this.props;
+    const { searchStart, currLayout } = this.props;
 
     this.setState({
       start: searchStart
     });
+
+    if (currLayout) {
+      this.setState({
+        layout: currLayout
+      })
+    }
   }
 
   render() {
     const { breadcrumbs, results } = this.props;
     const isExploring = !!breadcrumbs.size;
-    const { start } = this.state;
+    const { start, layout } = this.state;
 
     let rankingsById = Map();
     results.forEach((utilizer, index) => {
@@ -251,7 +256,6 @@ class SearchResultsContainer extends React.Component<Props, State> {
       : this.renderTopUtilizerSearchResults();
 
     const numResults = results.size;
-    const numPages = Math.ceil(numResults / MAX_RESULTS);
     const currPage = (start / MAX_RESULTS) + 1;
 
     return (
@@ -260,9 +264,9 @@ class SearchResultsContainer extends React.Component<Props, State> {
           {(isPersonType(this.props) && !isExploring) ? this.renderLayoutToolbar() : null}
           {resultContent}
           <Pagination
-              numPages={numPages}
+              numResults={numResults}
               activePage={currPage}
-              onChangePage={page => this.updatePage((page - 1) * MAX_RESULTS)} />
+              onChangePage={page => this.updatePage(((page - 1) * MAX_RESULTS), layout)} />
         </FixedWidthWrapper>
       </CenteredColumnContainer>
     );
