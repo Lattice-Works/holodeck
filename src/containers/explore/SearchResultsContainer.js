@@ -8,6 +8,7 @@ import { List, Map, fromJS } from 'immutable';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import { Route } from 'react-router-dom';
 
 import PersonResultCard from '../../components/people/PersonResultCard';
 import ButtonToolbar from '../../components/buttons/ButtonToolbar';
@@ -72,7 +73,7 @@ const LAYOUTS = {
   TABLE: 'TABLE'
 };
 
-const MAX_RESULTS = 15;
+const MAX_RESULTS = 20;
 
 class SearchResultsContainer extends React.Component<Props, State> {
 
@@ -125,9 +126,8 @@ class SearchResultsContainer extends React.Component<Props, State> {
   renderPersonResults = () => {
     const { isTopUtilizers, results } = this.props;
     const { showCountDetails, start } = this.state;
-    const items = results.slice(start, start + MAX_RESULTS);
 
-    return items.map((person, index) => (
+    return results.map((person, index) => (
       <PersonResultCard
           key={getEntityKeyId(person)}
           counts={isTopUtilizers && showCountDetails ? this.getCountsForUtilizer(getEntityKeyId(person)) : null}
@@ -148,8 +148,6 @@ class SearchResultsContainer extends React.Component<Props, State> {
     } = this.props;
 
     const { start } = this.state;
-    
-    const items = results.slice(start, start + MAX_RESULTS);
 
     let propertyTypeHeaders = List();
 
@@ -175,7 +173,7 @@ class SearchResultsContainer extends React.Component<Props, State> {
 
     return (
       <TableWrapper>
-        <DataTable headers={propertyTypeHeaders} data={items} onRowClick={this.onSelect} />
+        <DataTable headers={propertyTypeHeaders} data={results} onRowClick={this.onSelect} />
       </TableWrapper>
     );
   };
@@ -215,11 +213,26 @@ class SearchResultsContainer extends React.Component<Props, State> {
       : this.renderTableResults();
   }
 
-  updatePage = (start) => {
-    this.setState({ start });
+  updatePage = (startVal) => {
+    const { executeSearch } = this.props;
+
+    this.setState({
+      start: startVal
+    }, () => {
+      executeSearch(startVal);
+    });
+
     window.scrollTo({
       top: 0,
       behavior: 'smooth'
+    });
+  }
+
+  componentDidMount() {
+    const { searchStart } = this.props;
+
+    this.setState({
+      start: searchStart
     });
   }
 

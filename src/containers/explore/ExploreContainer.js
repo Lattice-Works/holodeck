@@ -54,7 +54,8 @@ type Props = {
 
 type State = {
   searchTerm :string,
-  page :number
+  page :number,
+  searchStart :number
 };
 
 const ResultsWrapper = styled.div`
@@ -67,7 +68,8 @@ class ExploreContainer extends React.Component<Props, State> {
     super(props);
     this.state = {
       searchTerm: '',
-      page: 0
+      page: 1,
+      searchStart: 0
     };
   }
 
@@ -78,13 +80,17 @@ class ExploreContainer extends React.Component<Props, State> {
 
   renderResults = () => {
     const { isLoadingResults, results } = this.props;
+    const { searchStart } = this.state;
 
     if (isLoadingResults) {
       return <LoadingSpinner />;
     }
 
     if (results.size) {
-      return <SearchResultsContainer results={results.get('hits', List())} />;
+      return <SearchResultsContainer
+                searchStart={searchStart}
+                results={results.get('hits', List())}
+                executeSearch={this.executeSearch} />;
     }
 
     return null;
@@ -95,13 +101,21 @@ class ExploreContainer extends React.Component<Props, State> {
     this.setState({ searchTerm: value });
   }
 
-  executeSearch = () => {
-    const { page, searchTerm } = this.state;
+  executeSearch = (start) => {
+    const { searchTerm } = this.state;
     const { actions, selectedEntitySet } = this.props;
+
+    if (!start) {
+      start = 0;
+    }
+
+    this.setState({
+      searchStart: start
+    });
 
     actions.searchEntitySetData({
       entitySetId: selectedEntitySet.get('id'),
-      start: page * PAGE_SIZE,
+      start,
       searchTerm
     });
   }
