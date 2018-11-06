@@ -4,7 +4,6 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
 
 import leftArrow from '../../assets/svg/left-arrow-dark.svg';
 import rightArrow from '../../assets/svg/right-arrow-dark.svg';
@@ -43,31 +42,18 @@ const PageListItem = styled.li`
 
 type Props = {
   onChangePage :() => void,
-  numPages :number,
-  activePage :number
+  activePage :number,
+  numResults :number
 }
-
-// pagination start page is START_PAGE
-const START_PAGE = 1;
-// only MAX_PAGE_DISPLAY pages are displayed in the pagination controls.
-const MAX_PAGE_DISPLAY = 1;
-// if the active page is less than SHIFT_THRESHOLD,
-// the pages displayed in the pagination controls does not shift.
-const SHIFT_THRESHOLD = 3;
 
 const Pagination = (props :Props) => {
 
-  const { numPages } = props;
-  const { activePage } = props;
-  const { onChangePage } = props;
+  const { numResults, activePage, onChangePage } = props;
   const frontArrowDisabled = activePage === 1;
-  const frontJumpDisabled = (activePage <= SHIFT_THRESHOLD) || (numPages <= MAX_PAGE_DISPLAY);
-  const backArrowDisabled = activePage === numPages;
-  const backJumpDisabled = (activePage > numPages - SHIFT_THRESHOLD) || (numPages <= MAX_PAGE_DISPLAY);
+  const backArrowDisabled = numResults < 20;
 
-  // `pages` is an array that controls which pages are displayed in the pagination controls
+  // `pages` is an array that controls which page is displayed in the pagination controls
   let pages = [activePage];
-  let end;
 
   const indices = pages.map((page) => {
     const active = activePage === page;
@@ -87,7 +73,7 @@ const Pagination = (props :Props) => {
         </a>
       </PageListItem>
       {indices}
-      <PageListItem>
+      <PageListItem disabled={backArrowDisabled}>
         <a onClick={() => onChangePage(activePage + 1)}>
           <img src={rightArrow} alt="" />
         </a>
