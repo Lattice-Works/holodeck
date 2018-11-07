@@ -15,7 +15,7 @@ const PageList = styled.ul`
   justify-content: flex-end;
   align-items: center;
   list-style: none;
-  margin: 0 30px;
+  margin: 30px;
   li:last-child {
     width: 24px;
   }
