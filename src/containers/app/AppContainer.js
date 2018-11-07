@@ -50,7 +50,7 @@ type Props = {
   actions :{
     login :() => void;
     logout :() => void;
-    loadEdm :() => void
+    loadEdm :() => void;
   };
 };
 
@@ -58,9 +58,11 @@ class AppContainer extends React.Component<Props> {
 
   componentDidMount() {
     const { actions, edmWasLoaded } = this.props;
+
     if (!edmWasLoaded) {
       actions.loadEdm();
     }
+
   }
 
   render() {
@@ -85,6 +87,7 @@ class AppContainer extends React.Component<Props> {
 
 function mapStateToProps(state :Map<*, *>) :Object {
   const edm = state.get(STATE.EDM);
+
   return {
     edmWasLoaded: edm.get(EDM.EDM_WAS_LOADED)
   };

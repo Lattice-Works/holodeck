@@ -14,6 +14,7 @@ import ButtonToolbar from '../../components/buttons/ButtonToolbar';
 import InfoButton from '../../components/buttons/InfoButton';
 import DataTable from '../../components/data/DataTable';
 import EntityDetails from '../data/EntityDetails';
+import Pagination from '../../components/explore/Pagination';
 import { COUNT_FQN } from '../../utils/constants/DataConstants';
 import { PERSON_ENTITY_TYPE_FQN, IMAGE_PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
@@ -48,7 +49,8 @@ type Props = {
 
 type State = {
   layout :string,
-  showCountDetails :boolean
+  showCountDetails :boolean,
+  start :number
 }
 
 
@@ -70,13 +72,16 @@ const LAYOUTS = {
   TABLE: 'TABLE'
 };
 
+const MAX_RESULTS = 20;
+
 class SearchResultsContainer extends React.Component<Props, State> {
 
   constructor(props :Props) {
     super(props);
     this.state = {
       layout: isPersonType(props) ? LAYOUTS.PERSON : LAYOUTS.TABLE,
-      showCountDetails: false
+      showCountDetails: false,
+      start: 0
     };
   }
 
@@ -119,13 +124,13 @@ class SearchResultsContainer extends React.Component<Props, State> {
 
   renderPersonResults = () => {
     const { isTopUtilizers, results } = this.props;
-    const { showCountDetails } = this.state;
+    const { showCountDetails, start } = this.state;
 
     return results.map((person, index) => (
       <PersonResultCard
           key={getEntityKeyId(person)}
           counts={isTopUtilizers && showCountDetails ? this.getCountsForUtilizer(getEntityKeyId(person)) : null}
-          index={index + 1}
+          index={index + 1 + start}
           person={person}
           onClick={() => this.onSelect(index, person)} />
     ));
@@ -140,6 +145,8 @@ class SearchResultsContainer extends React.Component<Props, State> {
       results,
       selectedEntitySet
     } = this.props;
+
+    const { start } = this.state;
 
     let propertyTypeHeaders = List();
 
@@ -205,10 +212,34 @@ class SearchResultsContainer extends React.Component<Props, State> {
       : this.renderTableResults();
   }
 
-  render() {
-    const { breadcrumbs, results } = this.props;
+  updatePage = (start, layout) => {
+    const { executeSearch, renderLayout } = this.props;
 
+    this.setState({ start }, () => {
+      executeSearch(start);
+      renderLayout(layout);
+    });
+
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  }
+
+  componentDidMount() {
+    const { searchStart, currLayout } = this.props;
+    const { layout } = this.state;
+
+    this.setState({
+      start: searchStart,
+      layout: currLayout || layout
+    });
+  }
+
+  render() {
+    const { breadcrumbs, results, totalHits } = this.props;
     const isExploring = !!breadcrumbs.size;
+    const { start, layout } = this.state;
 
     let rankingsById = Map();
     results.forEach((utilizer, index) => {
@@ -219,11 +250,18 @@ class SearchResultsContainer extends React.Component<Props, State> {
       ? <EntityDetails rankingsById={rankingsById} />
       : this.renderTopUtilizerSearchResults();
 
+    const numPages = Math.ceil(totalHits / MAX_RESULTS);
+    const currPage = (start / MAX_RESULTS) + 1;
+
     return (
       <CenteredColumnContainer>
         <FixedWidthWrapper>
           {(isPersonType(this.props) && !isExploring) ? this.renderLayoutToolbar() : null}
           {resultContent}
+          <Pagination
+              numPages={numPages}
+              activePage={currPage}
+              onChangePage={page => this.updatePage(((page - 1) * MAX_RESULTS), layout)} />
         </FixedWidthWrapper>
       </CenteredColumnContainer>
     );
