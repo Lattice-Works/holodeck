@@ -14,6 +14,7 @@ import StyledInput from '../../components/controls/StyledInput';
 import StyledLink from '../../components/controls/StyledLink';
 import EntitySetCard from '../../components/cards/EntitySetCard';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import Pagination from '../../components/explore/Pagination';
 import { ENTITY_SETS, STATE } from '../../utils/constants/StateConstants';
 import { ComponentWrapper, HeaderComponentWrapper } from '../../components/layout/Layout';
 import * as Routes from '../../core/router/Routes';
@@ -22,6 +23,8 @@ import * as TopUtilizersActionFactory from '../toputilizers/TopUtilizersActionFa
 
 type Props = {
   actionText :string,
+  page :number,
+  totalHits :number,
   history :string[],
   isLoadingEntitySets :boolean,
   entitySetSearchResults :Immutable.List<*>,
@@ -32,6 +35,7 @@ type Props = {
       maxHits :number
     }) => void,
     selectEntitySet :(entitySet? :Immutable.Map<*, *>) => void,
+    selectEntitySetPage :(page :number) => void,
     getNeighborTypes :(id :string) => void
   }
 };
@@ -86,7 +90,7 @@ const ResultsContainer = styled(ComponentWrapper)`
   justify-content: center;
 `;
 
-const MAX_ENTITY_SET_HITS = 24;
+const PAGE_SIZE = 24;
 
 class EntitySetSearch extends React.Component<Props, State> {
 
@@ -99,17 +103,31 @@ class EntitySetSearch extends React.Component<Props, State> {
     this.searchTimeout = null;
   }
 
+  componentDidMount() {
+    const { actions } = this.props;
+    this.executeSearch(1, '*');
+  }
+
+  executeSearch = (page, searchTermInit) => {
+    const { actions } = this.props;
+
+    actions.searchEntitySets({
+      searchTerm: searchTermInit.length ? searchTermInit : '*',
+      start: (page - 1) * PAGE_SIZE,
+      maxHits: PAGE_SIZE
+    });
+  }
+
   handleInputChange = (e :SyntheticEvent) => {
     this.setState({ searchTerm: e.target.value });
 
     clearTimeout(this.searchTimeout);
 
     this.searchTimeout = setTimeout(() => {
-      this.props.actions.searchEntitySets({
-        searchTerm: this.state.searchTerm,
-        start: 0,
-        maxHits: MAX_ENTITY_SET_HITS
-      })
+      const { page } = this.props;
+      const { searchTerm } = this.state;
+
+      this.executeSearch(page, searchTerm);
     }, 500);
   }
 
@@ -138,8 +156,16 @@ class EntitySetSearch extends React.Component<Props, State> {
     this.props.history.push(Routes.MANAGE);
   }
 
+  updatePage = (page) => {
+    const { actions } = this.props;
+    const { searchTerm } = this.state;
+    this.executeSearch(page, searchTerm);
+    actions.selectEntitySetPage(page);
+  }
+
   render() {
-    const { actionText } = this.props;
+    const { actionText, page, totalHits } = this.props;
+    const { searchTerm } = this.state;
 
     return (
       <div>
@@ -161,6 +187,14 @@ class EntitySetSearch extends React.Component<Props, State> {
         <ResultsContainer>
           {this.renderResults()}
         </ResultsContainer>
+        {
+          totalHits > PAGE_SIZE ? (
+            <Pagination
+                numPages={Math.ceil(totalHits / PAGE_SIZE)}
+                activePage={page}
+                onChangePage={this.updatePage} />
+          ) : null
+        }
       </div>
     );
   }
@@ -170,7 +204,9 @@ function mapStateToProps(state :Immutable.Map<*, *>) :Object {
   const entitySets = state.get(STATE.ENTITY_SETS);
   return {
     entitySetSearchResults: entitySets.get(ENTITY_SETS.ENTITY_SET_SEARCH_RESULTS),
-    isLoadingEntitySets: entitySets.get(ENTITY_SETS.IS_LOADING_ENTITY_SETS)
+    isLoadingEntitySets: entitySets.get(ENTITY_SETS.IS_LOADING_ENTITY_SETS),
+    page: entitySets.get(ENTITY_SETS.PAGE),
+    totalHits: entitySets.get(ENTITY_SETS.TOTAL_HITS)
   };
 }
 
