@@ -18,7 +18,9 @@ export const EDM = {
 export const ENTITY_SETS = {
   ENTITY_SET_SEARCH_RESULTS: 'entitySetSearchResults',
   IS_LOADING_ENTITY_SETS: 'isLoadingEntitySets',
-  SELECTED_ENTITY_SET: 'selectedEntitySet'
+  SELECTED_ENTITY_SET: 'selectedEntitySet',
+  PAGE: 'pageNum',
+  TOTAL_HITS: 'totalHits'
 };
 
 export const EXPLORE = {

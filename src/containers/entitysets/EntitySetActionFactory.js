@@ -10,9 +10,14 @@ const searchEntitySets :RequestSequence = newRequestSequence(SEARCH_ENTITY_SETS)
 const SELECT_ENTITY_SET :string = 'SELECT_ENTITY_SET';
 const selectEntitySet :RequestSequence = newRequestSequence(SELECT_ENTITY_SET);
 
+const SELECT_ENTITY_SET_PAGE :string = 'SELECT_ENTITY_SET_PAGE';
+const selectEntitySetPage :RequestSequence = newRequestSequence(SELECT_ENTITY_SET_PAGE);
+
 export {
   SEARCH_ENTITY_SETS,
   SELECT_ENTITY_SET,
+  SELECT_ENTITY_SET_PAGE,
   searchEntitySets,
-  selectEntitySet
+  selectEntitySet,
+  selectEntitySetPage
 };

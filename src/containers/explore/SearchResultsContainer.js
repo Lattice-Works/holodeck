@@ -158,7 +158,7 @@ class SearchResultsContainer extends React.Component<Props, State> {
     }
 
     const propertyTypes = entityTypesById
-      .getIn([selectedEntitySet.get('entityTypeId'), 'properties'])
+      .getIn([selectedEntitySet.get('entityTypeId'), 'properties'], List())
       .map(id => propertyTypesById.get(id));
 
     propertyTypes.forEach((propertyType) => {

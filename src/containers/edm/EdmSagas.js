@@ -3,7 +3,12 @@
  */
 
 import { EntityDataModelApi } from 'lattice';
-import { all, call, put, takeEvery } from 'redux-saga/effects';
+import {
+  all,
+  call,
+  put,
+  takeEvery
+} from 'redux-saga/effects';
 
 import {
   LOAD_EDM,
