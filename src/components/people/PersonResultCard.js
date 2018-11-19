@@ -136,9 +136,6 @@ const getProfileImgSrc = (person) => {
   if (!image) {
     image = defaultProfileIcon;
   }
-  else if (!image.startsWith(IMAGE_PREFIX)) {
-    image = `${IMAGE_PREFIX}${image}`;
-  }
   return image;
 };
 
