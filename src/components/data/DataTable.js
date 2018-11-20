@@ -342,8 +342,7 @@ class DataTable extends React.Component<Props, State> {
     return ROW_MIN_HEIGHT; // TODO: implement more intelligently
   };
 
-  formatImg = (srcString) => {
-    const src = srcString.startsWith(IMAGE_PREFIX) ? srcString : `${IMAGE_PREFIX}${srcString}`;
+  formatImg = (src) => {
     return <TableImg src={src} key={src} />
   }
 
