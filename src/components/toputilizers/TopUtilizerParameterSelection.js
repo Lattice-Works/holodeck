@@ -12,6 +12,7 @@ import BackNavButton from '../buttons/BackNavButton';
 import TabNavButton from '../buttons/TabNavButton';
 import InfoButton from '../buttons/InfoButton';
 import DropdownButtonWrapper from '../buttons/DropdownButtonWrapper';
+import Banner from '../cards/Banner';
 import TopUtilizersSelect from './TopUtilizersSelect';
 import CountTypeOptions from './searchoptions/CountTypeOptions';
 import MultiDateRangePicker from './searchoptions/MultiDateRangePicker';
@@ -34,6 +35,7 @@ type Props = {
   propertyTypesById :Map<string, Map<*, *>>,
   entityTypesById :Map<string, Map<*, *>>,
   selectedEntitySet :?Map<*, *>,
+  selectedEntitySetSize :?number,
   selectedEntitySetPropertyTypes :List<*>,
   selectedPropertyTypes :List<*>,
   onPropertyTypeChange :(propertyTypeId :string) => void,
@@ -61,14 +63,15 @@ const Title = styled.div`
   font-weight: 600;
   display: flex;
   flex-direction: row;
+  align-items: center;
   margin: 15px 0 40px 0;
 
   span {
-    margin-left: 20px;
+    margin-left: 10px;
     color: #b6bbc7;
 
-    &:last-child {
-      margin-left: 10px;
+    &:first-child {
+      margin-left: 20px;
     }
   }
 `;
@@ -85,6 +88,10 @@ const TabButtonRow = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
+`;
+
+const StyledBanner = styled(Banner)`
+  color: #ffffff !important;
 `;
 
 const DEFAULT_NUM_RESULTS = 100;
@@ -277,6 +284,7 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
     const {
       searchHasRun,
       selectedEntitySet,
+      selectedEntitySetSize,
       deselectEntitySet,
       neighborTypes
     } = this.props;
@@ -290,6 +298,9 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
             <div>Search</div>
             <span><FontAwesomeIcon icon={faDatabase} /></span>
             <span>{entitySetTitle}</span>
+            {selectedEntitySetSize === undefined
+              ? null
+              : <StyledBanner>{`${selectedEntitySetSize.toLocaleString()} entities`}</StyledBanner>}
           </Title>
           <InputRow>
             <InputGroup fullSize>
