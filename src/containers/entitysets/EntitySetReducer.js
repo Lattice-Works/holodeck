@@ -8,7 +8,8 @@ import { ENTITY_SETS } from '../../utils/constants/StateConstants';
 import {
   SELECT_ENTITY_SET,
   SELECT_ENTITY_SET_PAGE,
-  searchEntitySets
+  searchEntitySets,
+  selectEntitySet
 } from './EntitySetActionFactory';
 
 import { UNMOUNT_EXPLORE } from '../explore/ExploreActionFactory';
@@ -18,6 +19,7 @@ const {
   ENTITY_SET_SEARCH_RESULTS,
   IS_LOADING_ENTITY_SETS,
   SELECTED_ENTITY_SET,
+  SELECTED_ENTITY_SET_SIZE,
   PAGE,
   TOTAL_HITS
 } = ENTITY_SETS;
@@ -26,6 +28,7 @@ const INITIAL_STATE :Immutable.Map<> = Immutable.fromJS({
   [IS_LOADING_ENTITY_SETS]: false,
   [ENTITY_SET_SEARCH_RESULTS]: Immutable.List(),
   [SELECTED_ENTITY_SET]: undefined,
+  [SELECTED_ENTITY_SET_SIZE]: undefined,
   [PAGE]: 1,
   [TOTAL_HITS]: 0
 });
@@ -46,8 +49,13 @@ function reducer(state :Immutable.Map<> = INITIAL_STATE, action :Object) {
       });
     }
 
-    case SELECT_ENTITY_SET:
-      return state.set(SELECTED_ENTITY_SET, action.value);
+    case selectEntitySet.case(action.type): {
+      return selectEntitySet.reducer(state, action, {
+        REQUEST: () => state.set(SELECTED_ENTITY_SET, action.value.entitySet),
+        SUCCESS: () => state.set(SELECTED_ENTITY_SET_SIZE, action.value.entitySetSize),
+        FAILURE: () => state.set(SELECTED_ENTITY_SET_SIZE, undefined)
+      });
+    }
 
     case SELECT_ENTITY_SET_PAGE:
       return state.set(PAGE, action.value);
