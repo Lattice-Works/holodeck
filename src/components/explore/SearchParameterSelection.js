@@ -99,7 +99,11 @@ const SearchParameterSelection = ({
           <span>{entitySetTitle}</span>
           {selectedEntitySetSize === undefined
             ? null
-            : <StyledBanner>{`${selectedEntitySetSize.toLocaleString()} entities`}</StyledBanner>}
+            : (
+              <StyledBanner>
+                {`${selectedEntitySetSize.toLocaleString()} ${selectedEntitySetSize === 1 ? 'entity' : 'entities'}`}
+              </StyledBanner>)
+          }
         </Title>
         <InputRow>
           <InputGroup fullSize>

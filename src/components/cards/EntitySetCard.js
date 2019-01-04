@@ -10,6 +10,7 @@ import { faChevronDown, faChevronUp } from '@fortawesome/pro-regular-svg-icons';
 
 type Props = {
   entitySet :Immutable.Map<*, *>,
+  size :?number,
   onClick :(entitySet :Immutable.Map<*, *>) => void
 }
 
@@ -111,53 +112,21 @@ export default class EntitySetCard extends React.Component<Props, State> {
     this.setState({ expanded: !this.state.expanded });
   }
 
-  renderDefaultCard = () => {
-    const { entitySet, onClick } = this.props;
-    const { expanded } = this.state;
-
-    return (
-      <Card onClick={onClick} expanded={expanded}>
-        <h1>{entitySet.get('title', '')}</h1>
-        <span>{entitySet.get('description', '')}</span>
-        <RightJustifyWrapper>
-          <DetailsButton onClick={this.toggleExpand}>
-            Details
-            <DownIcon />
-          </DetailsButton>
-        </RightJustifyWrapper>
-      </Card>
-    );
-  }
-
-  renderExpandedCard = () => {
-    const { entitySet, onClick } = this.props;
-    const { expanded } = this.state;
-
-    return (
-      <Card onClick={onClick} expanded={expanded}>
-        <h1>{entitySet.get('title', '')}</h1>
-        <span>{entitySet.get('description', '')}</span>
-        <RightJustifyWrapper>
-          <DetailsButton onClick={this.toggleExpand}>
-            Details
-            <UpIcon />
-          </DetailsButton>
-        </RightJustifyWrapper>
-      </Card>
-    );
-  }
-
   render() {
-    const { entitySet, onClick } = this.props;
+    const { entitySet, size, onClick } = this.props;
     const { expanded } = this.state;
-
-    return expanded ? this.renderExpandedCard() : this.renderDefaultCard();
 
     return (
       <Card onClick={onClick} expanded={expanded}>
         <h1>{entitySet.get('title', '')}</h1>
+        <span>{size === undefined ? '' : `${size.toLocaleString()} ${size === 1 ? 'entity' : 'entities'}`}</span>
         <span>{entitySet.get('description', '')}</span>
-        <span>{entitySet.get('contacts', '')}</span>
+        <RightJustifyWrapper>
+          <DetailsButton onClick={this.toggleExpand}>
+            Details
+            {expanded ? <UpIcon /> : <DownIcon />}
+          </DetailsButton>
+        </RightJustifyWrapper>
       </Card>
     );
   }
