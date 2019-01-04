@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import Immutable from 'immutable';
+import { List, Map } from 'immutable';
 import styled from 'styled-components';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
@@ -27,14 +27,15 @@ type Props = {
   totalHits :number,
   history :string[],
   isLoadingEntitySets :boolean,
-  entitySetSearchResults :Immutable.List<*>,
+  entitySetSearchResults :List<*>,
+  entitySetSizes :Map<*, *>,
   actions :{
     searchEntitySets :({
       searchTerm :string,
       start :number,
       maxHits :number
     }) => void,
-    selectEntitySet :(entitySet? :Immutable.Map<*, *>) => void,
+    selectEntitySet :(entitySet? :Map<*, *>) => void,
     selectEntitySetPage :(page :number) => void,
     getNeighborTypes :(id :string) => void
   }
@@ -133,13 +134,18 @@ class EntitySetSearch extends React.Component<Props, State> {
 
   handleSelect = (entitySetObj) => {
     const { actions } = this.props;
-    const entitySet = entitySetObj.get('entitySet', Immutable.Map());
+    const entitySet = entitySetObj.get('entitySet', Map());
     actions.selectEntitySet(entitySet);
     actions.getNeighborTypes(entitySet.get('id'));
   }
 
   renderResults = () => {
-    const { isLoadingEntitySets, entitySetSearchResults, actions } = this.props;
+    const {
+      isLoadingEntitySets,
+      entitySetSearchResults,
+      entitySetSizes,
+      actions
+    } = this.props;
     if (isLoadingEntitySets) {
       return <LoadingSpinner />;
     }
@@ -147,7 +153,8 @@ class EntitySetSearch extends React.Component<Props, State> {
     return entitySetSearchResults.map(entitySetObj => (
       <EntitySetCard
           key={entitySetObj.getIn(['entitySet', 'id'])}
-          entitySet={entitySetObj.get('entitySet', Immutable.Map())}
+          entitySet={entitySetObj.get('entitySet', Map())}
+          size={entitySetSizes.get(entitySetObj.getIn(['entitySet', 'id']))}
           onClick={() => this.handleSelect(entitySetObj)} />
     ));
   }
@@ -200,10 +207,11 @@ class EntitySetSearch extends React.Component<Props, State> {
   }
 }
 
-function mapStateToProps(state :Immutable.Map<*, *>) :Object {
+function mapStateToProps(state :Map<*, *>) :Object {
   const entitySets = state.get(STATE.ENTITY_SETS);
   return {
     entitySetSearchResults: entitySets.get(ENTITY_SETS.ENTITY_SET_SEARCH_RESULTS),
+    entitySetSizes: entitySets.get(ENTITY_SETS.ENTITY_SET_SIZES),
     isLoadingEntitySets: entitySets.get(ENTITY_SETS.IS_LOADING_ENTITY_SETS),
     page: entitySets.get(ENTITY_SETS.PAGE),
     totalHits: entitySets.get(ENTITY_SETS.TOTAL_HITS)

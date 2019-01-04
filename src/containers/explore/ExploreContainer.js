@@ -172,7 +172,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     propertyTypesByFqn: edm.get(EDM.PROPERTY_TYPES_BY_FQN),
     propertyTypesById: edm.get(EDM.PROPERTY_TYPES_BY_ID),
     selectedEntitySet: entitySets.get(ENTITY_SETS.SELECTED_ENTITY_SET),
-    selectedEntitySetSize: entitySets.get(ENTITY_SETS.SELECTED_ENTITY_SET_SIZE),
+    selectedEntitySetSize: entitySets.getIn([ENTITY_SETS.ENTITY_SET_SIZES, entitySets.getIn([ENTITY_SETS.SELECTED_ENTITY_SET, 'id'])]),
     breadcrumbs: explore.get(EXPLORE.BREADCRUMBS),
     neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
     results: explore.get(EXPLORE.SEARCH_RESULTS),
