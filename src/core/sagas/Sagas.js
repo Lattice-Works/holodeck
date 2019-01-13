@@ -24,6 +24,7 @@ export default function* sagas() :Generator<*, *, *> {
     fork(EdmSagas.loadEdmWatcher),
 
     /* EntitySetSagas */
+    fork(EntitySetSagas.loadEntitySetSizesWatcher),
     fork(EntitySetSagas.searchEntitySetsWatcher),
 
     /* ExploreSagas */

@@ -177,8 +177,7 @@ function* getTopUtilizersWorker(action :SequenceAction) {
     });
 
     const query = {
-      neighborAggregations: formattedFilters,
-      selfAggregations: []
+      neighborAggregations: formattedFilters
     };
 
     let topUtilizers = yield call(AnalysisApi.getTopUtilizers, entitySetId, numResults, query);

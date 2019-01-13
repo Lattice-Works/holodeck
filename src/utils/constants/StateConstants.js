@@ -17,6 +17,7 @@ export const EDM = {
 
 export const ENTITY_SETS = {
   ENTITY_SET_SEARCH_RESULTS: 'entitySetSearchResults',
+  ENTITY_SET_SIZES: 'entitySetSizes',
   IS_LOADING_ENTITY_SETS: 'isLoadingEntitySets',
   SELECTED_ENTITY_SET: 'selectedEntitySet',
   PAGE: 'pageNum',

@@ -40,7 +40,8 @@ import * as TopUtilizersActionFactory from './TopUtilizersActionFactory';
 
 type Props = {
   countBreakdown :Map<*, *>,
-  selectedEntitySet :Map<*, *>,
+  selectedEntitySet :?Map<*, *>,
+  selectedEntitySetSize :?number,
   neighborsById :Map<string, *>,
   entityTypesById :Map<string, *>,
   entitySetsById :Map<string, *>,
@@ -209,7 +210,8 @@ class TopUtilizersContainer extends React.Component<Props, State> {
       propertyTypesById,
       entityTypesById,
       results,
-      selectedEntitySet
+      selectedEntitySet,
+      selectedEntitySetSize
     } = this.props;
 
     const { selectedPropertyTypes } = this.state;
@@ -223,6 +225,7 @@ class TopUtilizersContainer extends React.Component<Props, State> {
                   display={display}
                   searchHasRun={!!results.size}
                   selectedEntitySet={selectedEntitySet}
+                  selectedEntitySetSize={selectedEntitySetSize}
                   selectedEntitySetPropertyTypes={getEntitySetPropertyTypes(this.props)}
                   selectedPropertyTypes={selectedPropertyTypes}
                   neighborTypes={neighborTypes}
@@ -257,6 +260,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     propertyTypesById: edm.get(EDM.PROPERTY_TYPES_BY_ID),
     entitySetPropertyMetadata: edm.get(EDM.ENTITY_SET_METADATA_BY_ID),
     selectedEntitySet: entitySets.get(ENTITY_SETS.SELECTED_ENTITY_SET),
+    selectedEntitySetSize: entitySets.getIn([ENTITY_SETS.ENTITY_SET_SIZES, entitySets.getIn([ENTITY_SETS.SELECTED_ENTITY_SET, 'id'])]),
     neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
     display: topUtilizers.get(TOP_UTILIZERS.RESULT_DISPLAY),
     neighborTypes: topUtilizers.get(TOP_UTILIZERS.NEIGHBOR_TYPES),

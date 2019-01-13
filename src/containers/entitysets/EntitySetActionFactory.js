@@ -4,6 +4,9 @@
 
 import { newRequestSequence } from 'redux-reqseq';
 
+const LOAD_ENTITY_SET_SIZES :string = 'LOAD_ENTITY_SET_SIZES';
+const loadEntitySetSizes :RequestSequence = newRequestSequence(LOAD_ENTITY_SET_SIZES);
+
 const SEARCH_ENTITY_SETS :string = 'SEARCH_ENTITY_SETS';
 const searchEntitySets :RequestSequence = newRequestSequence(SEARCH_ENTITY_SETS);
 
@@ -14,9 +17,11 @@ const SELECT_ENTITY_SET_PAGE :string = 'SELECT_ENTITY_SET_PAGE';
 const selectEntitySetPage :RequestSequence = newRequestSequence(SELECT_ENTITY_SET_PAGE);
 
 export {
+  LOAD_ENTITY_SET_SIZES,
   SEARCH_ENTITY_SETS,
   SELECT_ENTITY_SET,
   SELECT_ENTITY_SET_PAGE,
+  loadEntitySetSizes,
   searchEntitySets,
   selectEntitySet,
   selectEntitySetPage

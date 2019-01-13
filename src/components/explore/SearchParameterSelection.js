@@ -10,11 +10,13 @@ import { faDatabase } from '@fortawesome/pro-solid-svg-icons';
 
 import BackNavButton from '../buttons/BackNavButton';
 import InfoButton from '../buttons/InfoButton';
+import Banner from '../cards/Banner';
 import StyledInput from '../controls/StyledInput';
 import { FixedWidthWrapper, HeaderComponentWrapper } from '../layout/Layout';
 
 type Props = {
   selectedEntitySet :?Map<*, *>,
+  selectedEntitySize :?number,
   searchTerm :string,
   deselectEntitySet :() => void,
   executeSearch :() => void,
@@ -32,14 +34,15 @@ const Title = styled.div`
   font-weight: 600;
   display: flex;
   flex-direction: row;
+  align-items: center;
   margin: 15px 0 40px 0;
 
   span {
-    margin-left: 20px;
+    margin-left: 10px;
     color: #b6bbc7;
 
-    &:last-child {
-      margin-left: 10px;
+    &:first-child {
+      margin-left: 20px;
     }
   }
 `;
@@ -65,8 +68,13 @@ const InputLabel = styled.span`
   font-size: 14px;
 `;
 
+const StyledBanner = styled(Banner)`
+  color: #ffffff !important;
+`;
+
 const SearchParameterSelection = ({
   selectedEntitySet,
+  selectedEntitySetSize,
   deselectEntitySet,
   searchTerm,
   executeSearch,
@@ -75,7 +83,6 @@ const SearchParameterSelection = ({
   const entitySetTitle = selectedEntitySet.get('title');
 
   const onKeyPress = (e) => {
-    console.log(e);
     const { key } = e;
     if (key === 'Enter') {
       executeSearch(0);
@@ -90,6 +97,13 @@ const SearchParameterSelection = ({
           <div>Search</div>
           <span><FontAwesomeIcon icon={faDatabase} /></span>
           <span>{entitySetTitle}</span>
+          {selectedEntitySetSize === undefined
+            ? null
+            : (
+              <StyledBanner>
+                {`${selectedEntitySetSize.toLocaleString()} ${selectedEntitySetSize === 1 ? 'entity' : 'entities'}`}
+              </StyledBanner>)
+          }
         </Title>
         <InputRow>
           <InputGroup fullSize>

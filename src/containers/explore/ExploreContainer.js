@@ -39,6 +39,7 @@ type Props = {
   isLoadingResults :boolean,
   isLoadingResultCounts :boolean,
   results :List<*>,
+  selectedEntitySetSize :?number,
   actions :{
     changeTopUtilizersDisplay :(display :string) => void,
     unmountTopUtilizers :() => void,
@@ -130,7 +131,7 @@ class ExploreContainer extends React.Component<Props, State> {
   }
 
   render() {
-    const { actions, selectedEntitySet } = this.props;
+    const { actions, selectedEntitySet, selectedEntitySetSize } = this.props;
     const { searchTerm } = this.state;
 
     return (
@@ -140,6 +141,7 @@ class ExploreContainer extends React.Component<Props, State> {
             ? (
               <SearchParameterSelection
                   selectedEntitySet={selectedEntitySet}
+                  selectedEntitySetSize={selectedEntitySetSize}
                   deselectEntitySet={() => {
                     actions.clearExploreSearchResults();
                     actions.selectEntitySet();
@@ -170,6 +172,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     propertyTypesByFqn: edm.get(EDM.PROPERTY_TYPES_BY_FQN),
     propertyTypesById: edm.get(EDM.PROPERTY_TYPES_BY_ID),
     selectedEntitySet: entitySets.get(ENTITY_SETS.SELECTED_ENTITY_SET),
+    selectedEntitySetSize: entitySets.getIn([ENTITY_SETS.ENTITY_SET_SIZES, entitySets.getIn([ENTITY_SETS.SELECTED_ENTITY_SET, 'id'])]),
     breadcrumbs: explore.get(EXPLORE.BREADCRUMBS),
     neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
     results: explore.get(EXPLORE.SEARCH_RESULTS),

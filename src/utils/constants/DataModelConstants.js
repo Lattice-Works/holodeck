@@ -46,7 +46,9 @@ export const PROPERTY_TYPES = {
   RELEASE_DATE: 'publicsafety.ReleaseDate',
   INCIDENT_END_DATETIME: 'incident.enddatetime',
   DATETIME_RELEASE: 'ol.datetime_release',
-  DATETIME_END: 'ol.datetimeend'
+  DATETIME_END: 'ol.datetimeend',
+
+  IMAGE_DATA: 'ol.imagedata'
 };
 
 export const DEFAULT_PERSON_PROPERTY_TYPES = [
@@ -95,7 +97,8 @@ export const IMAGE_PROPERTY_TYPES = [
   PROPERTY_TYPES.MUGSHOT,
   PROPERTY_TYPES.PICTURE,
   PROPERTY_TYPES.LICENSE_PLATE,
-  PROPERTY_TYPES.VEHICLE_IMAGE
+  PROPERTY_TYPES.VEHICLE_IMAGE,
+  PROPERTY_TYPES.IMAGE_DATA
 ];
 
 export const DEFAULT_IGNORE_PROPERTY_TYPES = [
