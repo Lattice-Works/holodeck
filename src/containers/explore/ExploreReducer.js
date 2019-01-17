@@ -176,7 +176,8 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
           return state
             .set(UNFILTERED_SEARCH_RESULTS, results)
             .set(SEARCH_RESULTS, filterSearchResults(results, state.get(FILTERED_PROPERTY_TYPES)))
-            .set(ENTITIES_BY_ID, entitiesById);
+            .set(ENTITIES_BY_ID, entitiesById)
+            .set(BREADCRUMBS, List());
         },
         FAILURE: () => state.set(SEARCH_RESULTS, List()).set(UNFILTERED_SEARCH_RESULTS, List()),
         FINALLY: () => state.set(IS_SEARCHING_DATA, false)
