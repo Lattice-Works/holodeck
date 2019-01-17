@@ -115,30 +115,27 @@ const LoadingInputPlaceholder = styled.div`
 
 export default class TopUtilizersSelect extends React.Component<Props> {
 
-  getEdgeValue = (associationTypeId, neighborTypeId, src) => {
-    return (src ? [associationTypeId, neighborTypeId] : [associationTypeId, neighborTypeId]).join('|');
-  };
+  getEdgeValue = (associationTypeId, neighborTypeId, src) => (src
+    ? [associationTypeId, neighborTypeId] : [associationTypeId, neighborTypeId]).join('|');
 
-  getNeighborTypeOptions = (neighborTypes) => {
-    return neighborTypes.map((neighborType) => {
-      const assocId = neighborType.getIn(['associationEntityType', 'id']);
-      const assocTitle = neighborType.getIn(['associationEntityType', 'title']);
-      const neighborId = neighborType.getIn(['neighborEntityType', 'id']);
-      const neighborTitle = neighborType.getIn(['neighborEntityType', 'title']);
-      const src = neighborType.get('src');
+  getNeighborTypeOptions = neighborTypes => neighborTypes.map((neighborType) => {
+    const assocId = neighborType.getIn(['associationEntityType', 'id']);
+    const assocTitle = neighborType.getIn(['associationEntityType', 'title']);
+    const neighborId = neighborType.getIn(['neighborEntityType', 'id']);
+    const neighborTitle = neighborType.getIn(['neighborEntityType', 'title']);
+    const src = neighborType.get('src');
 
-      return {
-        [VALUE]: this.getEdgeValue(assocId, neighborId, src),
-        [LABEL]: (src ? [assocTitle, neighborTitle] : [neighborTitle, assocTitle]).join(' '),
-        [ASSOC_ID]: assocId,
-        [ASSOC_TITLE]: assocTitle,
-        [NEIGHBOR_ID]: neighborId,
-        [NEIGHBOR_TITLE]: neighborTitle,
-        [IS_SRC]: src,
-        [WEIGHT]: 1
-      };
-    }).toJS();
-  };
+    return {
+      [VALUE]: this.getEdgeValue(assocId, neighborId, src),
+      [LABEL]: (src ? [assocTitle, neighborTitle] : [neighborTitle, assocTitle]).join(' '),
+      [ASSOC_ID]: assocId,
+      [ASSOC_TITLE]: assocTitle,
+      [NEIGHBOR_ID]: neighborId,
+      [NEIGHBOR_TITLE]: neighborTitle,
+      [IS_SRC]: src,
+      [WEIGHT]: 1
+    };
+  }).toJS();
 
   selectedNeighborOption = ({ data, innerProps, selectProps }) => {
     const { assocTitle, neighborTitle, src } = data;
@@ -182,14 +179,12 @@ export default class TopUtilizersSelect extends React.Component<Props> {
     );
   }
 
-  renderPlaceholder = () => {
-    return (
-      <LoadingInputPlaceholder>
-        <span>Loading...</span>
-        <LoadingDots />
-      </LoadingInputPlaceholder>
-    )
-  }
+  renderPlaceholder = () => (
+    <LoadingInputPlaceholder>
+      <span>Loading...</span>
+      <LoadingDots />
+    </LoadingInputPlaceholder>
+  )
 
   render() {
     const {
