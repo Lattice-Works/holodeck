@@ -145,7 +145,7 @@ const TIME_UNIT = {
 const NEIGHBOR = 'neighborDetails';
 const ASSOCIATION = 'associationDetails';
 
-export default class TopUtilizerResouces extends React.Component<Props, State> {
+export default class TopUtilizerResources extends React.Component<Props, State> {
 
   constructor(props :Props) {
     super(props);
