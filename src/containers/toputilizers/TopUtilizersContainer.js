@@ -14,7 +14,7 @@ import SearchResultsContainer from '../explore/SearchResultsContainer';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import TopUtilizerParameterSelection from '../../components/toputilizers/TopUtilizerParameterSelection';
 import TopUtilizerDashboard from '../../components/toputilizers/TopUtilizerDashboard';
-import TopUtilizerResouces from '../../components/toputilizers/TopUtilizerResources';
+import TopUtilizerResources from '../../components/toputilizers/TopUtilizerResources';
 import {
   STATE,
   EDM,
@@ -156,7 +156,7 @@ class TopUtilizersContainer extends React.Component<Props> {
 
         case RESULT_DISPLAYS.RESOURCES:
           return (
-            <TopUtilizerResouces
+            <TopUtilizerResources
                 results={results}
                 lastQueryRun={lastQueryRun}
                 countBreakdown={countBreakdown}

@@ -15,7 +15,7 @@ import {
   Tooltip
 } from 'recharts';
 
-import LoadingSpinner from '../LoadingSpinner';
+import LoadingSpinner from '../loading/LoadingSpinner';
 import ChartWrapper from '../charts/ChartWrapper';
 import ChartTooltip from '../charts/ChartTooltip';
 import TopUtilizerParetoChart from './resources/TopUtilizerParetoChart';
