@@ -46,6 +46,7 @@ type Props = {
   isLoadingResultCounts :boolean,
   results :List<*>,
   unfilteredResults :List<*>,
+  lastQueryRun :string,
   actions :{
     changeTopUtilizersDisplay :(display :string) => void,
     clearTopUtilizersResults :() => void,
@@ -131,6 +132,7 @@ class TopUtilizersContainer extends React.Component<Props> {
       propertyTypesByFqn,
       propertyTypesById,
       results,
+      lastQueryRun,
       selectedEntitySet
     } = this.props;
 
@@ -156,6 +158,7 @@ class TopUtilizersContainer extends React.Component<Props> {
           return (
             <TopUtilizerResouces
                 results={results}
+                lastQueryRun={lastQueryRun}
                 countBreakdown={countBreakdown}
                 neighborsById={neighborsById}
                 entityTypesById={entityTypesById}
@@ -250,7 +253,8 @@ function mapStateToProps(state :Map<*, *>) :Object {
     isLoadingResultCounts: topUtilizers.get(TOP_UTILIZERS.IS_LOADING_TOP_UTILIZER_NEIGHBORS),
     results: topUtilizers.get(TOP_UTILIZERS.TOP_UTILIZER_RESULTS),
     unfilteredResults: topUtilizers.get(TOP_UTILIZERS.UNFILTERED_TOP_UTILIZER_RESULTS),
-    countBreakdown: topUtilizers.get(TOP_UTILIZERS.COUNT_BREAKDOWN)
+    countBreakdown: topUtilizers.get(TOP_UTILIZERS.COUNT_BREAKDOWN),
+    lastQueryRun: topUtilizers.get(TOP_UTILIZERS.LAST_QUERY_RUN)
   };
 }
 

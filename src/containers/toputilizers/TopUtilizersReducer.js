@@ -22,6 +22,7 @@ const {
   IS_LOADING_NEIGHBOR_TYPES,
   IS_LOADING_TOP_UTILIZERS,
   IS_LOADING_TOP_UTILIZER_NEIGHBORS,
+  LAST_QUERY_RUN,
   NEIGHBOR_TYPES,
   QUERY_HAS_RUN,
   RESULT_DISPLAY,
@@ -35,6 +36,7 @@ const INITIAL_STATE :Map<> = fromJS({
   [IS_LOADING_TOP_UTILIZERS]: false,
   [IS_LOADING_NEIGHBOR_TYPES]: false,
   [IS_LOADING_TOP_UTILIZER_NEIGHBORS]: false,
+  [LAST_QUERY_RUN]: '',
   [NEIGHBOR_TYPES]: List(),
   [QUERY_HAS_RUN]: false,
   [RESULT_DISPLAY]: RESULT_DISPLAYS.SEARCH_RESULTS,
@@ -82,7 +84,8 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
             fromJS(action.value.topUtilizers),
             action.value.filteredPropertyTypes
           ))
-          .set(COUNT_BREAKDOWN, action.value.scoresByUtilizer),
+          .set(COUNT_BREAKDOWN, action.value.scoresByUtilizer)
+          .set(LAST_QUERY_RUN, action.value.query),
         FAILURE: () => state
           .set(TOP_UTILIZER_RESULTS, List())
           .set(UNFILTERED_TOP_UTILIZER_RESULTS, List())
@@ -111,7 +114,8 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
         .set(QUERY_HAS_RUN, false)
         .set(TOP_UTILIZER_RESULTS, List())
         .set(UNFILTERED_TOP_UTILIZER_RESULTS, List())
-        .set(TOP_UTILIZER_FILTERS, List());
+        .set(TOP_UTILIZER_FILTERS, List())
+        .set(LAST_QUERY_RUN, '');
 
     default:
       return state;

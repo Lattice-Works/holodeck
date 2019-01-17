@@ -23,7 +23,7 @@ import ResourceBarChart from './resources/ResourceBarChart';
 import ResourceTimeline from './resources/ResourceTimeline';
 import ResourceDropdownFilter from './resources/ResourceDropdownFilter';
 import getTitle from '../../utils/EntityTitleUtils';
-import { COUNT_FQN } from '../../utils/constants/DataConstants';
+import { COUNT_FQN, DATE_FILTER_CLASS } from '../../utils/constants/DataConstants';
 import { RESOURCE_TYPES, DEFAULT_COST_RATES } from '../../utils/constants/TopUtilizerConstants';
 import {
   DURATION_TYPES,
@@ -46,6 +46,7 @@ type Props = {
   entityTypesById :Map<string, *>,
   neighborsById :Map<string, *>,
   selectedEntityType :Map<string, *>,
+  lastQueryRun :string,
   isLoading :boolean,
   propertyTypesByFqn :Map<string, *>,
   propertyTypesById :Map<string, *>
@@ -140,6 +141,9 @@ const TIME_UNIT = {
   HOURS: 'Hours',
   DAYS: 'Days'
 };
+
+const NEIGHBOR = 'neighborDetails';
+const ASSOCIATION = 'associationDetails';
 
 export default class TopUtilizerResouces extends React.Component<Props, State> {
 
@@ -236,13 +240,99 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     return DEFAULT_COST_RATES[fqn] || 0;
   }
 
+  getDateFilters = (query, propertyTypesById) => {
+    const { neighborAggregations } = query;
+
+    let filters = Map();
+
+    neighborAggregations.forEach((aggregation) => {
+      const {
+        associationTypeId,
+        associationFilters,
+        neighborTypeId,
+        neighborFilters
+      } = aggregation;
+
+      const pair = List.of(associationTypeId, neighborTypeId);
+
+      const updateDateFilters = (filterList, field) => {
+        if (filterList) {
+          Object.entries(filterList).forEach(([id, ptFilters]) => {
+            const fqn = getFqnString(propertyTypesById.getIn([id, 'type']));
+            const dateFilters = fromJS(ptFilters.filter(filter => filter['@class'] === DATE_FILTER_CLASS));
+            if (dateFilters.size) {
+              filters = filters.setIn([pair, field, fqn], dateFilters);
+            }
+          });
+        }
+      };
+
+      updateDateFilters(associationFilters, ASSOCIATION);
+      updateDateFilters(neighborFilters, NEIGHBOR);
+    });
+
+    return filters;
+  }
+
+  checkDateFilterMatch = (filterMap, entity) => {
+    let matches = true;
+
+    if (filterMap) {
+      filterMap.entrySeq().forEach(([fqn, filters]) => {
+        let fqnMatch = false;
+        const dates = entity.get(fqn, List());
+
+        filters.forEach((filter) => {
+          let filterMatch = false;
+          const lowerbound = filter.get('lowerbound') ? moment(filter.get('lowerbound')) : null;
+          const upperbound = filter.get('upperbound') ? moment(filter.get('upperbound')) : null;
+
+          dates.forEach((date) => {
+            let dateMatch = true;
+
+            if (lowerbound && lowerbound.isAfter(date)) dateMatch = false;
+            if (upperbound && upperbound.isBefore(date)) dateMatch = false;
+
+            if (dateMatch) {
+              filterMatch = true;
+            }
+          })
+
+          if (filterMatch) {
+            fqnMatch = true;
+          }
+        });
+
+        if (!fqnMatch) {
+          matches = false;
+        }
+      });
+    }
+
+    return matches;
+  }
+
+  matchesFilters = (pair, dateFilters, association, neighbor) => {
+    const filters = dateFilters.get(pair);
+
+    if (filters) {
+      const associationFiltersMatch = this.checkDateFilterMatch(filters.get(ASSOCIATION), association);
+      const neighborFiltersMatch = this.checkDateFilterMatch(filters.get(NEIGHBOR), neighbor);
+
+      return associationFiltersMatch && neighborFiltersMatch;
+    }
+
+    return true;
+  }
+
   preprocess = (props :Props) => {
     const {
       countBreakdown,
       entityTypesById,
       neighborsById,
       propertyTypesById,
-      results
+      results,
+      lastQueryRun
     } = props;
 
     if (!countBreakdown.size) {
@@ -252,6 +342,7 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     const allPairs = this.getAllPairs();
     const blankMap = this.getBlankMap(allPairs);
     const durationTypes = this.getDurationTypes();
+    const dateFilters = this.getDateFilters(lastQueryRun, propertyTypesById);
 
     let costRates = Map();
     let processedDates = Map();
@@ -283,32 +374,34 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
             const neighborDetails = neighbor.get('neighborDetails', Map());
             const associationDetails = neighbor.get('associationDetails', Map());
 
+            if (this.matchesFilters(pair, dateFilters, associationDetails, neighborDetails)) {
             /* Deal with dates */
-            [
-              ...getEntityDates(entityTypesById.get(assocId, Map()), associationDetails),
-              ...getEntityDates(entityTypesById.get(neighborId, Map()), neighborDetails),
-            ].forEach((date) => {
-              const dateStr = date.format(MONTH_FORMAT);
-              dateMap = dateMap.setIn([pair, dateStr], dateMap.getIn([pair, dateStr], 0) + 1);
-            });
+              [
+                ...getEntityDates(entityTypesById.get(assocId, Map()), associationDetails),
+                ...getEntityDates(entityTypesById.get(neighborId, Map()), neighborDetails),
+              ].forEach((date) => {
+                const dateStr = date.format(MONTH_FORMAT);
+                dateMap = dateMap.setIn([pair, dateStr], dateMap.getIn([pair, dateStr], 0) + 1);
+              });
 
-            /* Deal with durations */
-            durationTypes.get(pair, Set()).forEach((propertyTypeId) => {
-              const getValue = fqn => neighborDetails.getIn([fqn, 0], associationDetails.getIn([fqn, 0]));
+              /* Deal with durations */
+              durationTypes.get(pair, Set()).forEach((propertyTypeId) => {
+                const getValue = fqn => neighborDetails.getIn([fqn, 0], associationDetails.getIn([fqn, 0]));
 
-              const durationFqn = getFqnString(propertyTypesById.getIn([propertyTypeId, 'type'], Map()));
-              const dateFqn = DURATION_TYPES[durationFqn];
+                const durationFqn = getFqnString(propertyTypesById.getIn([propertyTypeId, 'type'], Map()));
+                const dateFqn = DURATION_TYPES[durationFqn];
 
-              const startDateTime = moment(getValue(dateFqn));
-              if (startDateTime.isValid()) {
-                const dt = startDateTime.format(MONTH_FORMAT);
-                const duration = Number.parseInt(getValue(durationFqn), 10);
-                if (!Number.isNaN(duration)) {
-                  const triplet = pair.push(propertyTypeId);
-                  dateMap = dateMap.setIn([triplet, dt], dateMap.getIn([triplet, dt], 0) + duration);
+                const startDateTime = moment(getValue(dateFqn));
+                if (startDateTime.isValid()) {
+                  const dt = startDateTime.format(MONTH_FORMAT);
+                  const duration = Number.parseInt(getValue(durationFqn), 10);
+                  if (!Number.isNaN(duration)) {
+                    const triplet = pair.push(propertyTypeId);
+                    dateMap = dateMap.setIn([triplet, dt], dateMap.getIn([triplet, dt], 0) + duration);
+                  }
                 }
-              }
-            });
+              });
+            }
           }
         }
 
@@ -484,7 +577,10 @@ export default class TopUtilizerResouces extends React.Component<Props, State> {
     return (
       <NotificationBanner>
         <FontAwesomeIcon icon={faExclamationCircle} size="2x" />
-        <span>Default costs shown are based on rough estimates or national averages. See Cost Rate for more details, and set custom cost rates to get more accurate results.</span>
+        <span>
+          {`Default costs shown are based on rough estimates or national averages. See Cost
+            Rate for more details, and set custom cost rates to get more accurate results.`}
+        </span>
         <button onClick={() => this.setState({ displayDefaultCostBanner: false })}>
           <FontAwesomeIcon icon={faTimes} size="2x" />
         </button>

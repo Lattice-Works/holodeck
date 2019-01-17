@@ -40,6 +40,7 @@ export const TOP_UTILIZERS = {
   IS_LOADING_NEIGHBOR_TYPES: 'isLoadingNeighborTypes',
   IS_LOADING_TOP_UTILIZERS: 'isLoadingTopUtilizers',
   IS_LOADING_TOP_UTILIZER_NEIGHBORS: 'isLoadingTopUtilizerNeighbors',
+  LAST_QUERY_RUN: 'lastTopUtilizersQueryRun',
   TOP_UTILIZER_FILTERS: 'topUtilizerFilters',
   NEIGHBOR_TYPES: 'neighborTypes',
   RESULT_DISPLAY: 'topUtilizerResultDisplay',
