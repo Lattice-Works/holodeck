@@ -11,7 +11,7 @@ import { bindActionCreators } from 'redux';
 
 import ButtonToolbar from '../../components/buttons/ButtonToolbar';
 import DataTable from '../../components/data/DataTable';
-import LoadingSpinner from '../../components/LoadingSpinner';
+import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import NeighborTables from '../../components/data/NeighborTables';
 import NeighborTimeline from '../../components/data/NeighborTimeline';
 import SelectedPersonResultCard from '../../components/people/SelectedPersonResultCard';
@@ -20,6 +20,7 @@ import Breadcrumbs from '../../components/nav/Breadcrumbs';
 import {
   STATE,
   EDM,
+  ENTITY_SETS,
   EXPLORE,
   TOP_UTILIZERS
 } from '../../utils/constants/StateConstants';
@@ -46,11 +47,12 @@ type Props = {
   entitySetPropertyMetadata :Map<string, *>,
   propertyTypesByFqn :Map<string, *>,
   propertyTypesById :Map<string, *>,
+  selectedEntitySetId :string,
   countBreakdown :Map<*, *>,
   actions :{
     selectBreadcrumb :(index :number) => void,
     selectEntity :(entityKeyId :string) => void,
-    loadEntityNeighbors :({ entityKeyId :string, entitySetId :string }) => void
+    loadEntityNeighbors :({ entityKeyId :string, entitySetId :string, selectedEntitySetId :string }) => void
   }
 };
 
@@ -158,13 +160,14 @@ class EntityDetails extends React.Component<Props, State> {
       actions,
       entitySetsById,
       entityTypesById,
-      neighborsById
+      neighborsById,
+      selectedEntitySetId
     } = this.props;
     const entityKeyId = getEntityKeyId(entity);
     const entityType = entityTypesById.get(entitySetsById.getIn([entitySetId, 'entityTypeId'], ''), Map());
     actions.selectEntity({ entityKeyId, entitySetId, entityType });
     if (!neighborsById.has(entityKeyId)) {
-      actions.loadEntityNeighbors({ entitySetId, entity });
+      actions.loadEntityNeighbors({ entitySetId, entity, selectedEntitySetId });
     }
   }
 
@@ -285,6 +288,7 @@ class EntityDetails extends React.Component<Props, State> {
 function mapStateToProps(state :Map<*, *>) :Object {
   const explore = state.get(STATE.EXPLORE);
   const edm = state.get(STATE.EDM);
+  const entitySets = state.get(STATE.ENTITY_SETS);
   const topUtilizers = state.get(STATE.TOP_UTILIZERS);
 
   return {
@@ -297,7 +301,8 @@ function mapStateToProps(state :Map<*, *>) :Object {
     entitySetPropertyMetadata: edm.get(EDM.ENTITY_SET_METADATA_BY_ID),
     propertyTypesById: edm.get(EDM.PROPERTY_TYPES_BY_ID),
     propertyTypesByFqn: edm.get(EDM.PROPERTY_TYPES_BY_FQN),
-    countBreakdown: topUtilizers.get(TOP_UTILIZERS.COUNT_BREAKDOWN)
+    countBreakdown: topUtilizers.get(TOP_UTILIZERS.COUNT_BREAKDOWN),
+    selectedEntitySetId: entitySets.getIn([ENTITY_SETS.SELECTED_ENTITY_SET, 'id'])
   };
 }
 

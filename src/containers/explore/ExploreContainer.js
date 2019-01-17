@@ -11,7 +11,7 @@ import { bindActionCreators } from 'redux';
 
 import SearchResultsContainer from './SearchResultsContainer';
 import EntitySetSearch from '../entitysets/EntitySetSearch';
-import LoadingSpinner from '../../components/LoadingSpinner';
+import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import SearchParameterSelection from '../../components/explore/SearchParameterSelection';
 import {
   STATE,

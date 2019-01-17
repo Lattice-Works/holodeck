@@ -16,7 +16,7 @@ import {
   OrderedSet
 } from 'immutable';
 
-import LoadingSpinner from '../LoadingSpinner';
+import LoadingSpinner from '../loading/LoadingSpinner';
 import ChartWrapper from '../charts/ChartWrapper';
 import CostRateModal from './CostRateModal';
 import ResourceBarChart from './resources/ResourceBarChart';

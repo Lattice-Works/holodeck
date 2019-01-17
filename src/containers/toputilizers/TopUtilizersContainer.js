@@ -11,7 +11,7 @@ import { bindActionCreators } from 'redux';
 
 import EntitySetSearch from '../entitysets/EntitySetSearch';
 import SearchResultsContainer from '../explore/SearchResultsContainer';
-import LoadingSpinner from '../../components/LoadingSpinner';
+import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import TopUtilizerParameterSelection from '../../components/toputilizers/TopUtilizerParameterSelection';
 import TopUtilizerDashboard from '../../components/toputilizers/TopUtilizerDashboard';
 import TopUtilizerResouces from '../../components/toputilizers/TopUtilizerResources';
@@ -22,18 +22,9 @@ import {
   EXPLORE,
   TOP_UTILIZERS
 } from '../../utils/constants/StateConstants';
-import {
-  DEFAULT_IGNORE_PROPERTY_TYPES,
-  DEFAULT_PERSON_PROPERTY_TYPES,
-  PROPERTY_TAGS
-} from '../../utils/constants/DataModelConstants';
+import { PROPERTY_TAGS } from '../../utils/constants/DataModelConstants';
 import { RESULT_DISPLAYS } from '../../utils/constants/TopUtilizerConstants';
-import {
-  getEntityKeyId,
-  getFqnString,
-  getEntitySetPropertyTypes,
-  isPersonType
-} from '../../utils/DataUtils';
+import { getFqnString, getEntitySetPropertyTypes } from '../../utils/DataUtils';
 import * as EntitySetActionFactory from '../entitysets/EntitySetActionFactory';
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 import * as TopUtilizersActionFactory from './TopUtilizersActionFactory';
@@ -44,15 +35,17 @@ type Props = {
   selectedEntitySetSize :?number,
   neighborsById :Map<string, *>,
   entityTypesById :Map<string, *>,
-  entitySetsById :Map<string, *>,
   propertyTypesByFqn :Map<string, *>,
   propertyTypesById :Map<string, *>,
   entitySetPropertyMetadata :Map<string, *>,
+  filteredPropertyTypes :Set<string>,
+  isLoadingNeighborTypes :boolean,
   neighborTypes :List<*>,
   display :string,
   isLoadingResults :boolean,
   isLoadingResultCounts :boolean,
   results :List<*>,
+  unfilteredResults :List<*>,
   actions :{
     changeTopUtilizersDisplay :(display :string) => void,
     clearTopUtilizersResults :() => void,
@@ -61,25 +54,21 @@ type Props = {
     selectEntity :(entityKeyId :string) => void,
     selectBreadcrumb :(index :number) => void,
     loadEntityNeighbors :({ entitySetId :string, entity :Map<*, *> }) => void,
-    getTopUtilizers :() => void
+    getTopUtilizers :() => void,
+    updateFilteredTypes :(filteredTypes :Set<*>) => void,
+    reIndexEntitiesById :(unfilteredTopUtilizerResults :List<*>) => void
   }
-};
-
-type State = {
-  selectedPropertyTypes :Set<*>
 };
 
 const ResultsWrapper = styled.div`
   margin: 30px 0;
 `;
 
-class TopUtilizersContainer extends React.Component<Props, State> {
+class TopUtilizersContainer extends React.Component<Props> {
 
-  constructor(props :Props) {
-    super(props);
-    this.state = {
-      selectedPropertyTypes: this.getDefaultSelectedPropertyTypes(props)
-    };
+  componentDidMount() {
+    const { actions } = this.props;
+    actions.updateFilteredTypes(this.getDefaultFilteredPropertyTypes(this.props));
   }
 
   componentWillUnmount() {
@@ -88,13 +77,14 @@ class TopUtilizersContainer extends React.Component<Props, State> {
   }
 
   componentWillReceiveProps(nextProps) {
-    const { selectedEntitySet } = this.props;
-    if (isPersonType(this.props) !== isPersonType(nextProps) || (selectedEntitySet !== nextProps.selectedEntitySet)) {
-      this.setState({ selectedPropertyTypes: this.getDefaultSelectedPropertyTypes(nextProps) });
+    const { actions, selectedEntitySet } = this.props;
+    if (selectedEntitySet !== nextProps.selectedEntitySet) {
+      actions.updateFilteredTypes(this.getDefaultFilteredPropertyTypes(nextProps));
+      actions.reIndexEntitiesById(nextProps.unfilteredResults);
     }
   }
 
-  getDefaultSelectedPropertyTypes = (props :Props) => {
+  getDefaultFilteredPropertyTypes = (props :Props) => {
     const { entitySetPropertyMetadata, selectedEntitySet } = props;
     let result = Set();
     if (selectedEntitySet) {
@@ -102,11 +92,11 @@ class TopUtilizersContainer extends React.Component<Props, State> {
       getEntitySetPropertyTypes(props).forEach((propertyType) => {
         const fqn = getFqnString(propertyType.get('type', Map()));
         const propertyTypeId = propertyType.get('id');
-        const shouldShow = !entitySetPropertyMetadata
+        const shouldHide = entitySetPropertyMetadata
           .getIn([entitySetId, propertyTypeId, 'propertyTags'], List())
           .includes(PROPERTY_TAGS.HIDE);
-        if (shouldShow) {
-          result = result.add(propertyType.get('id'));
+        if (shouldHide) {
+          result = result.add(fqn);
         }
       });
     }
@@ -116,29 +106,17 @@ class TopUtilizersContainer extends React.Component<Props, State> {
 
   onPropertyTypeChange = (e) => {
     const { value, checked } = e.target;
-    let { selectedPropertyTypes } = this.state;
+    const { actions, unfilteredResults } = this.props;
+    let { filteredPropertyTypes } = this.props;
+
     if (checked) {
-      selectedPropertyTypes = selectedPropertyTypes.add(value);
+      filteredPropertyTypes = filteredPropertyTypes.delete(value);
     }
     else {
-      selectedPropertyTypes = selectedPropertyTypes.delete(value);
+      filteredPropertyTypes = filteredPropertyTypes.add(value);
     }
-    this.setState({ selectedPropertyTypes });
-  }
-
-  selectTopUtilizer = ({ entitySetId, entity }) => {
-    const {
-      actions,
-      entitySetsById,
-      entityTypesById,
-      neighborsById
-    } = this.props;
-    const entityKeyId = getEntityKeyId(entity);
-    const entityType = entityTypesById.get(entitySetsById.getIn([entitySetId, 'entityTypeId'], ''), Map());
-    actions.selectEntity({ entityKeyId, entitySetId, entityType });
-    if (!neighborsById.has(entityKeyId)) {
-      actions.loadEntityNeighbors({ entitySetId, entity });
-    }
+    actions.updateFilteredTypes(filteredPropertyTypes);
+    actions.reIndexEntitiesById(unfilteredResults);
   }
 
   renderResults = () => {
@@ -146,6 +124,7 @@ class TopUtilizersContainer extends React.Component<Props, State> {
       countBreakdown,
       display,
       entityTypesById,
+      filteredPropertyTypes,
       isLoadingResults,
       isLoadingResultCounts,
       neighborsById,
@@ -154,8 +133,6 @@ class TopUtilizersContainer extends React.Component<Props, State> {
       results,
       selectedEntitySet
     } = this.props;
-
-    const { selectedPropertyTypes } = this.state;
 
     if (isLoadingResults) {
       return <LoadingSpinner />;
@@ -193,7 +170,7 @@ class TopUtilizersContainer extends React.Component<Props, State> {
           return (
             <SearchResultsContainer
                 results={results}
-                filteredPropertyTypes={selectedPropertyTypes}
+                filteredPropertyTypes={filteredPropertyTypes}
                 isTopUtilizers />
           );
       }
@@ -206,15 +183,15 @@ class TopUtilizersContainer extends React.Component<Props, State> {
     const {
       actions,
       display,
+      isLoadingNeighborTypes,
       neighborTypes,
       propertyTypesById,
       entityTypesById,
+      filteredPropertyTypes,
       results,
       selectedEntitySet,
       selectedEntitySetSize
     } = this.props;
-
-    const { selectedPropertyTypes } = this.state;
 
     return (
       <div>
@@ -227,7 +204,8 @@ class TopUtilizersContainer extends React.Component<Props, State> {
                   selectedEntitySet={selectedEntitySet}
                   selectedEntitySetSize={selectedEntitySetSize}
                   selectedEntitySetPropertyTypes={getEntitySetPropertyTypes(this.props)}
-                  selectedPropertyTypes={selectedPropertyTypes}
+                  filteredPropertyTypes={filteredPropertyTypes}
+                  isLoadingNeighborTypes={isLoadingNeighborTypes}
                   neighborTypes={neighborTypes}
                   entityTypesById={entityTypesById}
                   propertyTypesById={propertyTypesById}
@@ -255,18 +233,23 @@ function mapStateToProps(state :Map<*, *>) :Object {
   const topUtilizers = state.get(STATE.TOP_UTILIZERS);
   return {
     entityTypesById: edm.get(EDM.ENTITY_TYPES_BY_ID),
-    entitySetsById: edm.get(EDM.ENTITY_SETS_BY_ID),
     propertyTypesByFqn: edm.get(EDM.PROPERTY_TYPES_BY_FQN),
     propertyTypesById: edm.get(EDM.PROPERTY_TYPES_BY_ID),
     entitySetPropertyMetadata: edm.get(EDM.ENTITY_SET_METADATA_BY_ID),
     selectedEntitySet: entitySets.get(ENTITY_SETS.SELECTED_ENTITY_SET),
-    selectedEntitySetSize: entitySets.getIn([ENTITY_SETS.ENTITY_SET_SIZES, entitySets.getIn([ENTITY_SETS.SELECTED_ENTITY_SET, 'id'])]),
+    selectedEntitySetSize: entitySets.getIn([
+      ENTITY_SETS.ENTITY_SET_SIZES,
+      entitySets.getIn([ENTITY_SETS.SELECTED_ENTITY_SET, 'id'])
+    ]),
+    filteredPropertyTypes: explore.get(EXPLORE.FILTERED_PROPERTY_TYPES),
     neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
     display: topUtilizers.get(TOP_UTILIZERS.RESULT_DISPLAY),
+    isLoadingNeighborTypes: topUtilizers.get(TOP_UTILIZERS.IS_LOADING_NEIGHBOR_TYPES),
     neighborTypes: topUtilizers.get(TOP_UTILIZERS.NEIGHBOR_TYPES),
     isLoadingResults: topUtilizers.get(TOP_UTILIZERS.IS_LOADING_TOP_UTILIZERS),
     isLoadingResultCounts: topUtilizers.get(TOP_UTILIZERS.IS_LOADING_TOP_UTILIZER_NEIGHBORS),
     results: topUtilizers.get(TOP_UTILIZERS.TOP_UTILIZER_RESULTS),
+    unfilteredResults: topUtilizers.get(TOP_UTILIZERS.UNFILTERED_TOP_UTILIZER_RESULTS),
     countBreakdown: topUtilizers.get(TOP_UTILIZERS.COUNT_BREAKDOWN)
   };
 }

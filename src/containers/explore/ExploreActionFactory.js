@@ -10,6 +10,9 @@ const clearExploreSearchResults :RequestSequence = newRequestSequence(CLEAR_EXPL
 const LOAD_ENTITY_NEIGHBORS :string = 'LOAD_ENTITY_NEIGHBORS';
 const loadEntityNeighbors :RequestSequence = newRequestSequence(LOAD_ENTITY_NEIGHBORS);
 
+const RE_INDEX_ENTITIES_BY_ID :string = 'RE_INDEX_ENTITIES_BY_ID';
+const reIndexEntitiesById :RequestSequence = newRequestSequence(RE_INDEX_ENTITIES_BY_ID);
+
 const SEARCH_ENTITY_SET_DATA :string = 'SEARCH_ENTITY_SET_DATA';
 const searchEntitySetData :RequestSequence = newRequestSequence(SEARCH_ENTITY_SET_DATA);
 
@@ -22,17 +25,24 @@ const selectEntity :RequestSequence = newRequestSequence(SELECT_ENTITY);
 const UNMOUNT_EXPLORE :string = 'UNMOUNT_EXPLORE';
 const unmountExplore :RequestSequence = newRequestSequence(UNMOUNT_EXPLORE);
 
+const UPDATE_FILTERED_TYPES :string = 'UPDATE_FILTERED_TYPES';
+const updateFilteredTypes :RequestSequence = newRequestSequence(UPDATE_FILTERED_TYPES);
+
 export {
   CLEAR_EXPLORE_SEARCH_RESULTS,
   LOAD_ENTITY_NEIGHBORS,
+  RE_INDEX_ENTITIES_BY_ID,
   SEARCH_ENTITY_SET_DATA,
   SELECT_BREADCRUMB,
   SELECT_ENTITY,
   UNMOUNT_EXPLORE,
+  UPDATE_FILTERED_TYPES,
   clearExploreSearchResults,
   loadEntityNeighbors,
+  reIndexEntitiesById,
   searchEntitySetData,
   selectBreadcrumb,
   selectEntity,
-  unmountExplore
+  unmountExplore,
+  updateFilteredTypes
 };

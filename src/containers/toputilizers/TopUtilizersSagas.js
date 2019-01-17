@@ -104,7 +104,8 @@ function* getTopUtilizersWorker(action :SequenceAction) {
       dateFilters,
       countType,
       durationTypeWeights,
-      entityTypesById
+      entityTypesById,
+      filteredPropertyTypes
     } = action.value;
 
     yield put(getTopUtilizers.request(action.id, { eventFilters, dateFilters }));
@@ -202,7 +203,7 @@ function* getTopUtilizersWorker(action :SequenceAction) {
 
     const scoresByUtilizer = getCountBreakdown(formattedFilters, topUtilizers);
 
-    yield put(getTopUtilizers.success(action.id, { topUtilizers, scoresByUtilizer }));
+    yield put(getTopUtilizers.success(action.id, { topUtilizers, scoresByUtilizer, filteredPropertyTypes }));
     yield put(loadTopUtilizerNeighbors({ entitySetId, topUtilizers }));
   }
   catch (error) {

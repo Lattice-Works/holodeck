@@ -13,7 +13,7 @@ import { faDatabase } from '@fortawesome/pro-solid-svg-icons';
 import StyledInput from '../../components/controls/StyledInput';
 import StyledLink from '../../components/controls/StyledLink';
 import EntitySetCard from '../../components/cards/EntitySetCard';
-import LoadingSpinner from '../../components/LoadingSpinner';
+import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import Pagination from '../../components/explore/Pagination';
 import { ENTITY_SETS, STATE } from '../../utils/constants/StateConstants';
 import { ComponentWrapper, HeaderComponentWrapper } from '../../components/layout/Layout';

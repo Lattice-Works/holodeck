@@ -9,6 +9,8 @@ import styled, { css } from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/pro-light-svg-icons';
 
+
+import LoadingDots from '../loading/LoadingDots';
 import { TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
 import { BLUE } from '../../utils/constants/Colors';
 
@@ -25,6 +27,7 @@ const {
 
 type Props = {
   selectedEntitySet :Immutable.Map<*, *>,
+  isLoadingNeighborTypes :boolean,
   neighborTypes :Immutable.List<*>,
   selectedNeighborTypes :[],
   onChange :(neighborTypes :[]) => void
@@ -87,6 +90,27 @@ const SelectedOptionWrapper = styled.div`
   display: flex;
   flex-direction: row;
   background-color: #ffffff;
+`;
+
+const LoadingInputPlaceholder = styled.div`
+  width: 100%;
+  color: #135;
+  padding: 10px;
+  background-color: hsl(0,0%,100%);
+  border-color: hsl(0,0%,80%);
+  border-radius: 4px;
+  border-style: solid;
+  border-width: 1px;
+  height: 38px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+
+  span {
+    font-size: 16px;
+    color: #b6bbc7;
+  }
 `;
 
 export default class TopUtilizersSelect extends React.Component<Props> {
@@ -158,43 +182,61 @@ export default class TopUtilizersSelect extends React.Component<Props> {
     );
   }
 
+  renderPlaceholder = () => {
+    return (
+      <LoadingInputPlaceholder>
+        <span>Loading...</span>
+        <LoadingDots />
+      </LoadingInputPlaceholder>
+    )
+  }
+
   render() {
-    const { neighborTypes, selectedNeighborTypes, onChange } = this.props;
+    const {
+      isLoadingNeighborTypes,
+      neighborTypes,
+      selectedNeighborTypes,
+      onChange
+    } = this.props;
     return (
       <SelectWrapper>
-        <Select
-            value={selectedNeighborTypes}
-            onChange={onChange}
-            options={this.getNeighborTypeOptions(neighborTypes)}
-            closeMenuOnSelect={false}
-            placeholder="Search"
-            styles={{
-              multiValueRemove: base => ({
-                ...base,
-                padding: '0',
-                backgroundColor: 'transparent',
-                height: '0'
-              }),
-              multiValueLabel: base => ({
-                ...base,
-                backgroundColor: 'transparent',
-                paddingRight: '0'
-              }),
-              multiValue: base => ({
-                ...base,
-                backgroundColor: 'transparent',
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center'
-              })
-            }}
-            components={{
-              Option: this.neighborOption,
-              MultiValueLabel: this.selectedNeighborOption,
-              MultiValueRemove: this.removeButton
-            }}
-            clearable
-            isMulti />
+        {
+          isLoadingNeighborTypes ? this.renderPlaceholder() : (
+            <Select
+                value={selectedNeighborTypes}
+                onChange={onChange}
+                options={this.getNeighborTypeOptions(neighborTypes)}
+                closeMenuOnSelect={false}
+                placeholder="Search"
+                styles={{
+                  multiValueRemove: base => ({
+                    ...base,
+                    padding: '0',
+                    backgroundColor: 'transparent',
+                    height: '0'
+                  }),
+                  multiValueLabel: base => ({
+                    ...base,
+                    backgroundColor: 'transparent',
+                    paddingRight: '0'
+                  }),
+                  multiValue: base => ({
+                    ...base,
+                    backgroundColor: 'transparent',
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center'
+                  })
+                }}
+                components={{
+                  Option: this.neighborOption,
+                  MultiValueLabel: this.selectedNeighborOption,
+                  MultiValueRemove: this.removeButton
+                }}
+                clearable
+                isMulti />
+          )
+        }
       </SelectWrapper>
     );
   }
