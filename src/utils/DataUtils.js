@@ -11,7 +11,7 @@ import {
 } from 'immutable';
 
 import { COUNT_FQN } from './constants/DataConstants';
-import { PERSON_ENTITY_TYPE_FQN } from './constants/DataModelConstants';
+import { PERSON_ENTITY_TYPE_FQN, PROPERTY_TYPES } from './constants/DataModelConstants';
 import { TOP_UTILIZERS_FILTER } from './constants/TopUtilizerConstants';
 
 const {
@@ -96,6 +96,24 @@ export const getEntitySetPropertyTypes = ({ selectedEntitySet, entityTypesById, 
     .map(propertyTypeId => propertyTypesById.get(propertyTypeId));
 };
 
-export const isPersonType = ({ selectedEntitySet, entityTypesById }) => !!selectedEntitySet && getFqnString(
-  entityTypesById.getIn([selectedEntitySet.get('entityTypeId'), 'type'], Map())
-) === PERSON_ENTITY_TYPE_FQN;
+export const isPersonType = (props) => {
+  const { selectedEntitySet, entityTypesById, results } = props;
+  let shouldShowPersonCard = false;
+
+  if (!!selectedEntitySet && getFqnString(
+    entityTypesById.getIn([selectedEntitySet.get('entityTypeId'), 'type'], Map())
+  ) === PERSON_ENTITY_TYPE_FQN) {
+
+    for (let i = 0; i < results.size; i += 1) {
+      const entity = results.get(i);
+
+      if (entity.get(PROPERTY_TYPES.FIRST_NAME, List()).size || entity.get(PROPERTY_TYPES.LAST_NAME, List()).size) {
+        shouldShowPersonCard = true;
+        i = results.size;
+      }
+
+    }
+  }
+
+  return shouldShowPersonCard;
+};

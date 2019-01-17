@@ -31,13 +31,14 @@ import {
 type Props = {
   display :string,
   searchHasRun :boolean,
+  isLoadingNeighborTypes :boolean,
   neighborTypes :List<*>,
   propertyTypesById :Map<string, Map<*, *>>,
   entityTypesById :Map<string, Map<*, *>>,
   selectedEntitySet :?Map<*, *>,
   selectedEntitySetSize :?number,
   selectedEntitySetPropertyTypes :List<*>,
-  selectedPropertyTypes :List<*>,
+  filteredPropertyTypes :List<*>,
   onPropertyTypeChange :(propertyTypeId :string) => void,
   changeTopUtilizersDisplay :(display :string) => void,
   deselectEntitySet :() => void,
@@ -116,7 +117,12 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
   }
 
   searchTopUtilizers = () => {
-    const { entityTypesById, getTopUtilizers, selectedEntitySet } = this.props;
+    const {
+      entityTypesById,
+      filteredPropertyTypes,
+      getTopUtilizers,
+      selectedEntitySet
+    } = this.props;
     const {
       countType,
       dateRanges,
@@ -132,17 +138,18 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
       dateFilters: dateRanges,
       countType,
       durationTypeWeights,
-      entityTypesById
+      entityTypesById,
+      filteredPropertyTypes
     });
   }
 
   renderPropertyTypeFilterOptions = () => {
-    const { selectedEntitySetPropertyTypes, selectedPropertyTypes, onPropertyTypeChange } = this.props;
+    const { selectedEntitySetPropertyTypes, filteredPropertyTypes, onPropertyTypeChange } = this.props;
 
     return (
       <PropertyTypeFilterOptions
           selectedEntitySetPropertyTypes={selectedEntitySetPropertyTypes}
-          selectedPropertyTypes={selectedPropertyTypes}
+          filteredPropertyTypes={filteredPropertyTypes}
           onPropertyTypeChange={onPropertyTypeChange} />
     );
   }
@@ -286,6 +293,7 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
       selectedEntitySet,
       selectedEntitySetSize,
       deselectEntitySet,
+      isLoadingNeighborTypes,
       neighborTypes
     } = this.props;
 
@@ -311,6 +319,7 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
               <InputLabel>Search Parameter</InputLabel>
               <TopUtilizersSelect
                   selectedEntitySet={selectedEntitySet}
+                  isLoadingNeighborTypes={isLoadingNeighborTypes}
                   neighborTypes={neighborTypes}
                   selectedNeighborTypes={selectedNeighborTypes}
                   onChange={this.onSelectedNeighborPairChange} />

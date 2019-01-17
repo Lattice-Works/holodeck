@@ -4,10 +4,15 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import { List, Map, fromJS } from 'immutable';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import {
+  List,
+  Map,
+  Set,
+  fromJS
+} from 'immutable';
 
 import PersonResultCard from '../../components/people/PersonResultCard';
 import ButtonToolbar from '../../components/buttons/ButtonToolbar';
@@ -41,6 +46,7 @@ type Props = {
   entityTypesById :Map<string, *>,
   entitySetsById :Map<string, *>,
   propertyTypesById :Map<string, *>,
+  totalHits :number,
   actions :{
     selectEntity :(entityKeyId :string) => void,
     loadEntityNeighbors :({ entitySetId :string, entity :Map<*, *> }) => void
@@ -76,6 +82,10 @@ const MAX_RESULTS = 20;
 
 class SearchResultsContainer extends React.Component<Props, State> {
 
+  static defaultProps = {
+    filteredPropertyTypes: Set()
+  };
+
   constructor(props :Props) {
     super(props);
     this.state = {
@@ -97,10 +107,11 @@ class SearchResultsContainer extends React.Component<Props, State> {
 
     const entityKeyId = getEntityKeyId(entity);
     const entitySetId = selectedEntitySet.get('id');
+    const selectedEntitySetId = entitySetId;
     const entityType = entityTypesById.get(selectedEntitySet.get('entityTypeId'), Map());
     actions.selectEntity({ entityKeyId, entitySetId, entityType });
     if (!neighborsById.has(entityKeyId)) {
-      actions.loadEntityNeighbors({ entitySetId, entity });
+      actions.loadEntityNeighbors({ entitySetId, entity, selectedEntitySetId });
     }
   };
 
@@ -146,8 +157,6 @@ class SearchResultsContainer extends React.Component<Props, State> {
       selectedEntitySet
     } = this.props;
 
-    const { start } = this.state;
-
     let propertyTypeHeaders = List();
 
     if (isTopUtilizers) {
@@ -164,7 +173,7 @@ class SearchResultsContainer extends React.Component<Props, State> {
     propertyTypes.forEach((propertyType) => {
       const id = getFqnString(propertyType.get('type'));
       const value = propertyType.get('title');
-      if (!filteredPropertyTypes || filteredPropertyTypes.has(propertyType.get('id'))) {
+      if (!filteredPropertyTypes.has(id)) {
         const isImg = IMAGE_PROPERTY_TYPES.includes(id);
         propertyTypeHeaders = propertyTypeHeaders.push(fromJS({ id, value, isImg }));
       }

@@ -6,27 +6,28 @@ import React from 'react';
 
 import StyledCheckbox from '../../controls/StyledCheckbox';
 import { PropertyTypeCheckboxWrapper } from '../../layout/Layout';
+import { getFqnString } from '../../../utils/DataUtils';
 
 type Props = {
   selectedEntitySetPropertyTypes :List<*>,
-  selectedPropertyTypes :List<*>,
+  filteredPropertyTypes :List<*>,
   onPropertyTypeChange :(propertyTypeId :string) => void
 }
 
 const PropertyTypeFilterOptions = ({
   selectedEntitySetPropertyTypes,
-  selectedPropertyTypes,
+  filteredPropertyTypes,
   onPropertyTypeChange
 } :Props) => (
   <PropertyTypeCheckboxWrapper>
     {selectedEntitySetPropertyTypes.map((propertyType) => {
-      const id = propertyType.get('id');
+      const fqn = getFqnString(propertyType.get('type'));
       const title = propertyType.get('title');
       return (
-        <div key={id}>
+        <div key={fqn}>
           <StyledCheckbox
-              checked={selectedPropertyTypes.has(id)}
-              value={id}
+              checked={!filteredPropertyTypes.has(fqn)}
+              value={fqn}
               label={title}
               onChange={onPropertyTypeChange} />
         </div>

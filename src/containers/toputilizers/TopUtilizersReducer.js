@@ -15,16 +15,20 @@ import {
   loadTopUtilizerNeighbors
 } from './TopUtilizersActionFactory';
 
+import { UPDATE_FILTERED_TYPES } from '../explore/ExploreActionFactory';
+
 const {
   COUNT_BREAKDOWN,
   IS_LOADING_NEIGHBOR_TYPES,
   IS_LOADING_TOP_UTILIZERS,
   IS_LOADING_TOP_UTILIZER_NEIGHBORS,
+  LAST_QUERY_RUN,
   NEIGHBOR_TYPES,
   QUERY_HAS_RUN,
   RESULT_DISPLAY,
   TOP_UTILIZER_FILTERS,
-  TOP_UTILIZER_RESULTS
+  TOP_UTILIZER_RESULTS,
+  UNFILTERED_TOP_UTILIZER_RESULTS
 } = TOP_UTILIZERS;
 
 const INITIAL_STATE :Map<> = fromJS({
@@ -32,12 +36,27 @@ const INITIAL_STATE :Map<> = fromJS({
   [IS_LOADING_TOP_UTILIZERS]: false,
   [IS_LOADING_NEIGHBOR_TYPES]: false,
   [IS_LOADING_TOP_UTILIZER_NEIGHBORS]: false,
+  [LAST_QUERY_RUN]: '',
   [NEIGHBOR_TYPES]: List(),
   [QUERY_HAS_RUN]: false,
   [RESULT_DISPLAY]: RESULT_DISPLAYS.SEARCH_RESULTS,
   [TOP_UTILIZER_FILTERS]: List(),
-  [TOP_UTILIZER_RESULTS]: List()
+  [TOP_UTILIZER_RESULTS]: List(),
+  [UNFILTERED_TOP_UTILIZER_RESULTS]: List()
 });
+
+const filterEntity = (entity, filteredTypes) => {
+  let filteredEntity = entity;
+
+  filteredTypes.forEach((fqn) => {
+    filteredEntity = filteredEntity.delete(fqn);
+  });
+
+  return filteredEntity;
+};
+
+const filterResults = (searchResults, filteredTypes) => searchResults
+  .map(entity => filterEntity(entity, filteredTypes));
 
 function reducer(state :Map<> = INITIAL_STATE, action :Object) {
   switch (action.type) {
@@ -56,12 +75,21 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
         REQUEST: () => state
           .set(IS_LOADING_TOP_UTILIZERS, true)
           .set(TOP_UTILIZER_RESULTS, List())
+          .set(UNFILTERED_TOP_UTILIZER_RESULTS, List())
           .set(COUNT_BREAKDOWN, Map())
           .set(TOP_UTILIZER_FILTERS, fromJS(action.value.eventFilters)),
         SUCCESS: () => state
-          .set(TOP_UTILIZER_RESULTS, fromJS(action.value.topUtilizers))
-          .set(COUNT_BREAKDOWN, action.value.scoresByUtilizer),
-        FAILURE: () => state.set(TOP_UTILIZER_RESULTS, List()).set(COUNT_BREAKDOWN, Map()),
+          .set(UNFILTERED_TOP_UTILIZER_RESULTS, fromJS(action.value.topUtilizers))
+          .set(TOP_UTILIZER_RESULTS, filterResults(
+            fromJS(action.value.topUtilizers),
+            action.value.filteredPropertyTypes
+          ))
+          .set(COUNT_BREAKDOWN, action.value.scoresByUtilizer)
+          .set(LAST_QUERY_RUN, action.value.query),
+        FAILURE: () => state
+          .set(TOP_UTILIZER_RESULTS, List())
+          .set(UNFILTERED_TOP_UTILIZER_RESULTS, List())
+          .set(COUNT_BREAKDOWN, Map()),
         FINALLY: () => state.set(IS_LOADING_TOP_UTILIZERS, false).set(QUERY_HAS_RUN, true)
       });
     }
@@ -73,6 +101,9 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
       });
     }
 
+    case UPDATE_FILTERED_TYPES:
+      return state.set(TOP_UTILIZER_RESULTS, filterResults(state.get(UNFILTERED_TOP_UTILIZER_RESULTS), action.value));
+
     case CHANGE_TOP_UTILIZERS_DISPLAY:
       return state.set(RESULT_DISPLAY, action.value);
 
@@ -82,7 +113,9 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
         .set(COUNT_BREAKDOWN, Map())
         .set(QUERY_HAS_RUN, false)
         .set(TOP_UTILIZER_RESULTS, List())
-        .set(TOP_UTILIZER_FILTERS, List());
+        .set(UNFILTERED_TOP_UTILIZER_RESULTS, List())
+        .set(TOP_UTILIZER_FILTERS, List())
+        .set(LAST_QUERY_RUN, '');
 
     default:
       return state;

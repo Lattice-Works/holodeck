@@ -2,7 +2,12 @@
  * @flow
  */
 
-import { List, Map, fromJS } from 'immutable';
+import {
+  List,
+  Map,
+  Set,
+  fromJS
+} from 'immutable';
 
 import getTitle from '../../utils/EntityTitleUtils';
 import { EXPLORE } from '../../utils/constants/StateConstants';
@@ -10,9 +15,11 @@ import { BREADCRUMB } from '../../utils/constants/ExploreConstants';
 import { getEntityKeyId } from '../../utils/DataUtils';
 import {
   CLEAR_EXPLORE_SEARCH_RESULTS,
+  RE_INDEX_ENTITIES_BY_ID,
   SELECT_BREADCRUMB,
   SELECT_ENTITY,
   UNMOUNT_EXPLORE,
+  UPDATE_FILTERED_TYPES,
   loadEntityNeighbors,
   searchEntitySetData,
   selectEntity
@@ -29,21 +36,38 @@ const {
   BREADCRUMBS,
   ENTITY_NEIGHBORS_BY_ID,
   ENTITIES_BY_ID,
+  FILTERED_PROPERTY_TYPES,
   IS_LOADING_ENTITY_NEIGHBORS,
   IS_SEARCHING_DATA,
-  SEARCH_RESULTS
+  SEARCH_RESULTS,
+  UNFILTERED_SEARCH_RESULTS
 } = EXPLORE;
 
 const INITIAL_STATE :Map<> = fromJS({
   [BREADCRUMBS]: List(),
   [ENTITY_NEIGHBORS_BY_ID]: Map(),
   [ENTITIES_BY_ID]: Map(),
+  [FILTERED_PROPERTY_TYPES]: Set(),
   [IS_LOADING_ENTITY_NEIGHBORS]: false,
   [IS_SEARCHING_DATA]: false,
-  [SEARCH_RESULTS]: List()
+  [SEARCH_RESULTS]: List(),
+  [UNFILTERED_SEARCH_RESULTS]: List()
 });
 
-const updateEntitiesIdForNeighbors = (initEntitiesById, neighborList) => {
+const filterEntity = (entity, filteredTypes) => {
+  let filteredEntity = entity;
+
+  filteredTypes.forEach((fqn) => {
+    filteredEntity = filteredEntity.delete(fqn);
+  });
+
+  return filteredEntity;
+};
+
+const filterSearchResults = (searchResults, filteredTypes) => searchResults
+  .map(entity => filterEntity(entity, filteredTypes));
+
+const updateEntitiesIdForNeighbors = (initEntitiesById, neighborList, filteredTypes, selectedEntitySetId) => {
   let entitiesById = initEntitiesById;
   neighborList.forEach((neighborObj) => {
     const association = neighborObj.get('associationDetails', Map());
@@ -57,10 +81,12 @@ const updateEntitiesIdForNeighbors = (initEntitiesById, neighborList) => {
     }
     if (neighbor) {
       const neighborEntityKeyId = getEntityKeyId(neighbor);
-      entitiesById = entitiesById.set(
-        neighborEntityKeyId,
-        entitiesById.get(neighborEntityKeyId, Map()).merge(neighbor)
-      );
+      let updatedEntity = entitiesById.get(neighborEntityKeyId, Map()).merge(neighbor);
+      if (!selectedEntitySetId || selectedEntitySetId === neighborObj.getIn(['neighborEntitySet', 'id'])) {
+        updatedEntity = filterEntity(updatedEntity, filteredTypes);
+      }
+
+      entitiesById = entitiesById.set(neighborEntityKeyId, updatedEntity);
     }
   });
 
@@ -79,11 +105,16 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
             .setIn([ENTITY_NEIGHBORS_BY_ID, id], state.getIn([ENTITY_NEIGHBORS_BY_ID, id], List()));
         },
         SUCCESS: () => {
-          const { entity, neighbors } = action.value;
+          const { entity, neighbors, selectedEntitySetId } = action.value;
           const neighborList = fromJS(neighbors);
           const entityKeyId = getEntityKeyId(entity);
 
-          const entitiesById = updateEntitiesIdForNeighbors(state.get(ENTITIES_BY_ID), neighborList);
+          const entitiesById = updateEntitiesIdForNeighbors(
+            state.get(ENTITIES_BY_ID),
+            neighborList,
+            state.get(FILTERED_PROPERTY_TYPES),
+            selectedEntitySetId
+          );
 
           return state
             .setIn([ENTITY_NEIGHBORS_BY_ID, entityKeyId], neighborList)
@@ -104,7 +135,7 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
             const entityKeyId = getEntityKeyId(entity);
             entitiesById = entitiesById.set(
               entityKeyId,
-              entitiesById.get(entityKeyId, Map()).merge(entity)
+              filterEntity(entitiesById.get(entityKeyId, Map()).merge(entity), state.get(FILTERED_PROPERTY_TYPES))
             );
           });
 
@@ -120,7 +151,7 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
           const neighborsById = state.get(ENTITY_NEIGHBORS_BY_ID).merge(immutableNeighborsById);
           let entitiesById = state.get(ENTITIES_BY_ID);
           immutableNeighborsById.valueSeq().forEach((neighborList) => {
-            entitiesById = updateEntitiesIdForNeighbors(entitiesById, neighborList);
+            entitiesById = updateEntitiesIdForNeighbors(entitiesById, neighborList, state.get(FILTERED_PROPERTY_TYPES));
           });
           return state.set(ENTITY_NEIGHBORS_BY_ID, neighborsById).set(ENTITIES_BY_ID, entitiesById);
         }
@@ -129,16 +160,26 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
 
     case searchEntitySetData.case(action.type): {
       return searchEntitySetData.reducer(state, action, {
-        REQUEST: () => state.set(IS_SEARCHING_DATA, true).set(SEARCH_RESULTS, List()),
+        REQUEST: () => state
+          .set(IS_SEARCHING_DATA, true)
+          .set(UNFILTERED_SEARCH_RESULTS, List())
+          .set(SEARCH_RESULTS, List()),
         SUCCESS: () => {
           const results = fromJS(action.value);
           let entitiesById = state.get(ENTITIES_BY_ID);
           results.get('hits', List()).forEach((result) => {
-            entitiesById = entitiesById.set(getEntityKeyId(result), result);
+            entitiesById = entitiesById.set(
+              getEntityKeyId(result),
+              filterEntity(result, state.get(FILTERED_PROPERTY_TYPES))
+            );
           });
-          return state.set(SEARCH_RESULTS, results).set(ENTITIES_BY_ID, entitiesById);
+          return state
+            .set(UNFILTERED_SEARCH_RESULTS, results)
+            .set(SEARCH_RESULTS, filterSearchResults(results, state.get(FILTERED_PROPERTY_TYPES)))
+            .set(ENTITIES_BY_ID, entitiesById)
+            .set(BREADCRUMBS, List());
         },
-        FAILURE: () => state.set(SEARCH_RESULTS, List()),
+        FAILURE: () => state.set(SEARCH_RESULTS, List()).set(UNFILTERED_SEARCH_RESULTS, List()),
         FINALLY: () => state.set(IS_SEARCHING_DATA, false)
       });
     }
@@ -157,6 +198,29 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
       return state.set(BREADCRUMBS, state.get(BREADCRUMBS).push(crumb));
     }
 
+    case UPDATE_FILTERED_TYPES: {
+      const filteredTypes = action.value;
+      let entitiesById = state.get(ENTITIES_BY_ID);
+      state.get(UNFILTERED_SEARCH_RESULTS, List()).forEach((result) => {
+        entitiesById = entitiesById.set(getEntityKeyId(result), filterEntity(result, filteredTypes));
+      });
+      return state
+        .set(FILTERED_PROPERTY_TYPES, filteredTypes)
+        .set(SEARCH_RESULTS, filterSearchResults(state.get(UNFILTERED_SEARCH_RESULTS), filteredTypes))
+        .set(ENTITIES_BY_ID, entitiesById);
+    }
+
+    case RE_INDEX_ENTITIES_BY_ID: {
+      let entitiesById = state.get(ENTITIES_BY_ID);
+      action.value.forEach((result) => {
+        entitiesById = entitiesById.set(
+          getEntityKeyId(result),
+          filterEntity(result, state.get(FILTERED_PROPERTY_TYPES))
+        );
+      });
+      return state.set(ENTITIES_BY_ID, entitiesById);
+    }
+
     case CLEAR_EXPLORE_SEARCH_RESULTS:
     case CLEAR_TOP_UTILIZERS_RESULTS:
     case UNMOUNT_TOP_UTILIZERS:
@@ -164,7 +228,8 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
       return state.set(BREADCRUMBS, List())
         .set(IS_LOADING_ENTITY_NEIGHBORS, false)
         .set(IS_SEARCHING_DATA, false)
-        .set(SEARCH_RESULTS, List());
+        .set(SEARCH_RESULTS, List())
+        .set(UNFILTERED_SEARCH_RESULTS, List());
 
     default:
       return state;
