@@ -23,6 +23,7 @@ import * as TopUtilizersActionFactory from '../toputilizers/TopUtilizersActionFa
 
 type Props = {
   actionText :string,
+  path :string,
   page :number,
   totalHits :number,
   history :string[],
@@ -133,10 +134,12 @@ class EntitySetSearch extends React.Component<Props, State> {
   }
 
   handleSelect = (entitySetObj) => {
-    const { actions } = this.props;
+    const { actions, history, path } = this.props;
     const entitySet = entitySetObj.get('entitySet', Map());
+    const id = entitySet.get('id');
     actions.selectEntitySet(entitySet);
-    actions.getNeighborTypes(entitySet.get('id'));
+    actions.getNeighborTypes(id);
+    history.push(`${path}/${id}`);
   }
 
   renderResults = () => {

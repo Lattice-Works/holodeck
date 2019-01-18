@@ -10,7 +10,7 @@ import {
   SELECT_ENTITY_SET_PAGE,
   loadEntitySetSizes,
   searchEntitySets,
-  selectEntitySet
+  selectEntitySetById
 } from './EntitySetActionFactory';
 
 import { UNMOUNT_EXPLORE } from '../explore/ExploreActionFactory';
@@ -53,6 +53,12 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
     case loadEntitySetSizes.case(action.type): {
       return loadEntitySetSizes.reducer(state, action, {
         SUCCESS: () => state.set(ENTITY_SET_SIZES, state.get(ENTITY_SET_SIZES).merge(fromJS(action.value))),
+      });
+    }
+
+    case selectEntitySetById.case(action.type): {
+      return selectEntitySetById.reducer(state, action, {
+        SUCCESS: () => state.set(SELECTED_ENTITY_SET, fromJS(action.value))
       });
     }
 
