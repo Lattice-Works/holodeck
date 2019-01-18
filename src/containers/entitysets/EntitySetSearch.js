@@ -15,7 +15,7 @@ import StyledLink from '../../components/controls/StyledLink';
 import EntitySetCard from '../../components/cards/EntitySetCard';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import Pagination from '../../components/explore/Pagination';
-import { ENTITY_SETS, STATE } from '../../utils/constants/StateConstants';
+import { EDM, ENTITY_SETS, STATE } from '../../utils/constants/StateConstants';
 import { ComponentWrapper, HeaderComponentWrapper } from '../../components/layout/Layout';
 import * as Routes from '../../core/router/Routes';
 import * as EntitySetActionFactory from './EntitySetActionFactory';
@@ -30,6 +30,7 @@ type Props = {
   isLoadingEntitySets :boolean,
   entitySetSearchResults :List<*>,
   entitySetSizes :Map<*, *>,
+  entityTypesById :Map<string, *>,
   actions :{
     searchEntitySets :({
       searchTerm :string,
@@ -147,19 +148,21 @@ class EntitySetSearch extends React.Component<Props, State> {
       isLoadingEntitySets,
       entitySetSearchResults,
       entitySetSizes,
-      actions
+      entityTypesById
     } = this.props;
     if (isLoadingEntitySets) {
       return <LoadingSpinner />;
     }
 
-    return entitySetSearchResults.map(entitySetObj => (
-      <EntitySetCard
-          key={entitySetObj.getIn(['entitySet', 'id'])}
-          entitySet={entitySetObj.get('entitySet', Map())}
-          size={entitySetSizes.get(entitySetObj.getIn(['entitySet', 'id']))}
-          onClick={() => this.handleSelect(entitySetObj)} />
-    ));
+    return entitySetSearchResults.filter(entitySetObj => entityTypesById
+      .getIn([entitySetObj.getIn(['entitySet', 'entityTypeId']), 'category']) === 'EntityType')
+      .map(entitySetObj => (
+        <EntitySetCard
+            key={entitySetObj.getIn(['entitySet', 'id'])}
+            entitySet={entitySetObj.get('entitySet', Map())}
+            size={entitySetSizes.get(entitySetObj.getIn(['entitySet', 'id']))}
+            onClick={() => this.handleSelect(entitySetObj)} />
+      ));
   }
 
   routeToManage = () => {
@@ -211,13 +214,16 @@ class EntitySetSearch extends React.Component<Props, State> {
 }
 
 function mapStateToProps(state :Map<*, *>) :Object {
+  const edm = state.get(STATE.EDM);
   const entitySets = state.get(STATE.ENTITY_SETS);
+
   return {
     entitySetSearchResults: entitySets.get(ENTITY_SETS.ENTITY_SET_SEARCH_RESULTS),
     entitySetSizes: entitySets.get(ENTITY_SETS.ENTITY_SET_SIZES),
     isLoadingEntitySets: entitySets.get(ENTITY_SETS.IS_LOADING_ENTITY_SETS),
     page: entitySets.get(ENTITY_SETS.PAGE),
-    totalHits: entitySets.get(ENTITY_SETS.TOTAL_HITS)
+    totalHits: entitySets.get(ENTITY_SETS.TOTAL_HITS),
+    entityTypesById: edm.get(EDM.ENTITY_TYPES_BY_ID)
   };
 }
 
