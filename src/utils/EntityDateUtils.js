@@ -43,6 +43,9 @@ const dateProperties = {
   ],
   'housing.stay': [
     'date.admission'
+  ],
+  'ol.booking': [
+    'general.datetime'
   ]
 };
 
