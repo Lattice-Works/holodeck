@@ -13,6 +13,7 @@ import { bindActionCreators } from 'redux';
 import HeaderNav from '../../components/nav/HeaderNav';
 import DataManagementContainer from '../manage/DataManagementContainer';
 import ExploreContainer from '../explore/ExploreContainer';
+import ExploreEntitySetContainer from '../explore/ExploreEntitySetContainer';
 import ReportsContainer from '../reports/ReportsContainer';
 import TopUtilizersContainer from '../toputilizers/TopUtilizersContainer';
 import { STATE, EDM } from '../../utils/constants/StateConstants';

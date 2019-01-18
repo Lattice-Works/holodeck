@@ -106,7 +106,7 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
         },
         SUCCESS: () => {
           const { entity, neighbors, selectedEntitySetId } = action.value;
-          const neighborList = fromJS(neighbors);
+          const neighborList = fromJS(neighbors) || List();
           const entityKeyId = getEntityKeyId(entity);
 
           const entitiesById = updateEntitiesIdForNeighbors(
