@@ -46,6 +46,9 @@ const dateProperties = {
   ],
   'ol.booking': [
     'general.datetime'
+  ],
+  'ol.jailstaylength': [
+    'incident.startdatetime'
   ]
 };
 
