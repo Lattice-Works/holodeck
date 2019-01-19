@@ -10,6 +10,9 @@ const changeTopUtilizersDisplay :RequestSequence = newRequestSequence(CHANGE_TOP
 const CLEAR_TOP_UTILIZERS_RESULTS :string = 'CLEAR_TOP_UTILIZERS_RESULTS';
 const clearTopUtilizersResults :RequestSequence = newRequestSequence(CLEAR_TOP_UTILIZERS_RESULTS);
 
+const DOWNLOAD_TOP_UTILIZERS :string = 'DOWNLOAD_TOP_UTILIZERS';
+const downloadTopUtilizers :RequestSequence = newRequestSequence(DOWNLOAD_TOP_UTILIZERS);
+
 const GET_NEIGHBOR_TYPES :string = 'GET_NEIGHBOR_TYPES';
 const getNeighborTypes :RequestSequence = newRequestSequence(GET_NEIGHBOR_TYPES);
 
@@ -25,12 +28,14 @@ const unmountTopUtilizers :RequestSequence = newRequestSequence(UNMOUNT_TOP_UTIL
 export {
   CHANGE_TOP_UTILIZERS_DISPLAY,
   CLEAR_TOP_UTILIZERS_RESULTS,
+  DOWNLOAD_TOP_UTILIZERS,
   GET_NEIGHBOR_TYPES,
   GET_TOP_UTILIZERS,
   LOAD_TOP_UTILIZER_NEIGHBORS,
   UNMOUNT_TOP_UTILIZERS,
   changeTopUtilizersDisplay,
   clearTopUtilizersResults,
+  downloadTopUtilizers,
   getNeighborTypes,
   getTopUtilizers,
   loadTopUtilizerNeighbors,

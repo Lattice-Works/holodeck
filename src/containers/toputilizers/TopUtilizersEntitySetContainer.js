@@ -8,10 +8,13 @@ import { List, Map, Set } from 'immutable';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCloudDownload } from '@fortawesome/pro-light-svg-icons';
 
 import EntitySetSearch from '../entitysets/EntitySetSearch';
 import SearchResultsContainer from '../explore/SearchResultsContainer';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
+import SecondaryButton from '../../components/buttons/SecondaryButton';
 import TopUtilizerParameterSelection from '../../components/toputilizers/TopUtilizerParameterSelection';
 import TopUtilizerDashboard from '../../components/toputilizers/TopUtilizerDashboard';
 import TopUtilizerResources from '../../components/toputilizers/TopUtilizerResources';
@@ -44,12 +47,14 @@ type Props = {
   isLoadingNeighborTypes :boolean,
   neighborTypes :List<*>,
   display :string,
+  isDownloading :boolean,
   isLoadingResults :boolean,
   isLoadingResultCounts :boolean,
   results :List<*>,
   unfilteredResults :List<*>,
   lastQueryRun :string,
   actions :{
+    downloadTopUtilizers :({ name :string, results :Map<*, *> }) => void,
     changeTopUtilizersDisplay :(display :string) => void,
     clearTopUtilizersResults :() => void,
     unmountTopUtilizers :() => void,
@@ -59,12 +64,31 @@ type Props = {
     loadEntityNeighbors :({ entitySetId :string, entity :Map<*, *> }) => void,
     getTopUtilizers :() => void,
     updateFilteredTypes :(filteredTypes :Set<*>) => void,
-    reIndexEntitiesById :(unfilteredTopUtilizerResults :List<*>) => void
+    reIndexEntitiesById :(unfilteredTopUtilizerResults :List<*>) => void,
+    getNeighborTypes :(id :string) => void
   }
 };
 
 const ResultsWrapper = styled.div`
   margin: 30px 0;
+`;
+
+const CenteredRow = styled.div`
+  width: 100%;
+  margin: 30px 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+`;
+
+const DownloadButton = styled(SecondaryButton)`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  span {
+    margin-left: 7px;
+  }
 `;
 
 class TopUtilizersEntitySetContainer extends React.Component<Props> {
@@ -89,6 +113,10 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
     if (selectedEntitySet !== nextProps.selectedEntitySet) {
       actions.updateFilteredTypes(this.getDefaultFilteredPropertyTypes(nextProps));
       actions.reIndexEntitiesById(nextProps.unfilteredResults);
+
+      if (nextProps.selectedEntitySet) {
+        actions.getNeighborTypes(nextProps.selectedEntitySet.get('id'));
+      }
     }
   }
 
@@ -189,10 +217,28 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
     return null;
   }
 
+  download = () => {
+    const {
+      actions,
+      entityTypesById,
+      propertyTypesById,
+      selectedEntitySet,
+      results
+    } = this.props;
+    if (selectedEntitySet && results.size) {
+      const name = `${selectedEntitySet.get('title')} - Top Utilizers`;
+      const fields = entityTypesById
+        .getIn([selectedEntitySet.get('entityTypeId'), 'properties'], List())
+        .map(id => getFqnString(propertyTypesById.getIn([id, 'type'])));
+      actions.downloadTopUtilizers({ name, fields, results });
+    }
+  }
+
   render() {
     const {
       actions,
       display,
+      isDownloading,
       isLoadingNeighborTypes,
       neighborTypes,
       propertyTypesById,
@@ -231,6 +277,18 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
         <ResultsWrapper>
           {this.renderResults()}
         </ResultsWrapper>
+        {
+          results.size
+            ? (
+              <CenteredRow>
+                <DownloadButton onClick={this.download} disabled={isDownloading}>
+                  <FontAwesomeIcon icon={faCloudDownload} />
+                  <span>Download as CSV</span>
+                </DownloadButton>
+              </CenteredRow>
+            )
+            : null
+        }
       </div>
     );
   }
@@ -257,6 +315,7 @@ function mapStateToProps(state :Map<*, *>, ownProps :Object) :Object {
     filteredPropertyTypes: explore.get(EXPLORE.FILTERED_PROPERTY_TYPES),
     neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
     display: topUtilizers.get(TOP_UTILIZERS.RESULT_DISPLAY),
+    isDownloading: topUtilizers.get(TOP_UTILIZERS.IS_DOWNLOADING_TOP_UTILIZERS),
     isLoadingNeighborTypes: topUtilizers.get(TOP_UTILIZERS.IS_LOADING_NEIGHBOR_TYPES),
     neighborTypes: topUtilizers.get(TOP_UTILIZERS.NEIGHBOR_TYPES),
     isLoadingResults: topUtilizers.get(TOP_UTILIZERS.IS_LOADING_TOP_UTILIZERS),
