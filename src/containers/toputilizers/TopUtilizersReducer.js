@@ -10,6 +10,7 @@ import {
   CHANGE_TOP_UTILIZERS_DISPLAY,
   CLEAR_TOP_UTILIZERS_RESULTS,
   UNMOUNT_TOP_UTILIZERS,
+  downloadTopUtilizers,
   getNeighborTypes,
   getTopUtilizers,
   loadTopUtilizerNeighbors
@@ -19,6 +20,7 @@ import { UPDATE_FILTERED_TYPES } from '../explore/ExploreActionFactory';
 
 const {
   COUNT_BREAKDOWN,
+  IS_DOWNLOADING_TOP_UTILIZERS,
   IS_LOADING_NEIGHBOR_TYPES,
   IS_LOADING_TOP_UTILIZERS,
   IS_LOADING_TOP_UTILIZER_NEIGHBORS,
@@ -33,6 +35,7 @@ const {
 
 const INITIAL_STATE :Map<> = fromJS({
   [COUNT_BREAKDOWN]: Map(),
+  [IS_DOWNLOADING_TOP_UTILIZERS]: false,
   [IS_LOADING_TOP_UTILIZERS]: false,
   [IS_LOADING_NEIGHBOR_TYPES]: false,
   [IS_LOADING_TOP_UTILIZER_NEIGHBORS]: false,
@@ -60,6 +63,13 @@ const filterResults = (searchResults, filteredTypes) => searchResults
 
 function reducer(state :Map<> = INITIAL_STATE, action :Object) {
   switch (action.type) {
+
+    case downloadTopUtilizers.case(action.type): {
+      return downloadTopUtilizers.reducer(state, action, {
+        REQUEST: () => state.set(IS_DOWNLOADING_TOP_UTILIZERS, true),
+        FINALLY: () => state.set(IS_DOWNLOADING_TOP_UTILIZERS, false)
+      });
+    }
 
     case getNeighborTypes.case(action.type): {
       return getNeighborTypes.reducer(state, action, {

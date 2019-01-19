@@ -37,6 +37,7 @@ export const EXPLORE = {
 
 export const TOP_UTILIZERS = {
   COUNT_BREAKDOWN: 'countBreakdown',
+  IS_DOWNLOADING_TOP_UTILIZERS: 'isDownloadingTopUtilizers',
   IS_LOADING_NEIGHBOR_TYPES: 'isLoadingNeighborTypes',
   IS_LOADING_TOP_UTILIZERS: 'isLoadingTopUtilizers',
   IS_LOADING_TOP_UTILIZER_NEIGHBORS: 'isLoadingTopUtilizerNeighbors',
