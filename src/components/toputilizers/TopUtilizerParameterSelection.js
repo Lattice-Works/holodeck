@@ -33,6 +33,7 @@ type Props = {
   searchHasRun :boolean,
   isLoadingNeighborTypes :boolean,
   neighborTypes :List<*>,
+  numberOfUtilizers :number,
   propertyTypesById :Map<string, Map<*, *>>,
   entityTypesById :Map<string, Map<*, *>>,
   selectedEntitySet :?Map<*, *>,
@@ -42,7 +43,8 @@ type Props = {
   onPropertyTypeChange :(propertyTypeId :string) => void,
   changeTopUtilizersDisplay :(display :string) => void,
   deselectEntitySet :() => void,
-  getTopUtilizers :() => void
+  getTopUtilizers :() => void,
+  changeNumUtilizers :(numUtilizers :number) => void
 };
 
 type State = {
@@ -95,8 +97,6 @@ const StyledBanner = styled(Banner)`
   color: #ffffff !important;
 `;
 
-const DEFAULT_NUM_RESULTS = 100;
-
 const newDateRange = Object.assign({}, {
   start: '',
   end: '',
@@ -118,10 +118,12 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
 
   searchTopUtilizers = () => {
     const {
+      changeNumUtilizers,
       entityTypesById,
       filteredPropertyTypes,
       getTopUtilizers,
-      selectedEntitySet
+      selectedEntitySet,
+      numberOfUtilizers
     } = this.props;
     const {
       countType,
@@ -131,9 +133,15 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
     } = this.state;
     const entitySetId = selectedEntitySet.get('id');
 
+    let numResults = Number.parseInt(numberOfUtilizers, 10);
+    if (Number.isNaN(numResults)) {
+      numResults = 100;
+    }
+    changeNumUtilizers(numResults);
+
     getTopUtilizers({
       entitySetId,
-      numResults: DEFAULT_NUM_RESULTS,
+      numResults,
       eventFilters: selectedNeighborTypes,
       dateFilters: dateRanges,
       countType,
@@ -197,7 +205,12 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
   }
 
   renderSearchOption = () => {
-    const { entityTypesById, propertyTypesById } = this.props;
+    const {
+      entityTypesById,
+      propertyTypesById,
+      numberOfUtilizers,
+      changeNumUtilizers
+    } = this.props;
     const { countType, durationTypeWeights, selectedNeighborTypes } = this.state;
 
     return (
@@ -205,6 +218,8 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
           entityTypesById={entityTypesById}
           propertyTypesById={propertyTypesById}
           countType={countType}
+          numberOfUtilizers={numberOfUtilizers}
+          onNumUtilizersChange={changeNumUtilizers}
           durationTypeWeights={durationTypeWeights}
           selectedNeighborTypes={selectedNeighborTypes}
           availableDurationProperties={this.getAvailableDurationProperties()}

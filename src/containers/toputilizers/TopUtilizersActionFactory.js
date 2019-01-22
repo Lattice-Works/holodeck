@@ -4,6 +4,9 @@
 
 import { newRequestSequence } from 'redux-reqseq';
 
+const CHANGE_NUM_UTILIZERS :string = 'CHANGE_NUM_UTILIZERS';
+const changeNumUtilizers :RequestSequence = newRequestSequence(CHANGE_NUM_UTILIZERS);
+
 const CHANGE_TOP_UTILIZERS_DISPLAY :string = 'CHANGE_TOP_UTILIZERS_DISPLAY';
 const changeTopUtilizersDisplay :RequestSequence = newRequestSequence(CHANGE_TOP_UTILIZERS_DISPLAY);
 
@@ -26,6 +29,7 @@ const UNMOUNT_TOP_UTILIZERS :string = 'UNMOUNT_TOP_UTILIZERS';
 const unmountTopUtilizers :RequestSequence = newRequestSequence(UNMOUNT_TOP_UTILIZERS);
 
 export {
+  CHANGE_NUM_UTILIZERS,
   CHANGE_TOP_UTILIZERS_DISPLAY,
   CLEAR_TOP_UTILIZERS_RESULTS,
   DOWNLOAD_TOP_UTILIZERS,
@@ -33,6 +37,7 @@ export {
   GET_TOP_UTILIZERS,
   LOAD_TOP_UTILIZER_NEIGHBORS,
   UNMOUNT_TOP_UTILIZERS,
+  changeNumUtilizers,
   changeTopUtilizersDisplay,
   clearTopUtilizersResults,
   downloadTopUtilizers,

@@ -47,6 +47,7 @@ type Props = {
   filteredPropertyTypes :Set<string>,
   isLoadingNeighborTypes :boolean,
   neighborTypes :List<*>,
+  numberOfUtilizers :number,
   display :string,
   isDownloading :boolean,
   isLoadingResults :boolean,
@@ -56,6 +57,7 @@ type Props = {
   lastQueryRun :string,
   actions :{
     downloadTopUtilizers :({ name :string, results :Map<*, *> }) => void,
+    changeNumUtilizers :(numUtilizers :number) => void,
     changeTopUtilizersDisplay :(display :string) => void,
     clearTopUtilizersResults :() => void,
     unmountTopUtilizers :() => void,
@@ -247,6 +249,7 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
       isDownloading,
       isLoadingNeighborTypes,
       neighborTypes,
+      numberOfUtilizers,
       propertyTypesById,
       entityTypesById,
       filteredPropertyTypes,
@@ -268,12 +271,14 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
                   selectedEntitySetPropertyTypes={getEntitySetPropertyTypes(this.props)}
                   filteredPropertyTypes={filteredPropertyTypes}
                   isLoadingNeighborTypes={isLoadingNeighborTypes}
+                  numberOfUtilizers={numberOfUtilizers}
                   neighborTypes={neighborTypes}
                   entityTypesById={entityTypesById}
                   propertyTypesById={propertyTypesById}
                   getTopUtilizers={actions.getTopUtilizers}
                   onPropertyTypeChange={this.onPropertyTypeChange}
                   changeTopUtilizersDisplay={actions.changeTopUtilizersDisplay}
+                  changeNumUtilizers={actions.changeNumUtilizers}
                   deselectEntitySet={() => {
                     actions.clearTopUtilizersResults();
                     actions.selectEntitySet();
@@ -325,6 +330,7 @@ function mapStateToProps(state :Map<*, *>, ownProps :Object) :Object {
     isDownloading: topUtilizers.get(TOP_UTILIZERS.IS_DOWNLOADING_TOP_UTILIZERS),
     isLoadingNeighborTypes: topUtilizers.get(TOP_UTILIZERS.IS_LOADING_NEIGHBOR_TYPES),
     neighborTypes: topUtilizers.get(TOP_UTILIZERS.NEIGHBOR_TYPES),
+    numberOfUtilizers: topUtilizers.get(TOP_UTILIZERS.NUMBER_OF_UTILIZERS),
     isLoadingResults: topUtilizers.get(TOP_UTILIZERS.IS_LOADING_TOP_UTILIZERS),
     isLoadingResultCounts: topUtilizers.get(TOP_UTILIZERS.IS_LOADING_TOP_UTILIZER_NEIGHBORS),
     results: topUtilizers.get(TOP_UTILIZERS.TOP_UTILIZER_RESULTS),
