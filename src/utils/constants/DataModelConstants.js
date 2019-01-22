@@ -115,5 +115,7 @@ export const PROPERTY_TAGS = {
   TITLE: 'breadcrumbs',
   TIMELINE: 'timeline',
   DURATION: 'duration',
-  START: 'startdatetag'
+  START: 'startdatetag',
+  EVENT_DATE: 'eventdate',
+  PIE: 'pie'
 };

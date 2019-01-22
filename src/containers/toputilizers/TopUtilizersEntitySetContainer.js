@@ -185,7 +185,11 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
             <TopUtilizerDashboard
                 entityTypesById={entityTypesById}
                 propertyTypesById={propertyTypesById}
+                propertyTypesByFqn={propertyTypesByFqn}
+                selectedEntitySet={selectedEntitySet}
                 selectedEntityType={selectedEntityType}
+                neighborsById={neighborsById}
+                results={results}
                 countBreakdown={countBreakdown} />
           );
 

@@ -1,6 +1,7 @@
 import moment from 'moment';
-import { List } from 'immutable';
+import { List, Map } from 'immutable';
 
+import { PROPERTY_TAGS } from './constants/DataModelConstants';
 import { getFqnString } from './DataUtils';
 
 const dateProperties = {
@@ -57,10 +58,10 @@ export const getDateProperties = (entityType) => {
   return dateProperties[fqn] || [];
 };
 
-export const getEntityDates = (entityType, entity, skipConversion) => {
+const getDatesForList = (fqns, entity, skipConversion) => {
   const dates = [];
 
-  getDateProperties(entityType).forEach((dateFqn) => {
+  fqns.forEach((dateFqn) => {
     entity.get(dateFqn, List()).forEach((dateStr) => {
       if (skipConversion) {
         dates.push(dateStr);
@@ -76,5 +77,35 @@ export const getEntityDates = (entityType, entity, skipConversion) => {
 
   return dates;
 };
+
+export const getEntityDates = (entityType, entity, skipConversion) => getDatesForList(
+  getDateProperties(entityType),
+  entity,
+  skipConversion
+);
+
+const getTagsByFqn = (entityType, propertyTypesById) => {
+  let tagsbyFqn = Map();
+
+  entityType.get('propertyTags').entrySeq().forEach(([propertyTypeId, tags]) => {
+    tagsbyFqn = tagsbyFqn.set(getFqnString(propertyTypesById.getIn([propertyTypeId, 'type'])), tags);
+  });
+
+  return tagsbyFqn;
+};
+
+export const getEntityEventDates = (
+  entityType,
+  propertyTypesById,
+  entity,
+  skipConversion
+) => getDatesForList(
+  getTagsByFqn(entityType, propertyTypesById)
+    .entrySeq()
+    .filter(([fqn, tags]) => tags.includes(PROPERTY_TAGS.EVENT_DATE))
+    .map(([fqn]) => fqn),
+  entity,
+  skipConversion
+);
 
 export const getEntityDateStrings = (entityType, entity) => getEntityDates(entityType, entity, true);
