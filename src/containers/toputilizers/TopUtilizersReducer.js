@@ -7,6 +7,7 @@ import { List, Map, fromJS } from 'immutable';
 import { TOP_UTILIZERS } from '../../utils/constants/StateConstants';
 import { RESULT_DISPLAYS } from '../../utils/constants/TopUtilizerConstants';
 import {
+  CHANGE_NUM_UTILIZERS,
   CHANGE_TOP_UTILIZERS_DISPLAY,
   CLEAR_TOP_UTILIZERS_RESULTS,
   UNMOUNT_TOP_UTILIZERS,
@@ -18,6 +19,8 @@ import {
 
 import { UPDATE_FILTERED_TYPES } from '../explore/ExploreActionFactory';
 
+const DEFAULT_NUM_RESULTS = 100;
+
 const {
   COUNT_BREAKDOWN,
   IS_DOWNLOADING_TOP_UTILIZERS,
@@ -26,6 +29,7 @@ const {
   IS_LOADING_TOP_UTILIZER_NEIGHBORS,
   LAST_QUERY_RUN,
   NEIGHBOR_TYPES,
+  NUMBER_OF_UTILIZERS,
   QUERY_HAS_RUN,
   RESULT_DISPLAY,
   TOP_UTILIZER_FILTERS,
@@ -41,6 +45,7 @@ const INITIAL_STATE :Map<> = fromJS({
   [IS_LOADING_TOP_UTILIZER_NEIGHBORS]: false,
   [LAST_QUERY_RUN]: '',
   [NEIGHBOR_TYPES]: List(),
+  [NUMBER_OF_UTILIZERS]: DEFAULT_NUM_RESULTS,
   [QUERY_HAS_RUN]: false,
   [RESULT_DISPLAY]: RESULT_DISPLAYS.SEARCH_RESULTS,
   [TOP_UTILIZER_FILTERS]: List(),
@@ -111,11 +116,14 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
       });
     }
 
-    case UPDATE_FILTERED_TYPES:
-      return state.set(TOP_UTILIZER_RESULTS, filterResults(state.get(UNFILTERED_TOP_UTILIZER_RESULTS), action.value));
+    case CHANGE_NUM_UTILIZERS:
+      return state.set(NUMBER_OF_UTILIZERS, action.value);
 
     case CHANGE_TOP_UTILIZERS_DISPLAY:
       return state.set(RESULT_DISPLAY, action.value);
+
+    case UPDATE_FILTERED_TYPES:
+      return state.set(TOP_UTILIZER_RESULTS, filterResults(state.get(UNFILTERED_TOP_UTILIZER_RESULTS), action.value));
 
     case CLEAR_TOP_UTILIZERS_RESULTS:
     case UNMOUNT_TOP_UTILIZERS:

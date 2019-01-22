@@ -8,6 +8,7 @@ import { Map } from 'immutable';
 
 import StyledCheckbox from '../../controls/StyledCheckbox';
 import StyledRadio from '../../controls/StyledRadio';
+import StyledInput from '../../controls/StyledInput';
 import {
   DropdownWrapper,
   DropdownRowWrapper,
@@ -34,6 +35,13 @@ const TopBorderRowWrapper = styled.div`
   }
 `;
 
+const Subtitle = styled.div`
+  font-size: 14px;
+  line-height: normal;
+  color: #555e6f;
+  margin-bottom: 10px;
+`;
+
 type Props = {
   entityTypesById :Map<string, *>,
   propertyTypesById :Map<string, *>,
@@ -41,8 +49,10 @@ type Props = {
   durationTypeWeights :Map<*, *>,
   selectedNeighborTypes :Object[],
   availableDurationProperties :Map<*, *>,
+  numberOfUtilizers :number,
   onChange :(e :Object) => void,
-  onDurationWeightChange :(newWeights :Map<*, *>) => void
+  onDurationWeightChange :(newWeights :Map<*, *>) => void,
+  onNumUtilizersChange :(numUtilizers :number) => void
 }
 
 const CountTypeOptions = ({
@@ -52,8 +62,10 @@ const CountTypeOptions = ({
   durationTypeWeights,
   selectedNeighborTypes,
   availableDurationProperties,
+  numberOfUtilizers,
   onChange,
-  onDurationWeightChange
+  onDurationWeightChange,
+  onNumUtilizersChange
 } :Props) => {
 
   const isDisabled = !availableDurationProperties.size
@@ -109,6 +121,13 @@ const CountTypeOptions = ({
           </DropdownWrapper>
         ) : null
       }
+      <TopBorderRowWrapper>Search result</TopBorderRowWrapper>
+      <Subtitle># of top utilizers</Subtitle>
+      <StyledInput
+          width="120px"
+          type="number"
+          value={numberOfUtilizers}
+          onChange={({ target }) => onNumUtilizersChange(target.value)} />
     </DropdownWrapper>
   );
 };
