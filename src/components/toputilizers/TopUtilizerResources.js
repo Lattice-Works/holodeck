@@ -38,7 +38,7 @@ import {
   TitleText
 } from '../layout/Layout';
 import { getEntityKeyId, getFqnString } from '../../utils/DataUtils';
-import { getEntityDates } from '../../utils/EntityDateUtils';
+import { getEntityEventDates } from '../../utils/EntityDateUtils';
 
 type Props = {
   results :List<*>,
@@ -296,7 +296,7 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
             if (dateMatch) {
               filterMatch = true;
             }
-          })
+          });
 
           if (filterMatch) {
             fqnMatch = true;
@@ -377,8 +377,8 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
             if (this.matchesFilters(pair, dateFilters, associationDetails, neighborDetails)) {
             /* Deal with dates */
               [
-                ...getEntityDates(entityTypesById.get(assocId, Map()), associationDetails),
-                ...getEntityDates(entityTypesById.get(neighborId, Map()), neighborDetails),
+                ...getEntityEventDates(entityTypesById.get(assocId, Map()), propertyTypesById, associationDetails),
+                ...getEntityEventDates(entityTypesById.get(neighborId, Map()), propertyTypesById, neighborDetails),
               ].forEach((date) => {
                 const dateStr = date.format(MONTH_FORMAT);
                 dateMap = dateMap.setIn([pair, dateStr], dateMap.getIn([pair, dateStr], 0) + 1);

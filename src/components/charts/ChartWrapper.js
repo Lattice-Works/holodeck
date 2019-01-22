@@ -35,6 +35,7 @@ const HeaderRow = styled.div`
   align-items: center;
   font-family: 'Open Sans', sans-serif;
   margin-bottom: 30px;
+  min-height: 50px;
 
   h1 {
     margin: 0;
@@ -195,6 +196,6 @@ const ChartWrapper = ({
       }
     </Card>
   );
-}
+};
 
 export default ChartWrapper;

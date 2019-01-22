@@ -18,6 +18,7 @@ import {
 import LoadingSpinner from '../loading/LoadingSpinner';
 import ChartWrapper from '../charts/ChartWrapper';
 import ChartTooltip from '../charts/ChartTooltip';
+import TopUtilizerPieCharts from './resources/TopUtilizerPieCharts';
 import TopUtilizerParetoChart from './resources/TopUtilizerParetoChart';
 import { CHART_EXPLANATIONS, PARETO_LABELS } from '../../utils/constants/TopUtilizerConstants';
 import { COUNT_FQN } from '../../utils/constants/DataConstants';
@@ -25,10 +26,14 @@ import { CHART_COLORS } from '../../utils/constants/Colors';
 import { CenteredColumnContainer, FixedWidthWrapper, LoadingText } from '../layout/Layout';
 
 type Props = {
+  selectedEntitySet :Map<*, *>,
   selectedEntityType :Map<*, *>,
   entityTypesById :Map<string, *>,
   propertyTypesById :Map<string, *>,
+  propertyTypesByFqn :Map<string, *>,
   countBreakdown :Map<string, *>,
+  neighborsById :Map<string, *>,
+  results :List<*>,
 };
 
 type State = {
@@ -342,6 +347,7 @@ export default class TopUtilizerDashboard extends React.Component<Props, State> 
 
     return (
       <TopUtilizerParetoChart
+          key={pair}
           entityTypeTitle={entityTypeTitle}
           countBreakdown={countBreakdown}
           color={color}
@@ -362,6 +368,7 @@ export default class TopUtilizerDashboard extends React.Component<Props, State> 
             {this.renderCountCards()}
             {this.renderEventsPerPerson()}
             {this.renderParetoCharts()}
+            <TopUtilizerPieCharts {...this.props} />
           </CenteredColumnContainer>
         </FixedWidthWrapper>
       </CenteredColumnContainer>
