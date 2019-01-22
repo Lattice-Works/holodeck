@@ -1,7 +1,13 @@
 import moment from 'moment';
-import { List, Map } from 'immutable';
+import {
+  List,
+  Map,
+  Set,
+  fromJS
+} from 'immutable';
 
 import { PROPERTY_TAGS } from './constants/DataModelConstants';
+import { DATE_FILTER_CLASS } from './constants/DataConstants';
 import { getFqnString } from './DataUtils';
 
 const dateProperties = {
@@ -52,6 +58,9 @@ const dateProperties = {
     'incident.startdatetime'
   ]
 };
+
+const NEIGHBOR = 'neighborDetails';
+const ASSOCIATION = 'associationDetails';
 
 export const getDateProperties = (entityType) => {
   const fqn = getFqnString(entityType.get('type'));
@@ -109,3 +118,102 @@ export const getEntityEventDates = (
 );
 
 export const getEntityDateStrings = (entityType, entity) => getEntityDates(entityType, entity, true);
+
+export const getDateFilters = (query, propertyTypesById) => {
+  const { neighborAggregations } = query;
+
+  let filters = Map();
+
+  neighborAggregations.forEach((aggregation) => {
+    const {
+      associationTypeId,
+      associationFilters,
+      neighborTypeId,
+      neighborFilters
+    } = aggregation;
+
+    const pair = List.of(associationTypeId, neighborTypeId);
+
+    const updateDateFilters = (filterList, field) => {
+      if (filterList) {
+        Object.entries(filterList).forEach(([id, ptFilters]) => {
+          const fqn = getFqnString(propertyTypesById.getIn([id, 'type']));
+          const dateFilters = fromJS(ptFilters.filter(filter => filter['@class'] === DATE_FILTER_CLASS));
+          if (dateFilters.size) {
+            filters = filters.setIn([pair, field, fqn], dateFilters);
+          }
+        });
+      }
+    };
+
+    updateDateFilters(associationFilters, ASSOCIATION);
+    updateDateFilters(neighborFilters, NEIGHBOR);
+  });
+
+  return filters;
+};
+
+export const getPairFilters = (query) => {
+  const { neighborAggregations } = query;
+
+  let filters = Set();
+
+  neighborAggregations.forEach((aggregation) => {
+    const { associationTypeId, neighborTypeId } = aggregation;
+
+    filters = filters.add(List.of(associationTypeId, neighborTypeId));
+  });
+
+  return filters;
+};
+
+export const checkDateFilterMatch = (filterMap, entity) => {
+  let matches = true;
+
+  if (filterMap) {
+    filterMap.entrySeq().forEach(([fqn, filters]) => {
+      let fqnMatch = false;
+      const dates = entity.get(fqn, List());
+
+      filters.forEach((filter) => {
+        let filterMatch = false;
+        const lowerbound = filter.get('lowerbound') ? moment(filter.get('lowerbound')) : null;
+        const upperbound = filter.get('upperbound') ? moment(filter.get('upperbound')) : null;
+
+        dates.forEach((date) => {
+          let dateMatch = true;
+
+          if (lowerbound && lowerbound.isAfter(date)) dateMatch = false;
+          if (upperbound && upperbound.isBefore(date)) dateMatch = false;
+
+          if (dateMatch) {
+            filterMatch = true;
+          }
+        });
+
+        if (filterMatch) {
+          fqnMatch = true;
+        }
+      });
+
+      if (!fqnMatch) {
+        matches = false;
+      }
+    });
+  }
+
+  return matches;
+};
+
+export const matchesFilters = (pair, dateFilters, association, neighbor) => {
+  const filters = dateFilters.get(pair);
+
+  if (filters) {
+    const associationFiltersMatch = checkDateFilterMatch(filters.get(ASSOCIATION), association);
+    const neighborFiltersMatch = checkDateFilterMatch(filters.get(NEIGHBOR), neighbor);
+
+    return associationFiltersMatch && neighborFiltersMatch;
+  }
+
+  return true;
+};
