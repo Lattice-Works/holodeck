@@ -20,6 +20,7 @@ export const ENTITY_SETS = {
   ENTITY_SET_SIZES: 'entitySetSizes',
   IS_LOADING_ENTITY_SETS: 'isLoadingEntitySets',
   SELECTED_ENTITY_SET: 'selectedEntitySet',
+  SHOW_ASSOCIATION_ENTITY_SETS: 'showAssociationEntitySets',
   PAGE: 'pageNum',
   TOTAL_HITS: 'totalHits'
 };

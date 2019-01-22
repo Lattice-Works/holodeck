@@ -19,15 +19,20 @@ const selectEntitySetById :RequestSequence = newRequestSequence(SELECT_ENTITY_SE
 const SELECT_ENTITY_SET_PAGE :string = 'SELECT_ENTITY_SET_PAGE';
 const selectEntitySetPage :RequestSequence = newRequestSequence(SELECT_ENTITY_SET_PAGE);
 
+const SET_SHOW_ASSOCIATION_ENTITY_SETS :string = 'SET_SHOW_ASSOCIATION_ENTITY_SETS';
+const setShowAssociationEntitySets :RequestSequence = newRequestSequence(SET_SHOW_ASSOCIATION_ENTITY_SETS);
+
 export {
   LOAD_ENTITY_SET_SIZES,
   SEARCH_ENTITY_SETS,
   SELECT_ENTITY_SET,
   SELECT_ENTITY_SET_BY_ID,
   SELECT_ENTITY_SET_PAGE,
+  SET_SHOW_ASSOCIATION_ENTITY_SETS,
   loadEntitySetSizes,
   searchEntitySets,
   selectEntitySet,
   selectEntitySetById,
-  selectEntitySetPage
+  selectEntitySetPage,
+  setShowAssociationEntitySets
 };
