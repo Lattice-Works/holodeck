@@ -119,13 +119,7 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
 
     case CLEAR_TOP_UTILIZERS_RESULTS:
     case UNMOUNT_TOP_UTILIZERS:
-      return state
-        .set(COUNT_BREAKDOWN, Map())
-        .set(QUERY_HAS_RUN, false)
-        .set(TOP_UTILIZER_RESULTS, List())
-        .set(UNFILTERED_TOP_UTILIZER_RESULTS, List())
-        .set(TOP_UTILIZER_FILTERS, List())
-        .set(LAST_QUERY_RUN, '');
+      return INITIAL_STATE;
 
     default:
       return state;

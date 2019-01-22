@@ -282,7 +282,7 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
           {this.renderResults()}
         </ResultsWrapper>
         {
-          results.size
+          results.size && display === RESULT_DISPLAYS.SEARCH_RESULTS
             ? (
               <CenteredRow>
                 <DownloadButton onClick={this.download} disabled={isDownloading}>
