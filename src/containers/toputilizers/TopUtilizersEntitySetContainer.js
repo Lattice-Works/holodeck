@@ -277,7 +277,7 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
                   deselectEntitySet={() => {
                     actions.clearTopUtilizersResults();
                     actions.selectEntitySet();
-                    history.push(Routes.TOP_UTILIZERS)
+                    history.push(Routes.TOP_UTILIZERS);
                   }} />
             ) : <EntitySetSearch actionText="find to utilizers in" path={Routes.TOP_UTILIZERS} />
         }
