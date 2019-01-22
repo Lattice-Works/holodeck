@@ -17,6 +17,7 @@ import ChartWrapper from '../../charts/ChartWrapper';
 import ChartTooltip from '../../charts/ChartTooltip';
 import Legend from '../../charts/Legend';
 import { getPieChartPropertyFqns } from '../../../utils/TagUtils';
+import { getEntityKeyId } from '../../../utils/DataUtils';
 import { CHART_COLORS } from '../../../utils/constants/Colors';
 
 type Props = {
@@ -94,7 +95,10 @@ export default class TopUtilizerPieCharts extends React.Component<Props, State> 
     let counts = initCounts;
 
     entity.get(fqn, List()).forEach((value) => {
-      counts = counts.set(`${value}`.trim(), counts.get(value, 0) + 1);
+      const formattedValue = `${value}`.trim();
+      if (formattedValue) {
+        counts = counts.set(formattedValue, counts.get(formattedValue, 0) + 1);
+      }
     });
 
     return counts;
@@ -113,11 +117,42 @@ export default class TopUtilizerPieCharts extends React.Component<Props, State> 
       });
     });
 
-    return pieProperties;
+    let bundledPieProperties = Map();
+
+    pieProperties.entrySeq().forEach(([fqn, valueMap]) => {
+      if (valueMap.size > MAX_PIE_SIZE) {
+
+        let otherCount = 0;
+
+        valueMap.sort().reverse().entrySeq()
+          .forEach(([value, count], index) => {
+            if (index < MAX_PIE_SIZE - 1) {
+              bundledPieProperties = bundledPieProperties.setIn([fqn, value], count);
+            }
+            else {
+              otherCount += count;
+            }
+          });
+
+        if (otherCount) {
+          bundledPieProperties = bundledPieProperties.setIn([fqn, 'Other'], otherCount);
+        }
+      }
+      else {
+        bundledPieProperties = bundledPieProperties.set(fqn, valueMap);
+      }
+    });
+
+    return bundledPieProperties;
   }
 
   getPieProperties = (props :Props) => {
-    const { entityTypesById, propertyTypesById, neighborsById } = props;
+    const {
+      entityTypesById,
+      propertyTypesById,
+      neighborsById,
+      results
+    } = props;
     /* pieProperties: Map<entityTypeId, Map<propertyTypeFqn, Map<propertyValue, count>>> */
     let pieProperties = Map();
     let piePropertiesByUtilizer = Map();
@@ -126,10 +161,11 @@ export default class TopUtilizerPieCharts extends React.Component<Props, State> 
     let typesWithTags = Set();
     let typesWithoutTags = Set();
 
-    neighborsById.entrySeq().forEach(([entityKeyId, neighborList]) => {
+    results.forEach((result) => {
+      const entityKeyId = getEntityKeyId(result);
       let neighborCounts = Map();
 
-      neighborList.forEach((neighborObj) => {
+      neighborsById.get(entityKeyId, List()).forEach((neighborObj) => {
         const neighborEntityTypeId = neighborObj.getIn(['neighborEntitySet', 'entityTypeId']);
 
         if (neighborEntityTypeId) {
@@ -178,6 +214,7 @@ export default class TopUtilizerPieCharts extends React.Component<Props, State> 
           });
         });
       });
+
     });
 
     [pieProperties, piePropertiesByUtilizer] = this.bundleOtherValues(pieProperties, piePropertiesByUtilizer);
@@ -273,7 +310,7 @@ export default class TopUtilizerPieCharts extends React.Component<Props, State> 
         <ChartWrapper title={title}>
           <Container>
             <PieChart width={400} height={400}>
-              <Pie data={data} dataKey="value" cx={200} cy={200} outerRadius={120} fill="#8884d8" label>
+              <Pie data={data} dataKey="value" cx={200} cy={200} outerRadius={120} fill="#8884d8">
                 {data.map(({ name }) => <Cell key={name} fill={colorsByValue.get(name)} />)}
               </Pie>
               <Tooltip content={this.renderTooltip} />

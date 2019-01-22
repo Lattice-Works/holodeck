@@ -34,6 +34,7 @@ import * as TopUtilizersActionFactory from './TopUtilizersActionFactory';
 import * as Routes from '../../core/router/Routes';
 
 type Props = {
+  history :string[],
   selectedEntitySetId :string,
   countBreakdown :Map<*, *>,
   selectedEntitySet :?Map<*, *>,
@@ -242,6 +243,7 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
     const {
       actions,
       display,
+      history,
       isDownloading,
       isLoadingNeighborTypes,
       neighborTypes,
@@ -275,6 +277,7 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
                   deselectEntitySet={() => {
                     actions.clearTopUtilizersResults();
                     actions.selectEntitySet();
+                    history.push(Routes.TOP_UTILIZERS);
                   }} />
             ) : <EntitySetSearch actionText="find to utilizers in" path={Routes.TOP_UTILIZERS} />
         }
@@ -282,7 +285,7 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
           {this.renderResults()}
         </ResultsWrapper>
         {
-          results.size
+          results.size && display === RESULT_DISPLAYS.SEARCH_RESULTS
             ? (
               <CenteredRow>
                 <DownloadButton onClick={this.download} disabled={isDownloading}>
