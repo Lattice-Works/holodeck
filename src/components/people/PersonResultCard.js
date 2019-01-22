@@ -15,6 +15,7 @@ import { FixedWidthWrapper } from '../layout/Layout';
 import { formatDateList } from '../../utils/FormattingUtils';
 
 const {
+  DATASOURCE,
   FIRST_NAME,
   LAST_NAME,
   DOB,
@@ -41,6 +42,29 @@ const CardWrapper = styled(FixedWidthWrapper)`
       }
       return '';
     }}
+  }
+`;
+
+const DatasourceWrapper = styled.div`
+  margin: -5px 0 0 75px;
+  display: flex;
+  flex-direction: row;
+
+  span {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 5px;
+    border-radius: 3px;
+    background-color: #e1e1eb;
+    font-size: 11px;
+    line-height: normal;
+    color: #8e929b;
+    text-transform: uppercase;
+
+    &:not(:first-child) {
+      margin-left: 20px;
+    }
   }
 `;
 
@@ -184,6 +208,18 @@ const renderPersonDetails = (index, person) => {
   );
 };
 
+const renderDatasources = (person) => {
+  if (!person.has(DATASOURCE)) {
+    return null;
+  }
+
+  return (
+    <DatasourceWrapper>
+      {person.get(DATASOURCE, List()).map(datasource => <span key={datasource}>{datasource}</span>)}
+    </DatasourceWrapper>
+  );
+};
+
 const PersonResultCard = ({
   counts,
   index,
@@ -194,6 +230,7 @@ const PersonResultCard = ({
   const onClickFn = disabled ? () => {} : onClick;
   return (
     <CardWrapper disabled={disabled} onClick={onClickFn} withCounts={!!counts}>
+      {renderDatasources(person)}
       {renderPersonDetails(index, person)}
       {counts ? renderCounts(counts) : null}
     </CardWrapper>
