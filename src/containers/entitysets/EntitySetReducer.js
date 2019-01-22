@@ -8,6 +8,7 @@ import { ENTITY_SETS } from '../../utils/constants/StateConstants';
 import {
   SELECT_ENTITY_SET,
   SELECT_ENTITY_SET_PAGE,
+  SET_SHOW_ASSOCIATION_ENTITY_SETS,
   loadEntitySetSizes,
   searchEntitySets,
   selectEntitySetById
@@ -21,6 +22,7 @@ const {
   ENTITY_SET_SIZES,
   IS_LOADING_ENTITY_SETS,
   SELECTED_ENTITY_SET,
+  SHOW_ASSOCIATION_ENTITY_SETS,
   PAGE,
   TOTAL_HITS
 } = ENTITY_SETS;
@@ -30,6 +32,7 @@ const INITIAL_STATE :Map<> = fromJS({
   [ENTITY_SET_SEARCH_RESULTS]: List(),
   [ENTITY_SET_SIZES]: Map(),
   [SELECTED_ENTITY_SET]: undefined,
+  [SHOW_ASSOCIATION_ENTITY_SETS]: false,
   [PAGE]: 1,
   [TOTAL_HITS]: 0
 });
@@ -67,6 +70,9 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
 
     case SELECT_ENTITY_SET_PAGE:
       return state.set(PAGE, action.value);
+
+    case SET_SHOW_ASSOCIATION_ENTITY_SETS:
+      return state.set(SHOW_ASSOCIATION_ENTITY_SETS, action.value);
 
     case UNMOUNT_EXPLORE:
     case UNMOUNT_TOP_UTILIZERS:

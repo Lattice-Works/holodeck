@@ -12,6 +12,7 @@ import { faDatabase } from '@fortawesome/pro-solid-svg-icons';
 
 import StyledInput from '../../components/controls/StyledInput';
 import StyledLink from '../../components/controls/StyledLink';
+import StyledCheckbox from '../../components/controls/StyledCheckbox';
 import EntitySetCard from '../../components/cards/EntitySetCard';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import Pagination from '../../components/explore/Pagination';
@@ -31,6 +32,7 @@ type Props = {
   entitySetSearchResults :List<*>,
   entitySetSizes :Map<*, *>,
   entityTypesById :Map<string, *>,
+  showAssociationEntitySets :boolean,
   actions :{
     searchEntitySets :({
       searchTerm :string,
@@ -39,6 +41,7 @@ type Props = {
     }) => void,
     selectEntitySet :(entitySet? :Map<*, *>) => void,
     selectEntitySetPage :(page :number) => void,
+    setShowAssociationEntitySets :(show :boolean) => void,
     getNeighborTypes :(id :string) => void
   }
 };
@@ -91,6 +94,14 @@ const ResultsContainer = styled(ComponentWrapper)`
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: center;
+`;
+
+const CheckboxRow = styled(ComponentWrapper)`
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
 `;
 
 const PAGE_SIZE = 24;
@@ -148,21 +159,26 @@ class EntitySetSearch extends React.Component<Props, State> {
       isLoadingEntitySets,
       entitySetSearchResults,
       entitySetSizes,
-      entityTypesById
+      entityTypesById,
+      showAssociationEntitySets
     } = this.props;
     if (isLoadingEntitySets) {
       return <LoadingSpinner />;
     }
 
-    return entitySetSearchResults.filter(entitySetObj => entityTypesById
-      .getIn([entitySetObj.getIn(['entitySet', 'entityTypeId']), 'category']) === 'EntityType')
-      .map(entitySetObj => (
-        <EntitySetCard
-            key={entitySetObj.getIn(['entitySet', 'id'])}
-            entitySet={entitySetObj.get('entitySet', Map())}
-            size={entitySetSizes.get(entitySetObj.getIn(['entitySet', 'id']))}
-            onClick={() => this.handleSelect(entitySetObj)} />
-      ));
+    let filteredEntitySets = entitySetSearchResults;
+    if (!showAssociationEntitySets) {
+      filteredEntitySets = filteredEntitySets.filter(entitySetObj => entityTypesById
+        .getIn([entitySetObj.getIn(['entitySet', 'entityTypeId']), 'category']) === 'EntityType');
+    }
+
+    return filteredEntitySets.map(entitySetObj => (
+      <EntitySetCard
+          key={entitySetObj.getIn(['entitySet', 'id'])}
+          entitySet={entitySetObj.get('entitySet', Map())}
+          size={entitySetSizes.get(entitySetObj.getIn(['entitySet', 'id']))}
+          onClick={() => this.handleSelect(entitySetObj)} />
+    ));
   }
 
   routeToManage = () => {
@@ -177,7 +193,13 @@ class EntitySetSearch extends React.Component<Props, State> {
   }
 
   render() {
-    const { actionText, page, totalHits } = this.props;
+    const {
+      actions,
+      actionText,
+      page,
+      showAssociationEntitySets,
+      totalHits
+    } = this.props;
     const { searchTerm } = this.state;
 
     return (
@@ -197,6 +219,12 @@ class EntitySetSearch extends React.Component<Props, State> {
                 onChange={this.handleInputChange} />
           </HeaderContent>
         </HeaderContainer>
+        <CheckboxRow>
+          <StyledCheckbox
+              checked={showAssociationEntitySets}
+              onChange={({ target }) => actions.setShowAssociationEntitySets(!!target.checked)}
+              label="Show association datasets" />
+        </CheckboxRow>
         <ResultsContainer>
           {this.renderResults()}
         </ResultsContainer>
@@ -223,6 +251,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
     isLoadingEntitySets: entitySets.get(ENTITY_SETS.IS_LOADING_ENTITY_SETS),
     page: entitySets.get(ENTITY_SETS.PAGE),
     totalHits: entitySets.get(ENTITY_SETS.TOTAL_HITS),
+    showAssociationEntitySets: entitySets.get(ENTITY_SETS.SHOW_ASSOCIATION_ENTITY_SETS),
     entityTypesById: edm.get(EDM.ENTITY_TYPES_BY_ID)
   };
 }
