@@ -38,7 +38,7 @@ import {
   TitleText
 } from '../layout/Layout';
 import { getEntityKeyId, getFqnString } from '../../utils/DataUtils';
-import { getEntityEventDates } from '../../utils/EntityDateUtils';
+import { getEntityEventDates, getDateFilters, matchesFilters } from '../../utils/EntityDateUtils';
 
 type Props = {
   results :List<*>,
@@ -240,91 +240,6 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
     return DEFAULT_COST_RATES[fqn] || 0;
   }
 
-  getDateFilters = (query, propertyTypesById) => {
-    const { neighborAggregations } = query;
-
-    let filters = Map();
-
-    neighborAggregations.forEach((aggregation) => {
-      const {
-        associationTypeId,
-        associationFilters,
-        neighborTypeId,
-        neighborFilters
-      } = aggregation;
-
-      const pair = List.of(associationTypeId, neighborTypeId);
-
-      const updateDateFilters = (filterList, field) => {
-        if (filterList) {
-          Object.entries(filterList).forEach(([id, ptFilters]) => {
-            const fqn = getFqnString(propertyTypesById.getIn([id, 'type']));
-            const dateFilters = fromJS(ptFilters.filter(filter => filter['@class'] === DATE_FILTER_CLASS));
-            if (dateFilters.size) {
-              filters = filters.setIn([pair, field, fqn], dateFilters);
-            }
-          });
-        }
-      };
-
-      updateDateFilters(associationFilters, ASSOCIATION);
-      updateDateFilters(neighborFilters, NEIGHBOR);
-    });
-
-    return filters;
-  }
-
-  checkDateFilterMatch = (filterMap, entity) => {
-    let matches = true;
-
-    if (filterMap) {
-      filterMap.entrySeq().forEach(([fqn, filters]) => {
-        let fqnMatch = false;
-        const dates = entity.get(fqn, List());
-
-        filters.forEach((filter) => {
-          let filterMatch = false;
-          const lowerbound = filter.get('lowerbound') ? moment(filter.get('lowerbound')) : null;
-          const upperbound = filter.get('upperbound') ? moment(filter.get('upperbound')) : null;
-
-          dates.forEach((date) => {
-            let dateMatch = true;
-
-            if (lowerbound && lowerbound.isAfter(date)) dateMatch = false;
-            if (upperbound && upperbound.isBefore(date)) dateMatch = false;
-
-            if (dateMatch) {
-              filterMatch = true;
-            }
-          });
-
-          if (filterMatch) {
-            fqnMatch = true;
-          }
-        });
-
-        if (!fqnMatch) {
-          matches = false;
-        }
-      });
-    }
-
-    return matches;
-  }
-
-  matchesFilters = (pair, dateFilters, association, neighbor) => {
-    const filters = dateFilters.get(pair);
-
-    if (filters) {
-      const associationFiltersMatch = this.checkDateFilterMatch(filters.get(ASSOCIATION), association);
-      const neighborFiltersMatch = this.checkDateFilterMatch(filters.get(NEIGHBOR), neighbor);
-
-      return associationFiltersMatch && neighborFiltersMatch;
-    }
-
-    return true;
-  }
-
   preprocess = (props :Props) => {
     const {
       countBreakdown,
@@ -342,7 +257,7 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
     const allPairs = this.getAllPairs();
     const blankMap = this.getBlankMap(allPairs);
     const durationTypes = this.getDurationTypes();
-    const dateFilters = this.getDateFilters(lastQueryRun, propertyTypesById);
+    const dateFilters = getDateFilters(lastQueryRun, propertyTypesById);
 
     let costRates = Map();
     let processedDates = Map();
@@ -374,7 +289,7 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
             const neighborDetails = neighbor.get('neighborDetails', Map());
             const associationDetails = neighbor.get('associationDetails', Map());
 
-            if (this.matchesFilters(pair, dateFilters, associationDetails, neighborDetails)) {
+            if (matchesFilters(pair, dateFilters, associationDetails, neighborDetails)) {
             /* Deal with dates */
               [
                 ...getEntityEventDates(entityTypesById.get(assocId, Map()), propertyTypesById, associationDetails),

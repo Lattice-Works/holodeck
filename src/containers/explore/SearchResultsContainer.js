@@ -246,9 +246,14 @@ class SearchResultsContainer extends React.Component<Props, State> {
   }
 
   render() {
-    const { breadcrumbs, results, totalHits } = this.props;
-    const isExploring = !!breadcrumbs.size;
+    const {
+      breadcrumbs,
+      isTopUtilizers,
+      results,
+      totalHits
+    } = this.props;
     const { start, layout } = this.state;
+    const isExploring = !!breadcrumbs.size;
 
     let rankingsById = Map();
     results.forEach((utilizer, index) => {
@@ -256,7 +261,7 @@ class SearchResultsContainer extends React.Component<Props, State> {
     });
 
     const resultContent = isExploring
-      ? <EntityDetails rankingsById={rankingsById} />
+      ? <EntityDetails rankingsById={rankingsById} isTopUtilizers={isTopUtilizers} />
       : this.renderTopUtilizerSearchResults();
 
     const numPages = Math.ceil(totalHits / MAX_RESULTS);
