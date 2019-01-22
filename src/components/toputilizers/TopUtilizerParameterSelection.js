@@ -118,6 +118,7 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
 
   searchTopUtilizers = () => {
     const {
+      changeNumUtilizers,
       entityTypesById,
       filteredPropertyTypes,
       getTopUtilizers,
@@ -132,9 +133,15 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
     } = this.state;
     const entitySetId = selectedEntitySet.get('id');
 
+    let numResults = Number.parseInt(numberOfUtilizers, 10);
+    if (Number.isNaN(numResults)) {
+      numResults = 100;
+    }
+    changeNumUtilizers(numResults);
+
     getTopUtilizers({
       entitySetId,
-      numResults: numberOfUtilizers,
+      numResults,
       eventFilters: selectedNeighborTypes,
       dateFilters: dateRanges,
       countType,
