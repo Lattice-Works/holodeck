@@ -16,12 +16,12 @@ import {
 
 import PersonResultCard from '../../components/people/PersonResultCard';
 import ButtonToolbar from '../../components/buttons/ButtonToolbar';
-import InfoButton from '../../components/buttons/InfoButton';
+import SubtleButton from '../../components/buttons/SubtleButton';
 import DataTable from '../../components/data/DataTable';
 import EntityDetails from '../data/EntityDetails';
 import Pagination from '../../components/explore/Pagination';
 import { COUNT_FQN } from '../../utils/constants/DataConstants';
-import { PERSON_ENTITY_TYPE_FQN, IMAGE_PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { IMAGE_PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
 import {
   STATE,
@@ -33,6 +33,7 @@ import {
 import { CenteredColumnContainer, FixedWidthWrapper, TableWrapper } from '../../components/layout/Layout';
 import { getEntityKeyId, getFqnString, isPersonType } from '../../utils/DataUtils';
 import * as ExploreActionFactory from './ExploreActionFactory';
+import * as TopUtilizersActionFactory from '../toputilizers/TopUtilizersActionFactory';
 
 type Props = {
   results :List<*>,
@@ -47,9 +48,11 @@ type Props = {
   entitySetsById :Map<string, *>,
   propertyTypesById :Map<string, *>,
   totalHits :number,
+  isDownloadingTopUtilizers :boolean,
   actions :{
     selectEntity :(entityKeyId :string) => void,
-    loadEntityNeighbors :({ entitySetId :string, entity :Map<*, *> }) => void
+    loadEntityNeighbors :({ entitySetId :string, entity :Map<*, *> }) => void,
+    downloadTopUtilizers :({ name :string, results :Map<*, *> }) => void
   }
 }
 
@@ -69,8 +72,11 @@ const ToolbarWrapper = styled.div`
   margin-bottom: 20px;
 `;
 
-const SmallInfoButton = styled(InfoButton)`
-  font-size: 12px;
+const SubtleButtonsWrapper = styled.div`
+
+  ${SubtleButton}:not(:first-child) {
+    margin-left: 10px;
+  }
 `;
 
 const LAYOUTS = {
@@ -186,8 +192,25 @@ class SearchResultsContainer extends React.Component<Props, State> {
     );
   };
 
+  downloadTopUtilizers = () => {
+    const {
+      actions,
+      entityTypesById,
+      propertyTypesById,
+      selectedEntitySet,
+      results
+    } = this.props;
+    if (selectedEntitySet && results.size) {
+      const name = `${selectedEntitySet.get('title')} - Top Utilizers`;
+      const fields = entityTypesById
+        .getIn([selectedEntitySet.get('entityTypeId'), 'properties'], List())
+        .map(id => getFqnString(propertyTypesById.getIn([id, 'type'])));
+      actions.downloadTopUtilizers({ name, fields, results });
+    }
+  }
+
   renderLayoutToolbar = () => {
-    const { isTopUtilizers } = this.props;
+    const { isTopUtilizers, isDownloadingTopUtilizers } = this.props;
     const { layout, showCountDetails } = this.state;
     const options = [
       {
@@ -204,11 +227,20 @@ class SearchResultsContainer extends React.Component<Props, State> {
     return (
       <ToolbarWrapper>
         <ButtonToolbar options={options} value={layout} noPadding />
-        { isTopUtilizers && layout === LAYOUTS.PERSON ? (
-          <SmallInfoButton onClick={() => this.setState({ showCountDetails: !showCountDetails })}>
-            {`${showCountDetails ? 'Hide' : 'Show'} Score Details`}
-          </SmallInfoButton>
-        ) : null}
+        <SubtleButtonsWrapper>
+          { isTopUtilizers && layout === LAYOUTS.PERSON ? (
+            <SubtleButton onClick={() => this.setState({ showCountDetails: !showCountDetails })}>
+              {`${showCountDetails ? 'Hide' : 'Show'} Score Details`}
+            </SubtleButton>
+          ) : null}
+          {
+            isTopUtilizers ? (
+              <SubtleButton onClick={this.downloadTopUtilizers} disabled={isDownloadingTopUtilizers}>
+                Download CSV
+              </SubtleButton>
+            ) : null
+          }
+        </SubtleButtonsWrapper>
       </ToolbarWrapper>
     );
   }
@@ -294,7 +326,8 @@ function mapStateToProps(state :Map<*, *>) :Object {
     selectedEntitySet: entitySets.get(ENTITY_SETS.SELECTED_ENTITY_SET),
     breadcrumbs: explore.get(EXPLORE.BREADCRUMBS),
     neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
-    countBreakdown: topUtilizers.get(TOP_UTILIZERS.COUNT_BREAKDOWN)
+    countBreakdown: topUtilizers.get(TOP_UTILIZERS.COUNT_BREAKDOWN),
+    isDownloading: topUtilizers.get(TOP_UTILIZERS.IS_DOWNLOADING_TOP_UTILIZERS)
   };
 }
 
@@ -303,6 +336,10 @@ function mapDispatchToProps(dispatch :Function) :Object {
 
   Object.keys(ExploreActionFactory).forEach((action :string) => {
     actions[action] = ExploreActionFactory[action];
+  });
+
+  Object.keys(TopUtilizersActionFactory).forEach((action :string) => {
+    actions[action] = TopUtilizersActionFactory[action];
   });
 
   return {
