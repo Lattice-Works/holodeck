@@ -240,7 +240,7 @@ class SearchResultsContainer extends React.Component<Props, State> {
     const { layout } = this.state;
 
     this.setState({
-      start: searchStart,
+      start: searchStart || 0,
       layout: currLayout || layout
     });
   }
