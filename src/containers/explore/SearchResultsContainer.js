@@ -73,10 +73,22 @@ const ToolbarWrapper = styled.div`
 `;
 
 const SubtleButtonsWrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: fit-content;
 
   ${SubtleButton}:not(:first-child) {
     margin-left: 10px;
   }
+
+`;
+
+const NumResults = styled.div`
+  font-size: 12px;
+  line-height: normal;
+  color: #8e929b;
+  margin-left: ${props => (props.withMargin ? 30 : 0)}px;
 `;
 
 const LAYOUTS = {
@@ -210,7 +222,12 @@ class SearchResultsContainer extends React.Component<Props, State> {
   }
 
   renderLayoutToolbar = () => {
-    const { isTopUtilizers, isDownloadingTopUtilizers } = this.props;
+    const {
+      isTopUtilizers,
+      isDownloadingTopUtilizers,
+      results,
+      totalHits
+    } = this.props;
     const { layout, showCountDetails } = this.state;
     const options = [
       {
@@ -224,11 +241,23 @@ class SearchResultsContainer extends React.Component<Props, State> {
         onClick: () => this.updateLayout(LAYOUTS.TABLE)
       }
     ];
+
+    const num = isTopUtilizers ? results.size : totalHits;
+    const numStr = num.toLocaleString();
+    const plural = num === 1 ? '' : 's';
+
+    const showToolbar = isPersonType(this.props);
+
     return (
       <ToolbarWrapper>
-        <ButtonToolbar options={options} value={layout} noPadding />
         <SubtleButtonsWrapper>
-          { isTopUtilizers && layout === LAYOUTS.PERSON ? (
+          { showToolbar ? <ButtonToolbar options={options} value={layout} noPadding /> : null }
+          <NumResults withMargin={showToolbar}>
+            {isTopUtilizers ? `Showing top ${numStr} utilizer${plural}` : `${numStr} result${plural}`}
+          </NumResults>
+        </SubtleButtonsWrapper>
+        <SubtleButtonsWrapper>
+          { showToolbar && isTopUtilizers && layout === LAYOUTS.PERSON ? (
             <SubtleButton onClick={() => this.setState({ showCountDetails: !showCountDetails })}>
               {`${showCountDetails ? 'Hide' : 'Show'} Score Details`}
             </SubtleButton>
@@ -302,7 +331,7 @@ class SearchResultsContainer extends React.Component<Props, State> {
     return (
       <CenteredColumnContainer>
         <FixedWidthWrapper>
-          {(isPersonType(this.props) && !isExploring) ? this.renderLayoutToolbar() : null}
+          {!isExploring ? this.renderLayoutToolbar() : null}
           {resultContent}
           <Pagination
               numPages={numPages}
