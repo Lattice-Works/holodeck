@@ -12,10 +12,11 @@ import { faDatabase } from '@fortawesome/pro-solid-svg-icons';
 
 import StyledInput from '../../components/controls/StyledInput';
 import StyledLink from '../../components/controls/StyledLink';
+import StyledCheckbox from '../../components/controls/StyledCheckbox';
 import EntitySetCard from '../../components/cards/EntitySetCard';
-import LoadingSpinner from '../../components/LoadingSpinner';
+import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import Pagination from '../../components/explore/Pagination';
-import { ENTITY_SETS, STATE } from '../../utils/constants/StateConstants';
+import { EDM, ENTITY_SETS, STATE } from '../../utils/constants/StateConstants';
 import { ComponentWrapper, HeaderComponentWrapper } from '../../components/layout/Layout';
 import * as Routes from '../../core/router/Routes';
 import * as EntitySetActionFactory from './EntitySetActionFactory';
@@ -23,12 +24,15 @@ import * as TopUtilizersActionFactory from '../toputilizers/TopUtilizersActionFa
 
 type Props = {
   actionText :string,
+  path :string,
   page :number,
   totalHits :number,
   history :string[],
   isLoadingEntitySets :boolean,
   entitySetSearchResults :List<*>,
   entitySetSizes :Map<*, *>,
+  entityTypesById :Map<string, *>,
+  showAssociationEntitySets :boolean,
   actions :{
     searchEntitySets :({
       searchTerm :string,
@@ -37,6 +41,7 @@ type Props = {
     }) => void,
     selectEntitySet :(entitySet? :Map<*, *>) => void,
     selectEntitySetPage :(page :number) => void,
+    setShowAssociationEntitySets :(show :boolean) => void,
     getNeighborTypes :(id :string) => void
   }
 };
@@ -91,6 +96,14 @@ const ResultsContainer = styled(ComponentWrapper)`
   justify-content: center;
 `;
 
+const CheckboxRow = styled(ComponentWrapper)`
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+`;
+
 const PAGE_SIZE = 24;
 
 class EntitySetSearch extends React.Component<Props, State> {
@@ -133,10 +146,12 @@ class EntitySetSearch extends React.Component<Props, State> {
   }
 
   handleSelect = (entitySetObj) => {
-    const { actions } = this.props;
+    const { actions, history, path } = this.props;
     const entitySet = entitySetObj.get('entitySet', Map());
+    const id = entitySet.get('id');
     actions.selectEntitySet(entitySet);
-    actions.getNeighborTypes(entitySet.get('id'));
+    actions.getNeighborTypes(id);
+    history.push(`${path}/${id}`);
   }
 
   renderResults = () => {
@@ -144,13 +159,20 @@ class EntitySetSearch extends React.Component<Props, State> {
       isLoadingEntitySets,
       entitySetSearchResults,
       entitySetSizes,
-      actions
+      entityTypesById,
+      showAssociationEntitySets
     } = this.props;
     if (isLoadingEntitySets) {
       return <LoadingSpinner />;
     }
 
-    return entitySetSearchResults.map(entitySetObj => (
+    let filteredEntitySets = entitySetSearchResults;
+    if (!showAssociationEntitySets) {
+      filteredEntitySets = filteredEntitySets.filter(entitySetObj => entityTypesById
+        .getIn([entitySetObj.getIn(['entitySet', 'entityTypeId']), 'category']) === 'EntityType');
+    }
+
+    return filteredEntitySets.map(entitySetObj => (
       <EntitySetCard
           key={entitySetObj.getIn(['entitySet', 'id'])}
           entitySet={entitySetObj.get('entitySet', Map())}
@@ -171,7 +193,13 @@ class EntitySetSearch extends React.Component<Props, State> {
   }
 
   render() {
-    const { actionText, page, totalHits } = this.props;
+    const {
+      actions,
+      actionText,
+      page,
+      showAssociationEntitySets,
+      totalHits
+    } = this.props;
     const { searchTerm } = this.state;
 
     return (
@@ -191,6 +219,12 @@ class EntitySetSearch extends React.Component<Props, State> {
                 onChange={this.handleInputChange} />
           </HeaderContent>
         </HeaderContainer>
+        <CheckboxRow>
+          <StyledCheckbox
+              checked={showAssociationEntitySets}
+              onChange={({ target }) => actions.setShowAssociationEntitySets(!!target.checked)}
+              label="Show association datasets" />
+        </CheckboxRow>
         <ResultsContainer>
           {this.renderResults()}
         </ResultsContainer>
@@ -208,13 +242,17 @@ class EntitySetSearch extends React.Component<Props, State> {
 }
 
 function mapStateToProps(state :Map<*, *>) :Object {
+  const edm = state.get(STATE.EDM);
   const entitySets = state.get(STATE.ENTITY_SETS);
+
   return {
     entitySetSearchResults: entitySets.get(ENTITY_SETS.ENTITY_SET_SEARCH_RESULTS),
     entitySetSizes: entitySets.get(ENTITY_SETS.ENTITY_SET_SIZES),
     isLoadingEntitySets: entitySets.get(ENTITY_SETS.IS_LOADING_ENTITY_SETS),
     page: entitySets.get(ENTITY_SETS.PAGE),
-    totalHits: entitySets.get(ENTITY_SETS.TOTAL_HITS)
+    totalHits: entitySets.get(ENTITY_SETS.TOTAL_HITS),
+    showAssociationEntitySets: entitySets.get(ENTITY_SETS.SHOW_ASSOCIATION_ENTITY_SETS),
+    entityTypesById: edm.get(EDM.ENTITY_TYPES_BY_ID)
   };
 }
 

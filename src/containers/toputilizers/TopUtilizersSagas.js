@@ -3,6 +3,7 @@
  */
 
 import moment from 'moment';
+import Papa from 'papaparse';
 import {
   Constants,
   AnalysisApi,
@@ -17,16 +18,19 @@ import {
 } from 'immutable';
 import { call, put, takeEvery } from 'redux-saga/effects';
 
+import FileSaver from '../../utils/FileSaver';
 import {
+  DOWNLOAD_TOP_UTILIZERS,
   GET_NEIGHBOR_TYPES,
   GET_TOP_UTILIZERS,
   LOAD_TOP_UTILIZER_NEIGHBORS,
+  downloadTopUtilizers,
   getNeighborTypes,
   getTopUtilizers,
   loadTopUtilizerNeighbors
 } from './TopUtilizersActionFactory';
 import { COUNT_TYPES, TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
-import { COUNT_FQN } from '../../utils/constants/DataConstants';
+import { COUNT_FQN, DATE_FILTER_CLASS } from '../../utils/constants/DataConstants';
 import { getEntityKeyId } from '../../utils/DataUtils';
 import { toISODate } from '../../utils/FormattingUtils';
 
@@ -41,14 +45,14 @@ const getDateFiltersFromMap = (id, dateMap) => {
       let rangeDescriptor = {};
       if (start) {
         rangeDescriptor = Object.assign({}, rangeDescriptor, {
-          '@class': 'com.openlattice.analysis.requests.DateRangeFilter',
+          '@class': DATE_FILTER_CLASS,
           lowerbound: start,
           gte: true
         });
       }
       if (end) {
         rangeDescriptor = Object.assign({}, rangeDescriptor, {
-          '@class': 'com.openlattice.analysis.requests.DateRangeFilter',
+          '@class': DATE_FILTER_CLASS,
           upperbound: end,
           lte: true
         });
@@ -104,7 +108,8 @@ function* getTopUtilizersWorker(action :SequenceAction) {
       dateFilters,
       countType,
       durationTypeWeights,
-      entityTypesById
+      entityTypesById,
+      filteredPropertyTypes
     } = action.value;
 
     yield put(getTopUtilizers.request(action.id, { eventFilters, dateFilters }));
@@ -202,7 +207,12 @@ function* getTopUtilizersWorker(action :SequenceAction) {
 
     const scoresByUtilizer = getCountBreakdown(formattedFilters, topUtilizers);
 
-    yield put(getTopUtilizers.success(action.id, { topUtilizers, scoresByUtilizer }));
+    yield put(getTopUtilizers.success(action.id, {
+      topUtilizers,
+      scoresByUtilizer,
+      filteredPropertyTypes,
+      query
+    }));
     yield put(loadTopUtilizerNeighbors({ entitySetId, topUtilizers }));
   }
   catch (error) {
@@ -216,6 +226,35 @@ function* getTopUtilizersWorker(action :SequenceAction) {
 
 export function* getTopUtilizersWatcher() {
   yield takeEvery(GET_TOP_UTILIZERS, getTopUtilizersWorker);
+}
+
+function* downloadTopUtilizersWorker(action :SequenceAction) :Generator<*, *, *> {
+  try {
+    yield put(downloadTopUtilizers.request(action.id));
+
+    const { name, fields, results } = action.value;
+
+    const csv = Papa.unparse({
+      fields: fields.toJS(),
+      data: results.toJS()
+    });
+
+    FileSaver.saveFile(csv, name, 'csv');
+
+    // TODO
+    yield put(downloadTopUtilizers.success(action.id));
+  }
+  catch (error) {
+    console.error(error)
+    yield put(downloadTopUtilizers.failure(action.id, error));
+  }
+  finally {
+    yield put(downloadTopUtilizers.finally(action.id));
+  }
+}
+
+export function* downloadTopUtilizersWatcher() :Generator<*, *, *> {
+  yield takeEvery(DOWNLOAD_TOP_UTILIZERS, downloadTopUtilizersWorker);
 }
 
 function* getNeighborTypesWorker(action :SequenceAction) :Generator<*, *, *> {

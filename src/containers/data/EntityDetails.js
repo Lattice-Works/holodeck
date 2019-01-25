@@ -11,15 +11,17 @@ import { bindActionCreators } from 'redux';
 
 import ButtonToolbar from '../../components/buttons/ButtonToolbar';
 import DataTable from '../../components/data/DataTable';
-import LoadingSpinner from '../../components/LoadingSpinner';
+import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import NeighborTables from '../../components/data/NeighborTables';
 import NeighborTimeline from '../../components/data/NeighborTimeline';
+import StyledCheckbox from '../../components/controls/StyledCheckbox';
 import SelectedPersonResultCard from '../../components/people/SelectedPersonResultCard';
 import PersonCountsCard from '../../components/people/PersonCountsCard';
 import Breadcrumbs from '../../components/nav/Breadcrumbs';
 import {
   STATE,
   EDM,
+  ENTITY_SETS,
   EXPLORE,
   TOP_UTILIZERS
 } from '../../utils/constants/StateConstants';
@@ -33,12 +35,15 @@ import {
   getFqnString,
   groupNeighbors
 } from '../../utils/DataUtils';
+import { getDateFilters, getPairFilters, matchesFilters } from '../../utils/EntityDateUtils';
+
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 
 type Props = {
   rankingsById? :Map<string, number>,
   breadcrumbs :List<string>,
   isLoadingNeighbors :boolean,
+  isTopUtilizers :boolean,
   neighborsById :Map<string, *>,
   entitiesById :Map<string, *>,
   entityTypesById :Map<string, *>,
@@ -46,16 +51,19 @@ type Props = {
   entitySetPropertyMetadata :Map<string, *>,
   propertyTypesByFqn :Map<string, *>,
   propertyTypesById :Map<string, *>,
+  selectedEntitySetId :string,
   countBreakdown :Map<*, *>,
+  lastQueryRun :Object,
   actions :{
     selectBreadcrumb :(index :number) => void,
     selectEntity :(entityKeyId :string) => void,
-    loadEntityNeighbors :({ entityKeyId :string, entitySetId :string }) => void
+    loadEntityNeighbors :({ entityKeyId :string, entitySetId :string, selectedEntitySetId :string }) => void
   }
 };
 
 type State = {
-  layout :string
+  layout :string,
+  showingAllNeighbors :boolean
 }
 
 const NeighborsWrapper = styled(FixedWidthWrapper)`
@@ -64,6 +72,15 @@ const NeighborsWrapper = styled(FixedWidthWrapper)`
   justify-content: center;
   align-items: center;
   margin: 30px 0;
+`;
+
+const RightJustifiedRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 30px;
 `;
 
 const LAYOUTS = {
@@ -85,7 +102,8 @@ class EntityDetails extends React.Component<Props, State> {
   constructor(props :Props) {
     super(props);
     this.state = {
-      layout: LAYOUTS.TABLE
+      layout: LAYOUTS.TABLE,
+      showingAllNeighbors: !props.isTopUtilizers
     };
   }
 
@@ -158,31 +176,79 @@ class EntityDetails extends React.Component<Props, State> {
       actions,
       entitySetsById,
       entityTypesById,
-      neighborsById
+      neighborsById,
+      selectedEntitySetId
     } = this.props;
     const entityKeyId = getEntityKeyId(entity);
     const entityType = entityTypesById.get(entitySetsById.getIn([entitySetId, 'entityTypeId'], ''), Map());
     actions.selectEntity({ entityKeyId, entitySetId, entityType });
     if (!neighborsById.has(entityKeyId)) {
-      actions.loadEntityNeighbors({ entitySetId, entity });
+      actions.loadEntityNeighbors({ entitySetId, entity, selectedEntitySetId });
     }
+  }
+
+  renderFilterNeighborsOption = () => {
+    const { showingAllNeighbors } = this.state;
+
+    return (
+      <RightJustifiedRow>
+        <StyledCheckbox
+            checked={showingAllNeighbors}
+            onChange={({ target }) => this.setState({ showingAllNeighbors: target.checked })}
+            label="Show all neighbors" />
+      </RightJustifiedRow>
+    );
+  }
+
+  getCurrentNeighbors = () => {
+    const {
+      breadcrumbs,
+      isTopUtilizers,
+      propertyTypesById,
+      neighborsById,
+      lastQueryRun
+    } = this.props;
+    const { showingAllNeighbors } = this.state;
+
+
+    const entity = this.getSelectedEntity();
+    let neighbors = neighborsById.get(getEntityKeyId(entity), List());
+
+    if (!showingAllNeighbors && isTopUtilizers && breadcrumbs.size === 1) {
+
+      const pairFilters = getPairFilters(lastQueryRun);
+      const dateFilters = getDateFilters(lastQueryRun, propertyTypesById);
+
+      neighbors = neighbors.filter((neighborObj) => {
+        const associationEntityTypeId = neighborObj.getIn(['associationEntitySet', 'entityTypeId']);
+        const neighborEntityTypeId = neighborObj.getIn(['neighborEntitySet', 'entityTypeId']);
+        const pair = List.of(associationEntityTypeId, neighborEntityTypeId);
+
+        const associationDetails = neighborObj.get('associationDetails', Map());
+        const neighborDetails = neighborObj.get('neighborDetails', Map());
+
+        return pairFilters.has(pair) && matchesFilters(pair, dateFilters, associationDetails, neighborDetails);
+      });
+    }
+
+    return neighbors;
   }
 
   renderNeighbors = () => {
     const {
+      breadcrumbs,
       entitiesById,
       entitySetsById,
       entityTypesById,
       entitySetPropertyMetadata,
       isLoadingNeighbors,
-      neighborsById,
+      isTopUtilizers,
       propertyTypesById,
       propertyTypesByFqn
     } = this.props;
     const { layout } = this.state;
 
-    const entity = this.getSelectedEntity();
-    const neighbors = neighborsById.get(getEntityKeyId(entity), List());
+    const neighbors = this.getCurrentNeighbors();
 
     let content;
 
@@ -211,7 +277,12 @@ class EntityDetails extends React.Component<Props, State> {
         );
     }
 
-    return <NeighborsWrapper>{content}</NeighborsWrapper>;
+    return (
+      <NeighborsWrapper>
+        {breadcrumbs.size === 1 && isTopUtilizers ? this.renderFilterNeighborsOption() : null}
+        {content}
+      </NeighborsWrapper>
+    );
   }
 
   updateLayout = (layout) => {
@@ -285,6 +356,7 @@ class EntityDetails extends React.Component<Props, State> {
 function mapStateToProps(state :Map<*, *>) :Object {
   const explore = state.get(STATE.EXPLORE);
   const edm = state.get(STATE.EDM);
+  const entitySets = state.get(STATE.ENTITY_SETS);
   const topUtilizers = state.get(STATE.TOP_UTILIZERS);
 
   return {
@@ -297,7 +369,9 @@ function mapStateToProps(state :Map<*, *>) :Object {
     entitySetPropertyMetadata: edm.get(EDM.ENTITY_SET_METADATA_BY_ID),
     propertyTypesById: edm.get(EDM.PROPERTY_TYPES_BY_ID),
     propertyTypesByFqn: edm.get(EDM.PROPERTY_TYPES_BY_FQN),
-    countBreakdown: topUtilizers.get(TOP_UTILIZERS.COUNT_BREAKDOWN)
+    selectedEntitySetId: entitySets.getIn([ENTITY_SETS.SELECTED_ENTITY_SET, 'id']),
+    countBreakdown: topUtilizers.get(TOP_UTILIZERS.COUNT_BREAKDOWN),
+    lastQueryRun: topUtilizers.get(TOP_UTILIZERS.LAST_QUERY_RUN)
   };
 }
 

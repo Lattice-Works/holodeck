@@ -2,7 +2,7 @@
  * @flow
  */
 
-import { DataApi, SearchApi } from 'lattice';
+import { DataApi, EntityDataModelApi, SearchApi } from 'lattice';
 import {
   all,
   call,
@@ -13,8 +13,10 @@ import {
 import {
   LOAD_ENTITY_SET_SIZES,
   SEARCH_ENTITY_SETS,
+  SELECT_ENTITY_SET_BY_ID,
   loadEntitySetSizes,
-  searchEntitySets
+  searchEntitySets,
+  selectEntitySetById
 } from './EntitySetActionFactory';
 
 function* loadEntitySetSizesWorker(action :SequenceAction) :Generator<*, *, *> {
@@ -62,4 +64,23 @@ function* searchEntitySetsWorker(action :SequenceAction) :Generator<*, *, *> {
 
 export function* searchEntitySetsWatcher() :Generator<*, *, *> {
   yield takeEvery(SEARCH_ENTITY_SETS, searchEntitySetsWorker);
+}
+
+function* selectEntitySetByIdWorker(action :SequenceAction) :Generator<*, *, *> {
+  try {
+    yield put(selectEntitySetById.request(action.id));
+    const entitySet = yield call(EntityDataModelApi.getEntitySet, action.value);
+    yield put(selectEntitySetById.success(action.id, entitySet));
+  }
+  catch (error) {
+    console.error(error);
+    yield put(selectEntitySetById.failure(action.id, error));
+  }
+  finally {
+    yield put(selectEntitySetById.finally(action.id));
+  }
+}
+
+export function* selectEntitySetByIdWatcher() :Generator<*, *, *> {
+  yield takeEvery(SELECT_ENTITY_SET_BY_ID, selectEntitySetByIdWorker);
 }

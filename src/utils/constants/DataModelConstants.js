@@ -18,6 +18,7 @@ export const PROPERTY_TYPES = {
   PICTURE: 'person.picture',
   LICENSE_PLATE: 'ol.licenseplateimage',
   VEHICLE_IMAGE: 'ol.vehicleimage',
+  DATASOURCE: 'ol.datasource',
 
   ENTRY_UPDATED: 'general.entryupdated',
 
@@ -115,5 +116,7 @@ export const PROPERTY_TAGS = {
   TITLE: 'breadcrumbs',
   TIMELINE: 'timeline',
   DURATION: 'duration',
-  START: 'startdatetag'
+  START: 'startdatetag',
+  EVENT_DATE: 'eventdate',
+  PIE: 'pie'
 };

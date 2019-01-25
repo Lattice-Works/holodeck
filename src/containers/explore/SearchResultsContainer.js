@@ -4,19 +4,24 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import { List, Map, fromJS } from 'immutable';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import {
+  List,
+  Map,
+  Set,
+  fromJS
+} from 'immutable';
 
 import PersonResultCard from '../../components/people/PersonResultCard';
 import ButtonToolbar from '../../components/buttons/ButtonToolbar';
-import InfoButton from '../../components/buttons/InfoButton';
+import SubtleButton from '../../components/buttons/SubtleButton';
 import DataTable from '../../components/data/DataTable';
 import EntityDetails from '../data/EntityDetails';
 import Pagination from '../../components/explore/Pagination';
 import { COUNT_FQN } from '../../utils/constants/DataConstants';
-import { PERSON_ENTITY_TYPE_FQN, IMAGE_PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
+import { IMAGE_PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
 import {
   STATE,
@@ -28,6 +33,7 @@ import {
 import { CenteredColumnContainer, FixedWidthWrapper, TableWrapper } from '../../components/layout/Layout';
 import { getEntityKeyId, getFqnString, isPersonType } from '../../utils/DataUtils';
 import * as ExploreActionFactory from './ExploreActionFactory';
+import * as TopUtilizersActionFactory from '../toputilizers/TopUtilizersActionFactory';
 
 type Props = {
   results :List<*>,
@@ -41,9 +47,12 @@ type Props = {
   entityTypesById :Map<string, *>,
   entitySetsById :Map<string, *>,
   propertyTypesById :Map<string, *>,
+  totalHits :number,
+  isDownloadingTopUtilizers :boolean,
   actions :{
     selectEntity :(entityKeyId :string) => void,
-    loadEntityNeighbors :({ entitySetId :string, entity :Map<*, *> }) => void
+    loadEntityNeighbors :({ entitySetId :string, entity :Map<*, *> }) => void,
+    downloadTopUtilizers :({ name :string, results :Map<*, *> }) => void
   }
 }
 
@@ -63,8 +72,23 @@ const ToolbarWrapper = styled.div`
   margin-bottom: 20px;
 `;
 
-const SmallInfoButton = styled(InfoButton)`
+const SubtleButtonsWrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: fit-content;
+
+  ${SubtleButton}:not(:first-child) {
+    margin-left: 10px;
+  }
+
+`;
+
+const NumResults = styled.div`
   font-size: 12px;
+  line-height: normal;
+  color: #8e929b;
+  margin-left: ${props => (props.withMargin ? 30 : 0)}px;
 `;
 
 const LAYOUTS = {
@@ -75,6 +99,10 @@ const LAYOUTS = {
 const MAX_RESULTS = 20;
 
 class SearchResultsContainer extends React.Component<Props, State> {
+
+  static defaultProps = {
+    filteredPropertyTypes: Set()
+  };
 
   constructor(props :Props) {
     super(props);
@@ -97,10 +125,11 @@ class SearchResultsContainer extends React.Component<Props, State> {
 
     const entityKeyId = getEntityKeyId(entity);
     const entitySetId = selectedEntitySet.get('id');
+    const selectedEntitySetId = entitySetId;
     const entityType = entityTypesById.get(selectedEntitySet.get('entityTypeId'), Map());
     actions.selectEntity({ entityKeyId, entitySetId, entityType });
     if (!neighborsById.has(entityKeyId)) {
-      actions.loadEntityNeighbors({ entitySetId, entity });
+      actions.loadEntityNeighbors({ entitySetId, entity, selectedEntitySetId });
     }
   };
 
@@ -146,8 +175,6 @@ class SearchResultsContainer extends React.Component<Props, State> {
       selectedEntitySet
     } = this.props;
 
-    const { start } = this.state;
-
     let propertyTypeHeaders = List();
 
     if (isTopUtilizers) {
@@ -164,7 +191,7 @@ class SearchResultsContainer extends React.Component<Props, State> {
     propertyTypes.forEach((propertyType) => {
       const id = getFqnString(propertyType.get('type'));
       const value = propertyType.get('title');
-      if (!filteredPropertyTypes || filteredPropertyTypes.has(propertyType.get('id'))) {
+      if (!filteredPropertyTypes.has(id)) {
         const isImg = IMAGE_PROPERTY_TYPES.includes(id);
         propertyTypeHeaders = propertyTypeHeaders.push(fromJS({ id, value, isImg }));
       }
@@ -177,8 +204,30 @@ class SearchResultsContainer extends React.Component<Props, State> {
     );
   };
 
+  downloadTopUtilizers = () => {
+    const {
+      actions,
+      entityTypesById,
+      propertyTypesById,
+      selectedEntitySet,
+      results
+    } = this.props;
+    if (selectedEntitySet && results.size) {
+      const name = `${selectedEntitySet.get('title')} - Top Utilizers`;
+      const fields = entityTypesById
+        .getIn([selectedEntitySet.get('entityTypeId'), 'properties'], List())
+        .map(id => getFqnString(propertyTypesById.getIn([id, 'type'])));
+      actions.downloadTopUtilizers({ name, fields, results });
+    }
+  }
+
   renderLayoutToolbar = () => {
-    const { isTopUtilizers } = this.props;
+    const {
+      isTopUtilizers,
+      isDownloadingTopUtilizers,
+      results,
+      totalHits
+    } = this.props;
     const { layout, showCountDetails } = this.state;
     const options = [
       {
@@ -192,14 +241,35 @@ class SearchResultsContainer extends React.Component<Props, State> {
         onClick: () => this.updateLayout(LAYOUTS.TABLE)
       }
     ];
+
+    const num = isTopUtilizers ? results.size : totalHits;
+    const numStr = num.toLocaleString();
+    const plural = num === 1 ? '' : 's';
+
+    const showToolbar = isPersonType(this.props);
+
     return (
       <ToolbarWrapper>
-        <ButtonToolbar options={options} value={layout} noPadding />
-        { isTopUtilizers && layout === LAYOUTS.PERSON ? (
-          <SmallInfoButton onClick={() => this.setState({ showCountDetails: !showCountDetails })}>
-            {`${showCountDetails ? 'Hide' : 'Show'} Score Details`}
-          </SmallInfoButton>
-        ) : null}
+        <SubtleButtonsWrapper>
+          { showToolbar ? <ButtonToolbar options={options} value={layout} noPadding /> : null }
+          <NumResults withMargin={showToolbar}>
+            {isTopUtilizers ? `Showing top ${numStr} utilizer${plural}` : `${numStr} result${plural}`}
+          </NumResults>
+        </SubtleButtonsWrapper>
+        <SubtleButtonsWrapper>
+          { showToolbar && isTopUtilizers && layout === LAYOUTS.PERSON ? (
+            <SubtleButton onClick={() => this.setState({ showCountDetails: !showCountDetails })}>
+              {`${showCountDetails ? 'Hide' : 'Show'} Score Details`}
+            </SubtleButton>
+          ) : null}
+          {
+            isTopUtilizers ? (
+              <SubtleButton onClick={this.downloadTopUtilizers} disabled={isDownloadingTopUtilizers}>
+                Download CSV
+              </SubtleButton>
+            ) : null
+          }
+        </SubtleButtonsWrapper>
       </ToolbarWrapper>
     );
   }
@@ -231,15 +301,20 @@ class SearchResultsContainer extends React.Component<Props, State> {
     const { layout } = this.state;
 
     this.setState({
-      start: searchStart,
+      start: searchStart || 0,
       layout: currLayout || layout
     });
   }
 
   render() {
-    const { breadcrumbs, results, totalHits } = this.props;
-    const isExploring = !!breadcrumbs.size;
+    const {
+      breadcrumbs,
+      isTopUtilizers,
+      results,
+      totalHits
+    } = this.props;
     const { start, layout } = this.state;
+    const isExploring = !!breadcrumbs.size;
 
     let rankingsById = Map();
     results.forEach((utilizer, index) => {
@@ -247,7 +322,7 @@ class SearchResultsContainer extends React.Component<Props, State> {
     });
 
     const resultContent = isExploring
-      ? <EntityDetails rankingsById={rankingsById} />
+      ? <EntityDetails rankingsById={rankingsById} isTopUtilizers={isTopUtilizers} />
       : this.renderTopUtilizerSearchResults();
 
     const numPages = Math.ceil(totalHits / MAX_RESULTS);
@@ -256,7 +331,7 @@ class SearchResultsContainer extends React.Component<Props, State> {
     return (
       <CenteredColumnContainer>
         <FixedWidthWrapper>
-          {(isPersonType(this.props) && !isExploring) ? this.renderLayoutToolbar() : null}
+          {!isExploring ? this.renderLayoutToolbar() : null}
           {resultContent}
           <Pagination
               numPages={numPages}
@@ -280,7 +355,8 @@ function mapStateToProps(state :Map<*, *>) :Object {
     selectedEntitySet: entitySets.get(ENTITY_SETS.SELECTED_ENTITY_SET),
     breadcrumbs: explore.get(EXPLORE.BREADCRUMBS),
     neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
-    countBreakdown: topUtilizers.get(TOP_UTILIZERS.COUNT_BREAKDOWN)
+    countBreakdown: topUtilizers.get(TOP_UTILIZERS.COUNT_BREAKDOWN),
+    isDownloading: topUtilizers.get(TOP_UTILIZERS.IS_DOWNLOADING_TOP_UTILIZERS)
   };
 }
 
@@ -289,6 +365,10 @@ function mapDispatchToProps(dispatch :Function) :Object {
 
   Object.keys(ExploreActionFactory).forEach((action :string) => {
     actions[action] = ExploreActionFactory[action];
+  });
+
+  Object.keys(TopUtilizersActionFactory).forEach((action :string) => {
+    actions[action] = TopUtilizersActionFactory[action];
   });
 
   return {

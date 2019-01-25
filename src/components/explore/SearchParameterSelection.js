@@ -5,18 +5,21 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Map } from 'immutable';
+import { DataApi } from 'lattice';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDatabase } from '@fortawesome/pro-solid-svg-icons';
+import { faCloudDownload } from '@fortawesome/pro-light-svg-icons';
 
 import BackNavButton from '../buttons/BackNavButton';
 import InfoButton from '../buttons/InfoButton';
 import Banner from '../cards/Banner';
 import StyledInput from '../controls/StyledInput';
+import { SecondaryLink } from '../buttons/SecondaryButton';
 import { FixedWidthWrapper, HeaderComponentWrapper } from '../layout/Layout';
 
 type Props = {
   selectedEntitySet :?Map<*, *>,
-  selectedEntitySize :?number,
+  selectedEntitySetSize :?number,
   searchTerm :string,
   deselectEntitySet :() => void,
   executeSearch :() => void,
@@ -72,6 +75,23 @@ const StyledBanner = styled(Banner)`
   color: #ffffff !important;
 `;
 
+const Row = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const DownloadButton = styled(SecondaryLink)`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  span {
+    margin-left: 7px;
+  }
+`;
+
 const SearchParameterSelection = ({
   selectedEntitySet,
   selectedEntitySetSize,
@@ -89,10 +109,18 @@ const SearchParameterSelection = ({
     }
   };
 
+  const downloadUrl = DataApi.getEntitySetDataFileUrl(selectedEntitySet.get('id'), 'csv');
+
   return (
     <CenteredHeaderWrapper>
       <FixedWidthWrapper>
-        <BackNavButton onClick={deselectEntitySet}>Back to dataset selection</BackNavButton>
+        <Row>
+          <BackNavButton onClick={deselectEntitySet}>Back to dataset selection</BackNavButton>
+          <DownloadButton href={downloadUrl}>
+            <FontAwesomeIcon icon={faCloudDownload} />
+            <span>Download</span>
+          </DownloadButton>
+        </Row>
         <Title>
           <div>Search</div>
           <span><FontAwesomeIcon icon={faDatabase} /></span>
@@ -102,7 +130,8 @@ const SearchParameterSelection = ({
             : (
               <StyledBanner>
                 {`${selectedEntitySetSize.toLocaleString()} ${selectedEntitySetSize === 1 ? 'entity' : 'entities'}`}
-              </StyledBanner>)
+              </StyledBanner>
+            )
           }
         </Title>
         <InputRow>
