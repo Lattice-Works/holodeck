@@ -15,6 +15,7 @@ import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import TopUtilizerParameterSelection from '../../components/toputilizers/TopUtilizerParameterSelection';
 import TopUtilizerDashboard from '../../components/toputilizers/TopUtilizerDashboard';
 import TopUtilizerResources from '../../components/toputilizers/TopUtilizerResources';
+import TopUtilizerMap from '../../components/toputilizers/TopUtilizerMap';
 import {
   STATE,
   EDM,
@@ -37,6 +38,7 @@ type Props = {
   selectedEntitySet :?Map<*, *>,
   selectedEntitySetSize :?number,
   neighborsById :Map<string, *>,
+  locationsById :Map<string, *>,
   entityTypesById :Map<string, *>,
   propertyTypesByFqn :Map<string, *>,
   propertyTypesById :Map<string, *>,
@@ -144,11 +146,13 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
       isLoadingResults,
       isLoadingResultCounts,
       neighborsById,
+      locationsById,
       propertyTypesByFqn,
       propertyTypesById,
       results,
       lastQueryRun,
-      selectedEntitySet
+      selectedEntitySet,
+      neighborTypes
     } = this.props;
 
     if (isLoadingResults) {
@@ -185,6 +189,18 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
                 isLoading={isLoadingResultCounts}
                 propertyTypesByFqn={propertyTypesByFqn}
                 propertyTypesById={propertyTypesById} />
+          );
+
+        case RESULT_DISPLAYS.MAP:
+          return (
+            <TopUtilizerMap
+                results={results}
+                neighborTypes={neighborTypes}
+                neighborsById={neighborsById}
+                locationsById={locationsById}
+                entityTypesById={entityTypesById}
+                propertyTypesById={propertyTypesById}
+                selectedEntitySet={selectedEntitySet} />
           );
 
         case RESULT_DISPLAYS.SEARCH_RESULTS:
@@ -273,6 +289,7 @@ function mapStateToProps(state :Map<*, *>, ownProps :Object) :Object {
     ]),
     filteredPropertyTypes: explore.get(EXPLORE.FILTERED_PROPERTY_TYPES),
     neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
+    locationsById: explore.get(EXPLORE.LOCATIONS_BY_ENTITY),
     display: topUtilizers.get(TOP_UTILIZERS.RESULT_DISPLAY),
     isLoadingNeighborTypes: topUtilizers.get(TOP_UTILIZERS.IS_LOADING_NEIGHBOR_TYPES),
     neighborTypes: topUtilizers.get(TOP_UTILIZERS.NEIGHBOR_TYPES),

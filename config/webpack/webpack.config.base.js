@@ -69,6 +69,7 @@ module.exports = (env) => {
     __BASE_PATH__: JSON.stringify(BASE_PATH),
     __ENV_DEV__: JSON.stringify(!!env.development),
     __ENV_PROD__: JSON.stringify(!!env.production),
+    __MAPBOX_TOKEN__: JSON.stringify(env.mapboxToken),
     __PACKAGE__: JSON.stringify(PACKAGE.name),
     __VERSION__: JSON.stringify(`v${PACKAGE.version}`),
   });

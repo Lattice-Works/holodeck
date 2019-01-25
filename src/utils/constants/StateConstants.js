@@ -33,7 +33,8 @@ export const EXPLORE = {
   IS_LOADING_ENTITY_NEIGHBORS: 'isLoadingEntityNeighbors',
   IS_SEARCHING_DATA: 'isSearchingData',
   SEARCH_RESULTS: 'searchResults',
-  UNFILTERED_SEARCH_RESULTS: 'unfilteredSearchResults'
+  UNFILTERED_SEARCH_RESULTS: 'unfilteredSearchResults',
+  LOCATIONS_BY_ENTITY: 'locationsByEntity'
 };
 
 export const TOP_UTILIZERS = {

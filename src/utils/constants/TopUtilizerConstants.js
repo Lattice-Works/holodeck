@@ -14,7 +14,8 @@ export const TOP_UTILIZERS_FILTER = {
 export const RESULT_DISPLAYS = {
   SEARCH_RESULTS: 'Search Results',
   DASHBOARD: 'Dashboard',
-  RESOURCES: 'Resources'
+  RESOURCES: 'Resources',
+  MAP: 'Map'
 };
 
 export const CHART_EXPLANATIONS = {

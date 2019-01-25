@@ -46,3 +46,9 @@ export const RESOURCE_COLORS = {
   [RESOURCE_TYPES.DURATION]: ['#a57cff', '#6124e2'],
   [RESOURCE_TYPES.COST]: ['#75d6b7', '#00be84']
 };
+
+export const MAP_COLORS = [
+  '#f4d681', // yellow
+  '#da3bca', // pink
+  '#5d9df8' // blue
+];
