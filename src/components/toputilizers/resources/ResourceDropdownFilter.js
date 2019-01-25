@@ -10,7 +10,8 @@ type Props = {
   value :string,
   label :string,
   options :Object[],
-  onChange :(e :Object) => void
+  onChange :(e :Object) => void,
+  withMargin? :boolean
 };
 
 const SelectWrapper = styled.div`
@@ -19,6 +20,9 @@ const SelectWrapper = styled.div`
   align-items: flex-start;
   width: 100%;
   margin-top: 30px;
+  &:not(:last-child) {
+    margin-right: ${props => (props.withMargin ? 20 : 0)}px;
+  }
 `;
 
 const SelectLabel = styled.span`
@@ -82,9 +86,10 @@ const ResourceDropdownFilter = ({
   value,
   label,
   options,
-  onChange
+  onChange,
+  withMargin
 } :Props) => (
-  <SelectWrapper>
+  <SelectWrapper withMargin={withMargin}>
     <SelectLabel>{label}</SelectLabel>
     <WideSelect
         value={value}
@@ -102,5 +107,9 @@ const ResourceDropdownFilter = ({
         }} />
   </SelectWrapper>
 );
+
+ResourceDropdownFilter.defaultProps = {
+  withMargin: false
+}
 
 export default ResourceDropdownFilter;
