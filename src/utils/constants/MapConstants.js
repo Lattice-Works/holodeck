@@ -29,17 +29,17 @@ export const HEATMAP_PAINT = {
       [15, 20]
     ]
   },
-  'heatmap-color': [
-    'interpolate',
-    ['linear'],
-    ['heatmap-density'],
-    0, 'rgba(0, 0, 0, 0)',
-    0.2, '#081d58',
-    0.4, '#225ea8',
-    0.6, '#41b6c4',
-    0.8, '#c7e9b4',
-    1, '#ffffd9'
-  ]
+  // 'heatmap-color': [
+  //   'interpolate',
+  //   ['linear'],
+  //   ['heatmap-density'],
+  //   0, 'rgba(0, 0, 0, 0)',
+  //   0.2, '#081d58',
+  //   0.4, '#225ea8',
+  //   0.6, '#41b6c4',
+  //   0.8, '#c7e9b4',
+  //   1, '#ffffd9'
+  // ]
   // decrease opacity to transition into the circle layer
   // 'heatmap-opacity': {
   //   default: 1,
