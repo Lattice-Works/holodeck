@@ -133,15 +133,18 @@ class EntitySetSearch extends React.Component<Props, State> {
   }
 
   handleInputChange = (e :SyntheticEvent) => {
+    const { actions } = this.props;
     this.setState({ searchTerm: e.target.value });
 
     clearTimeout(this.searchTimeout);
 
     this.searchTimeout = setTimeout(() => {
-      const { page } = this.props;
       const { searchTerm } = this.state;
 
-      this.executeSearch(page, searchTerm);
+      const newPage = 1;
+
+      this.executeSearch(newPage, searchTerm);
+      actions.selectEntitySetPage(newPage);
     }, 500);
   }
 
