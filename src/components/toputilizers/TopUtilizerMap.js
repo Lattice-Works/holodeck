@@ -13,7 +13,7 @@ import {
 
 import SimpleMap from '../map/SimpleMap';
 import ResourceDropdownFilter from './resources/ResourceDropdownFilter';
-import getTitle from '../../utils/EntityTitleUtils';
+import { getEntityTitle } from '../../utils/TagUtils';
 import { CenteredColumnContainer, FixedWidthWrapper, TitleText } from '../layout/Layout';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { getEntityKeyId, getFqnString } from '../../utils/DataUtils';
@@ -164,7 +164,12 @@ export default class TopUtilizerMap extends React.Component<Props, State> {
   }
 
   render() {
-    const { results, selectedEntitySet, entityTypesById } = this.props;
+    const {
+      results,
+      selectedEntitySet,
+      entityTypesById,
+      propertyTypesById
+    } = this.props;
     const { neighborOptions } = this.state;
 
     const selectedEntityType = entityTypesById.get(selectedEntitySet.get('entityTypeId'));
@@ -174,7 +179,7 @@ export default class TopUtilizerMap extends React.Component<Props, State> {
       ...results.map((utilizer, index) => {
         const value = getEntityKeyId(utilizer);
         const num = index + 1;
-        const label = getTitle(selectedEntityType, utilizer);
+        const label = getEntityTitle(selectedEntityType, propertyTypesById, utilizer);
         return { value, num, label };
       }).toJS()
     ];

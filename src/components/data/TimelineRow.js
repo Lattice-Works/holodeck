@@ -9,7 +9,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronUp } from '@fortawesome/pro-regular-svg-icons';
 
 import DataTable from './DataTable';
-import getTitle from '../../utils/EntityTitleUtils';
+import { getEntityTitle } from '../../utils/TagUtils';
 import { getFqnString } from '../../utils/DataUtils';
 
 type Props = {
@@ -103,12 +103,12 @@ export default class TimelineRow extends React.Component<Props, State> {
   }
 
   getEventName = () => {
-    const { entityTypesById, neighbor } = this.props;
+    const { entityTypesById, propertyTypesById, neighbor } = this.props;
     const entity = neighbor.get('neighborDetails', Map());
     const entityType = entityTypesById.get(neighbor.getIn(['neighborEntitySet', 'entityTypeId']));
 
     const entityTypeTitle = entityType.get('title');
-    let entityTitle = getTitle(entityType, entity);
+    let entityTitle = getEntityTitle(entityType, propertyTypesById, entity);
     if (entityTitle === `[${entityTypeTitle}]`) {
       entityTitle = '';
     }

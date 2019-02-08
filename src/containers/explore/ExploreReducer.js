@@ -9,7 +9,7 @@ import {
   fromJS
 } from 'immutable';
 
-import getTitle from '../../utils/EntityTitleUtils';
+import { getEntityTitle } from '../../utils/TagUtils';
 import { EXPLORE } from '../../utils/constants/StateConstants';
 import { BREADCRUMB } from '../../utils/constants/ExploreConstants';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
@@ -60,9 +60,11 @@ const INITIAL_STATE :Map<> = fromJS({
 const filterEntity = (entity, filteredTypes) => {
   let filteredEntity = entity;
 
-  filteredTypes.forEach((fqn) => {
-    filteredEntity = filteredEntity.delete(fqn);
-  });
+  if (filteredEntity) {
+    filteredTypes.forEach((fqn) => {
+      filteredEntity = filteredEntity.delete(fqn);
+    });
+  }
 
   return filteredEntity;
 };
@@ -239,12 +241,21 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
       return state.set(BREADCRUMBS, state.get(BREADCRUMBS).slice(0, action.value));
 
     case SELECT_ENTITY: {
-      const { entityKeyId, entitySetId, entityType } = action.value;
+      const {
+        entityKeyId,
+        entitySetId,
+        entityType,
+        propertyTypesById
+      } = action.value;
       const crumb = {
         [BREADCRUMB.ENTITY_SET_ID]: entitySetId,
         [BREADCRUMB.ENTITY_KEY_ID]: entityKeyId,
         [BREADCRUMB.ON_CLICK]: () => selectEntity(state.get(BREADCRUMBS).size),
-        [BREADCRUMB.TITLE]: getTitle(entityType, state.getIn([ENTITIES_BY_ID, entityKeyId], Map()))
+        [BREADCRUMB.TITLE]: getEntityTitle(
+          entityType,
+          propertyTypesById,
+          state.getIn([ENTITIES_BY_ID, entityKeyId], Map())
+        )
       };
       return state.set(BREADCRUMBS, state.get(BREADCRUMBS).push(crumb));
     }
