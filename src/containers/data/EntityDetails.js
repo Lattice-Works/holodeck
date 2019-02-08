@@ -177,11 +177,17 @@ class EntityDetails extends React.Component<Props, State> {
       entitySetsById,
       entityTypesById,
       neighborsById,
-      selectedEntitySetId
+      selectedEntitySetId,
+      propertyTypesById
     } = this.props;
     const entityKeyId = getEntityKeyId(entity);
     const entityType = entityTypesById.get(entitySetsById.getIn([entitySetId, 'entityTypeId'], ''), Map());
-    actions.selectEntity({ entityKeyId, entitySetId, entityType });
+    actions.selectEntity({
+      entityKeyId,
+      entitySetId,
+      entityType,
+      propertyTypesById
+    });
     if (!neighborsById.has(entityKeyId)) {
       actions.loadEntityNeighbors({ entitySetId, entity, selectedEntitySetId });
     }

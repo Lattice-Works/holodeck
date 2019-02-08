@@ -22,7 +22,7 @@ import CostRateModal from './CostRateModal';
 import ResourceBarChart from './resources/ResourceBarChart';
 import ResourceTimeline from './resources/ResourceTimeline';
 import ResourceDropdownFilter from './resources/ResourceDropdownFilter';
-import getTitle from '../../utils/EntityTitleUtils';
+import { getEntityTitle } from '../../utils/TagUtils';
 import { COUNT_FQN, DATE_FILTER_CLASS } from '../../utils/constants/DataConstants';
 import { RESOURCE_TYPES, DEFAULT_COST_RATES } from '../../utils/constants/TopUtilizerConstants';
 import {
@@ -449,7 +449,8 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
   renderBasicSetup = () => {
     const {
       results,
-      selectedEntityType
+      selectedEntityType,
+      propertyTypesById
     } = this.props;
 
     const allPairs = this.getAllPairs();
@@ -463,7 +464,7 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
       ...results.map((utilizer, index) => {
         const value = getEntityKeyId(utilizer);
         const num = index + 1;
-        const label = getTitle(selectedEntityType, utilizer);
+        const label = getEntityTitle(selectedEntityType, propertyTypesById, utilizer);
         return { value, num, label };
       }).toJS()
     ];
