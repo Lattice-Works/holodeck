@@ -11,6 +11,7 @@ export const EDM = {
   ENTITY_SET_METADATA_BY_ID: 'entitySetMetadataById',
   ENTITY_TYPES_BY_ID: 'entityTypesById',
   ENTITY_TYPES_BY_FQN: 'entityTypesByFqn',
+  IS_LOADING_EDM: 'isLoadingEdm',
   PROPERTY_TYPES_BY_ID: 'propertyTypesById',
   PROPERTY_TYPES_BY_FQN: 'propertyTypesByFqn'
 };
