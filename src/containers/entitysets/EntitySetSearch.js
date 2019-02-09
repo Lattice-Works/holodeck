@@ -29,6 +29,7 @@ type Props = {
   totalHits :number,
   history :string[],
   isLoadingEntitySets :boolean,
+  edmLoaded :boolean,
   entitySetSearchResults :List<*>,
   entitySetSizes :Map<*, *>,
   entityTypesById :Map<string, *>,
@@ -160,12 +161,13 @@ class EntitySetSearch extends React.Component<Props, State> {
   renderResults = () => {
     const {
       isLoadingEntitySets,
+      edmLoaded,
       entitySetSearchResults,
       entitySetSizes,
       entityTypesById,
       showAssociationEntitySets
     } = this.props;
-    if (isLoadingEntitySets) {
+    if (isLoadingEntitySets || !edmLoaded) {
       return <LoadingSpinner />;
     }
 
@@ -255,7 +257,8 @@ function mapStateToProps(state :Map<*, *>) :Object {
     page: entitySets.get(ENTITY_SETS.PAGE),
     totalHits: entitySets.get(ENTITY_SETS.TOTAL_HITS),
     showAssociationEntitySets: entitySets.get(ENTITY_SETS.SHOW_ASSOCIATION_ENTITY_SETS),
-    entityTypesById: edm.get(EDM.ENTITY_TYPES_BY_ID)
+    entityTypesById: edm.get(EDM.ENTITY_TYPES_BY_ID),
+    edmLoaded: edm.get(EDM.EDM_WAS_LOADED)
   };
 }
 
