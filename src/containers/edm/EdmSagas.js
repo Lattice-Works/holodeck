@@ -2,13 +2,13 @@
  * @flow
  */
 
-import { EntityDataModelApi } from 'lattice';
 import {
   all,
   call,
   put,
   takeEvery
-} from 'redux-saga/effects';
+} from '@redux-saga/core/effects';
+import { EntityDataModelApi } from 'lattice';
 
 import {
   LOAD_EDM,

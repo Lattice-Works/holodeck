@@ -5,7 +5,7 @@
 import React from 'react';
 
 import styled from 'styled-components';
-import { AuthActionFactory } from 'lattice-auth';
+import { AuthActions } from 'lattice-auth';
 import { connect } from 'react-redux';
 import { Redirect, Route, Switch } from 'react-router';
 import { bindActionCreators } from 'redux';
@@ -20,7 +20,7 @@ import { STATE, EDM } from '../../utils/constants/StateConstants';
 import { loadEdm } from '../edm/EdmActionFactory';
 import * as Routes from '../../core/router/Routes';
 
-const { logout } = AuthActionFactory;
+const { logout } = AuthActions;
 
 /*
  * styled components

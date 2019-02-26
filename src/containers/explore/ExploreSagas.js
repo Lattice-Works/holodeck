@@ -2,8 +2,8 @@
  * @flow
  */
 
-import { EntityDataModelApi, SearchApi } from 'lattice';
-import { call, put, takeEvery } from 'redux-saga/effects';
+import { call, put, takeEvery } from '@redux-saga/core/effects';
+import { SearchApi } from 'lattice';
 
 import { getEntityKeyId } from '../../utils/DataUtils';
 import { PAGE_SIZE } from '../../utils/constants/ExploreConstants';

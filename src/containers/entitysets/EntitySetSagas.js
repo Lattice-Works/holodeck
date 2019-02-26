@@ -2,13 +2,13 @@
  * @flow
  */
 
-import { DataApi, EntityDataModelApi, SearchApi } from 'lattice';
 import {
   all,
   call,
   put,
   takeEvery
-} from 'redux-saga/effects';
+} from '@redux-saga/core/effects';
+import { DataApi, EntityDataModelApi, SearchApi } from 'lattice';
 
 import {
   LOAD_ENTITY_SET_SIZES,
