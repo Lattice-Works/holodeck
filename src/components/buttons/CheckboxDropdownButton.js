@@ -148,7 +148,7 @@ export default class CheckboxDropdownButton extends Component<Props, State> {
     const { title, short, fullSize } = this.props;
     const { isVisibleDataTable } = this.state;
     return (
-      <RefWrapper innerRef={(node) => { this.node = node; }} {...this.props}>
+      <RefWrapper ref={(node) => { this.node = node; }} {...this.props}>
         <SearchableSelectWrapper isVisibleDataTable={isVisibleDataTable} {...this.props}>
           <SearchInputWrapper short={short}>
             <SearchButton onClick={this.toggleDataTable} {...this.props}>

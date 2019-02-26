@@ -2,21 +2,21 @@
  * @flow
  */
 
-import moment from 'moment';
 import Papa from 'papaparse';
-import {
-  Constants,
-  AnalysisApi,
-  DataApi,
-  SearchApi
-} from 'lattice';
+import moment from 'moment';
+import { call, put, takeEvery } from '@redux-saga/core/effects';
 import {
   fromJS,
   List,
   Map,
   Set
 } from 'immutable';
-import { call, put, takeEvery } from 'redux-saga/effects';
+import {
+  Constants,
+  AnalysisApi,
+  DataApi,
+  SearchApi
+} from 'lattice';
 
 import FileSaver from '../../utils/FileSaver';
 import {
