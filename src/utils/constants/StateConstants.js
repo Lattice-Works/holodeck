@@ -22,6 +22,7 @@ export const ENTITY_SETS = {
   IS_LOADING_ENTITY_SETS: 'isLoadingEntitySets',
   SELECTED_ENTITY_SET: 'selectedEntitySet',
   SHOW_ASSOCIATION_ENTITY_SETS: 'showAssociationEntitySets',
+  SHOW_AUDIT_ENTITY_SETS: 'showAuditEntitySets',
   PAGE: 'pageNum',
   TOTAL_HITS: 'totalHits'
 };
