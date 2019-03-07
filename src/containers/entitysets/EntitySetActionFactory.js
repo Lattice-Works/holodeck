@@ -22,6 +22,9 @@ const selectEntitySetPage :RequestSequence = newRequestSequence(SELECT_ENTITY_SE
 const SET_SHOW_ASSOCIATION_ENTITY_SETS :string = 'SET_SHOW_ASSOCIATION_ENTITY_SETS';
 const setShowAssociationEntitySets :RequestSequence = newRequestSequence(SET_SHOW_ASSOCIATION_ENTITY_SETS);
 
+const SET_SHOW_AUDIT_ENTITY_SETS :string = 'SET_SHOW_AUDIT_ENTITY_SETS';
+const setShowAuditEntitySets :RequestSequence = newRequestSequence(SET_SHOW_AUDIT_ENTITY_SETS);
+
 export {
   LOAD_ENTITY_SET_SIZES,
   SEARCH_ENTITY_SETS,
@@ -29,10 +32,12 @@ export {
   SELECT_ENTITY_SET_BY_ID,
   SELECT_ENTITY_SET_PAGE,
   SET_SHOW_ASSOCIATION_ENTITY_SETS,
+  SET_SHOW_AUDIT_ENTITY_SETS,
   loadEntitySetSizes,
   searchEntitySets,
   selectEntitySet,
   selectEntitySetById,
   selectEntitySetPage,
-  setShowAssociationEntitySets
+  setShowAssociationEntitySets,
+  setShowAuditEntitySets
 };
