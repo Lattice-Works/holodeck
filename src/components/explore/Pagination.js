@@ -59,9 +59,12 @@ const Pagination = (props :Props) => {
   const { numPages } = props;
   const { activePage } = props;
   const { onChangePage } = props;
+
+  const resultsFitOnMaxPagesDsiplayed = numPages <= MAX_PAGE_DISPLAY + 1;
+
   const frontArrowDisabled = activePage === 1;
   const frontJumpDisabled = (activePage <= SHIFT_THRESHOLD) || (numPages <= MAX_PAGE_DISPLAY);
-  const backArrowDisabled = activePage === numPages;
+  const backArrowDisabled = activePage === numPages || numPages <= MAX_PAGE_DISPLAY;
   const backJumpDisabled = (activePage > numPages - SHIFT_THRESHOLD) || (numPages <= MAX_PAGE_DISPLAY);
 
   if (!numPages || numPages <= 1) {
@@ -118,11 +121,11 @@ const Pagination = (props :Props) => {
       <PageListItem disabled={frontJumpDisabled || frontArrowDisabled}>
         <a onClick={() => onChangePage(1)}>1</a>
       </PageListItem>
-      <PageListItem disabled={frontJumpDisabled || frontArrowDisabled}>
+      <PageListItem disabled={frontJumpDisabled || frontArrowDisabled || resultsFitOnMaxPagesDsiplayed}>
         <a onClick={() => onChangePage(activePage - 1)}>...</a>
       </PageListItem>
       {indices}
-      <PageListItem disabled={backJumpDisabled || backArrowDisabled}>
+      <PageListItem disabled={backJumpDisabled || backArrowDisabled || resultsFitOnMaxPagesDsiplayed}>
         <a onClick={() => onChangePage(activePage + 1)}>...</a>
       </PageListItem>
       <PageListItem disabled={backJumpDisabled || backArrowDisabled}>

@@ -49,7 +49,8 @@ export const PROPERTY_TYPES = {
   DATETIME_RELEASE: 'ol.datetime_release',
   DATETIME_END: 'ol.datetimeend',
 
-  IMAGE_DATA: 'ol.imagedata'
+  IMAGE_DATA: 'ol.imagedata',
+  LOCATION: 'ol.locationcoordinates'
 };
 
 export const DEFAULT_PERSON_PROPERTY_TYPES = [

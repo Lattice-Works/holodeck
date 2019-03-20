@@ -55,3 +55,10 @@ export const getPieChartPropertyFqns = (entityType, propertyTypesById) => getTag
   propertyTypesById,
   PROPERTY_TAGS.PIE
 );
+
+export const getEntityTitle = (entityType, propertyTypesById, entity) => {
+  const titleFqns = getTagPropertyFqns(entityType, propertyTypesById, PROPERTY_TAGS.TITLE);
+
+  const titleValue = titleFqns.map(fqn => entity.getIn([fqn, 0])).filter(val => !!val).join(', ');
+  return titleValue.length ? titleValue : `[${entityType.get('title')}]`;
+};

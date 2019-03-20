@@ -28,11 +28,12 @@ type Props = {
   page :number,
   totalHits :number,
   history :string[],
+  isLoadingEdm :boolean,
   isLoadingEntitySets :boolean,
   entitySetSearchResults :List<*>,
   entitySetSizes :Map<*, *>,
-  entityTypesById :Map<string, *>,
   showAssociationEntitySets :boolean,
+  showAuditEntitySets :boolean,
   actions :{
     searchEntitySets :({
       searchTerm :string,
@@ -42,6 +43,7 @@ type Props = {
     selectEntitySet :(entitySet? :Map<*, *>) => void,
     selectEntitySetPage :(page :number) => void,
     setShowAssociationEntitySets :(show :boolean) => void,
+    setShowAuditEntitySets :(show :boolean) => void,
     getNeighborTypes :(id :string) => void
   }
 };
@@ -127,21 +129,24 @@ class EntitySetSearch extends React.Component<Props, State> {
 
     actions.searchEntitySets({
       searchTerm: searchTermInit.length ? searchTermInit : '*',
-      start: (page - 1) * PAGE_SIZE,
-      maxHits: PAGE_SIZE
+      start: 0,
+      maxHits: 10000
     });
   }
 
   handleInputChange = (e :SyntheticEvent) => {
+    const { actions } = this.props;
     this.setState({ searchTerm: e.target.value });
 
     clearTimeout(this.searchTimeout);
 
     this.searchTimeout = setTimeout(() => {
-      const { page } = this.props;
       const { searchTerm } = this.state;
 
-      this.executeSearch(page, searchTerm);
+      const newPage = 1;
+
+      this.executeSearch(newPage, searchTerm);
+      actions.selectEntitySetPage(newPage);
     }, 500);
   }
 
@@ -156,23 +161,17 @@ class EntitySetSearch extends React.Component<Props, State> {
 
   renderResults = () => {
     const {
+      isLoadingEdm,
       isLoadingEntitySets,
       entitySetSearchResults,
       entitySetSizes,
-      entityTypesById,
-      showAssociationEntitySets
     } = this.props;
-    if (isLoadingEntitySets) {
+
+    if (isLoadingEntitySets || isLoadingEdm) {
       return <LoadingSpinner />;
     }
 
-    let filteredEntitySets = entitySetSearchResults;
-    if (!showAssociationEntitySets) {
-      filteredEntitySets = filteredEntitySets.filter(entitySetObj => entityTypesById
-        .getIn([entitySetObj.getIn(['entitySet', 'entityTypeId']), 'category']) === 'EntityType');
-    }
-
-    return filteredEntitySets.map(entitySetObj => (
+    return entitySetSearchResults.map(entitySetObj => (
       <EntitySetCard
           key={entitySetObj.getIn(['entitySet', 'id'])}
           entitySet={entitySetObj.get('entitySet', Map())}
@@ -185,19 +184,13 @@ class EntitySetSearch extends React.Component<Props, State> {
     this.props.history.push(Routes.MANAGE);
   }
 
-  updatePage = (page) => {
-    const { actions } = this.props;
-    const { searchTerm } = this.state;
-    this.executeSearch(page, searchTerm);
-    actions.selectEntitySetPage(page);
-  }
-
   render() {
     const {
       actions,
       actionText,
       page,
       showAssociationEntitySets,
+      showAuditEntitySets,
       totalHits
     } = this.props;
     const { searchTerm } = this.state;
@@ -213,7 +206,7 @@ class EntitySetSearch extends React.Component<Props, State> {
               check`} <StyledLink onClick={this.routeToManage}>Data Management</StyledLink>
             </Subtitle>
             <StyledInput
-                value={this.state.searchTerm}
+                value={searchTerm}
                 placeholder="Search"
                 icon={faDatabase}
                 onChange={this.handleInputChange} />
@@ -224,6 +217,10 @@ class EntitySetSearch extends React.Component<Props, State> {
               checked={showAssociationEntitySets}
               onChange={({ target }) => actions.setShowAssociationEntitySets(!!target.checked)}
               label="Show association datasets" />
+          <StyledCheckbox
+              checked={showAuditEntitySets}
+              onChange={({ target }) => actions.setShowAuditEntitySets(!!target.checked)}
+              label="Show audit datasets" />
         </CheckboxRow>
         <ResultsContainer>
           {this.renderResults()}
@@ -233,7 +230,7 @@ class EntitySetSearch extends React.Component<Props, State> {
             <Pagination
                 numPages={Math.ceil(totalHits / PAGE_SIZE)}
                 activePage={page}
-                onChangePage={this.updatePage} />
+                onChangePage={actions.selectEntitySetPage} />
           ) : null
         }
       </div>
@@ -245,14 +242,37 @@ function mapStateToProps(state :Map<*, *>) :Object {
   const edm = state.get(STATE.EDM);
   const entitySets = state.get(STATE.ENTITY_SETS);
 
+  const showAssociationEntitySets = entitySets.get(ENTITY_SETS.SHOW_ASSOCIATION_ENTITY_SETS);
+  const showAuditEntitySets = entitySets.get(ENTITY_SETS.SHOW_AUDIT_ENTITY_SETS);
+  const page = entitySets.get(ENTITY_SETS.PAGE);
+
+  let entitySetSearchResults = entitySets.get(ENTITY_SETS.ENTITY_SET_SEARCH_RESULTS);
+  if (!showAssociationEntitySets || !showAuditEntitySets) {
+    entitySetSearchResults = entitySetSearchResults.filter((entitySetObj) => {
+      const flags = entitySetObj.getIn(['entitySet', 'flags'], List());
+      if (!showAssociationEntitySets && flags.includes('ASSOCIATION')) {
+        return false;
+      }
+      if (!showAuditEntitySets && flags.includes('AUDIT')) {
+        return false;
+      }
+
+      return true;
+    });
+  }
+  const totalHits = entitySetSearchResults.size;
+
+  entitySetSearchResults = entitySetSearchResults.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
   return {
-    entitySetSearchResults: entitySets.get(ENTITY_SETS.ENTITY_SET_SEARCH_RESULTS),
+    page,
+    entitySetSearchResults,
+    showAssociationEntitySets,
+    showAuditEntitySets,
+    totalHits,
     entitySetSizes: entitySets.get(ENTITY_SETS.ENTITY_SET_SIZES),
     isLoadingEntitySets: entitySets.get(ENTITY_SETS.IS_LOADING_ENTITY_SETS),
-    page: entitySets.get(ENTITY_SETS.PAGE),
-    totalHits: entitySets.get(ENTITY_SETS.TOTAL_HITS),
-    showAssociationEntitySets: entitySets.get(ENTITY_SETS.SHOW_ASSOCIATION_ENTITY_SETS),
-    entityTypesById: edm.get(EDM.ENTITY_TYPES_BY_ID)
+    isLoadingEdm: edm.get(EDM.IS_LOADING_EDM)
   };
 }
 

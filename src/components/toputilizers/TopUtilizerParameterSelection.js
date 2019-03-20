@@ -18,7 +18,7 @@ import CountTypeOptions from './searchoptions/CountTypeOptions';
 import MultiDateRangePicker from './searchoptions/MultiDateRangePicker';
 import WeightsPicker from './searchoptions/WeightsPicker';
 import PropertyTypeFilterOptions from './searchoptions/PropertyTypeFilterOptions';
-import { DURATION_TYPES } from '../../utils/constants/DataModelConstants';
+import { DURATION_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { COUNT_TYPES, RESULT_DISPLAYS, TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
 import { getFqnString } from '../../utils/DataUtils';
 import {
@@ -301,6 +301,33 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
     });
   }
 
+  canRenderLocations = () => {
+    const {
+      selectedEntitySet,
+      neighborTypes,
+      entityTypesById,
+      propertyTypesById
+    } = this.props;
+
+    const locationId = propertyTypesById.entrySeq().filter(([id, propertyType]) => getFqnString(
+      propertyType.get('type', Map())
+    ) === PROPERTY_TYPES.LOCATION).map(([id]) => id).get(0);
+
+    if (entityTypesById.getIn([selectedEntitySet.get('entityTypeId'), 'properties']).includes(locationId)) {
+      return true;
+    }
+
+    let shouldRender = false;
+
+    neighborTypes.forEach((type) => {
+      if (type.getIn(['neighborEntityType', 'properties']).includes(locationId)) {
+        shouldRender = true;
+      }
+    });
+
+    return shouldRender;
+  }
+
   render() {
     const { selectedNeighborTypes } = this.state;
     const {
@@ -371,6 +398,7 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
                 {this.renderNavButton(RESULT_DISPLAYS.SEARCH_RESULTS)}
                 {this.renderNavButton(RESULT_DISPLAYS.DASHBOARD)}
                 {this.renderNavButton(RESULT_DISPLAYS.RESOURCES)}
+                {this.canRenderLocations() ? this.renderNavButton(RESULT_DISPLAYS.MAP) : null}
               </TabButtonRow>
             ) : null
           }

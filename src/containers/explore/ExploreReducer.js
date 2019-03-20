@@ -9,9 +9,10 @@ import {
   fromJS
 } from 'immutable';
 
-import getTitle from '../../utils/EntityTitleUtils';
+import { getEntityTitle } from '../../utils/TagUtils';
 import { EXPLORE } from '../../utils/constants/StateConstants';
 import { BREADCRUMB } from '../../utils/constants/ExploreConstants';
+import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { getEntityKeyId } from '../../utils/DataUtils';
 import {
   CLEAR_EXPLORE_SEARCH_RESULTS,
@@ -39,6 +40,7 @@ const {
   FILTERED_PROPERTY_TYPES,
   IS_LOADING_ENTITY_NEIGHBORS,
   IS_SEARCHING_DATA,
+  LOCATIONS_BY_ENTITY,
   SEARCH_RESULTS,
   UNFILTERED_SEARCH_RESULTS
 } = EXPLORE;
@@ -50,6 +52,7 @@ const INITIAL_STATE :Map<> = fromJS({
   [FILTERED_PROPERTY_TYPES]: Set(),
   [IS_LOADING_ENTITY_NEIGHBORS]: false,
   [IS_SEARCHING_DATA]: false,
+  [LOCATIONS_BY_ENTITY]: Map(),
   [SEARCH_RESULTS]: List(),
   [UNFILTERED_SEARCH_RESULTS]: List()
 });
@@ -57,18 +60,50 @@ const INITIAL_STATE :Map<> = fromJS({
 const filterEntity = (entity, filteredTypes) => {
   let filteredEntity = entity;
 
-  filteredTypes.forEach((fqn) => {
-    filteredEntity = filteredEntity.delete(fqn);
-  });
+  if (filteredEntity) {
+    filteredTypes.forEach((fqn) => {
+      filteredEntity = filteredEntity.delete(fqn);
+    });
+  }
 
   return filteredEntity;
+};
+
+const updateLocationsById = (locationsById, entity) => {
+  if (entity.get(PROPERTY_TYPES.LOCATION, List()).size) {
+
+    const entityKeyId = getEntityKeyId(entity);
+    const locations = entity.get(PROPERTY_TYPES.LOCATION, List()).map((coordinate) => {
+      const [latitude, longitude] = coordinate.split(',');
+      if (Number.isNaN(Number.parseFloat(longitude, 0), 10) || Number.isNaN(Number.parseFloat(latitude, 0), 10)) {
+        return undefined;
+      }
+
+      return [longitude, latitude];
+    }).filter(val => val !== undefined);
+
+    if (locations && locations.size) {
+      return locationsById.set(entityKeyId, locations);
+    }
+  }
+
+  return locationsById;
 };
 
 const filterSearchResults = (searchResults, filteredTypes) => searchResults
   .map(entity => filterEntity(entity, filteredTypes));
 
-const updateEntitiesIdForNeighbors = (initEntitiesById, neighborList, filteredTypes, selectedEntitySetId) => {
+const updateEntitiesIdForNeighbors = (
+  initEntitiesById,
+  initLocationsById,
+  neighborList,
+  filteredTypes,
+  selectedEntitySetId
+) => {
+
   let entitiesById = initEntitiesById;
+  let locationsById = initLocationsById;
+
   neighborList.forEach((neighborObj) => {
     const association = neighborObj.get('associationDetails', Map());
     const neighbor = neighborObj.get('neighborDetails', Map());
@@ -87,10 +122,11 @@ const updateEntitiesIdForNeighbors = (initEntitiesById, neighborList, filteredTy
       }
 
       entitiesById = entitiesById.set(neighborEntityKeyId, updatedEntity);
+      locationsById = updateLocationsById(locationsById, updatedEntity);
     }
   });
 
-  return entitiesById;
+  return [entitiesById, locationsById];
 };
 
 function reducer(state :Map<> = INITIAL_STATE, action :Object) {
@@ -109,8 +145,9 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
           const neighborList = fromJS(neighbors) || List();
           const entityKeyId = getEntityKeyId(entity);
 
-          const entitiesById = updateEntitiesIdForNeighbors(
+          const [entitiesById, locationsById] = updateEntitiesIdForNeighbors(
             state.get(ENTITIES_BY_ID),
+            state.get(LOCATIONS_BY_ENTITY),
             neighborList,
             state.get(FILTERED_PROPERTY_TYPES),
             selectedEntitySetId
@@ -118,7 +155,8 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
 
           return state
             .setIn([ENTITY_NEIGHBORS_BY_ID, entityKeyId], neighborList)
-            .set(ENTITIES_BY_ID, entitiesById);
+            .set(ENTITIES_BY_ID, entitiesById)
+            .set(LOCATIONS_BY_ENTITY, locationsById);
         },
         FAILURE: () => state.setIn([ENTITY_NEIGHBORS_BY_ID, getEntityKeyId(action.value.entity)], List()),
         FINALLY: () => state.set(IS_LOADING_ENTITY_NEIGHBORS, false)
@@ -130,6 +168,7 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
         REQUEST: () => state.set(BREADCRUMBS, List()),
         SUCCESS: () => {
           let entitiesById = state.get(ENTITIES_BY_ID);
+          let locationsById = state.get(LOCATIONS_BY_ENTITY);
 
           fromJS(action.value.topUtilizers).forEach((entity) => {
             const entityKeyId = getEntityKeyId(entity);
@@ -137,9 +176,11 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
               entityKeyId,
               filterEntity(entitiesById.get(entityKeyId, Map()).merge(entity), state.get(FILTERED_PROPERTY_TYPES))
             );
+
+            locationsById = updateLocationsById(locationsById, entity);
           });
 
-          return state.set(ENTITIES_BY_ID, entitiesById);
+          return state.set(ENTITIES_BY_ID, entitiesById).set(LOCATIONS_BY_ENTITY, locationsById);
         }
       });
     }
@@ -150,10 +191,18 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
           const immutableNeighborsById = fromJS(action.value.neighborsById);
           const neighborsById = state.get(ENTITY_NEIGHBORS_BY_ID).merge(immutableNeighborsById);
           let entitiesById = state.get(ENTITIES_BY_ID);
+          let locationsById = state.get(LOCATIONS_BY_ENTITY);
           immutableNeighborsById.valueSeq().forEach((neighborList) => {
-            entitiesById = updateEntitiesIdForNeighbors(entitiesById, neighborList, state.get(FILTERED_PROPERTY_TYPES));
+            [entitiesById, locationsById] = updateEntitiesIdForNeighbors(
+              entitiesById,
+              locationsById,
+              neighborList,
+              state.get(FILTERED_PROPERTY_TYPES)
+            );
           });
-          return state.set(ENTITY_NEIGHBORS_BY_ID, neighborsById).set(ENTITIES_BY_ID, entitiesById);
+          return state.set(ENTITY_NEIGHBORS_BY_ID, neighborsById)
+            .set(ENTITIES_BY_ID, entitiesById)
+            .set(LOCATIONS_BY_ENTITY, locationsById);
         }
       });
     }
@@ -167,16 +216,20 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
         SUCCESS: () => {
           const results = fromJS(action.value);
           let entitiesById = state.get(ENTITIES_BY_ID);
+          let locationsById = state.get(LOCATIONS_BY_ENTITY);
           results.get('hits', List()).forEach((result) => {
             entitiesById = entitiesById.set(
               getEntityKeyId(result),
               filterEntity(result, state.get(FILTERED_PROPERTY_TYPES))
             );
+
+            locationsById = updateLocationsById(locationsById, result);
           });
           return state
             .set(UNFILTERED_SEARCH_RESULTS, results)
             .set(SEARCH_RESULTS, filterSearchResults(results, state.get(FILTERED_PROPERTY_TYPES)))
             .set(ENTITIES_BY_ID, entitiesById)
+            .set(LOCATIONS_BY_ENTITY, locationsById)
             .set(BREADCRUMBS, List());
         },
         FAILURE: () => state.set(SEARCH_RESULTS, List()).set(UNFILTERED_SEARCH_RESULTS, List()),
@@ -188,12 +241,21 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
       return state.set(BREADCRUMBS, state.get(BREADCRUMBS).slice(0, action.value));
 
     case SELECT_ENTITY: {
-      const { entityKeyId, entitySetId, entityType } = action.value;
+      const {
+        entityKeyId,
+        entitySetId,
+        entityType,
+        propertyTypesById
+      } = action.value;
       const crumb = {
         [BREADCRUMB.ENTITY_SET_ID]: entitySetId,
         [BREADCRUMB.ENTITY_KEY_ID]: entityKeyId,
         [BREADCRUMB.ON_CLICK]: () => selectEntity(state.get(BREADCRUMBS).size),
-        [BREADCRUMB.TITLE]: getTitle(entityType, state.getIn([ENTITIES_BY_ID, entityKeyId], Map()))
+        [BREADCRUMB.TITLE]: getEntityTitle(
+          entityType,
+          propertyTypesById,
+          state.getIn([ENTITIES_BY_ID, entityKeyId], Map())
+        )
       };
       return state.set(BREADCRUMBS, state.get(BREADCRUMBS).push(crumb));
     }

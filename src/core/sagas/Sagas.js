@@ -2,8 +2,8 @@
  * @flow
  */
 
+import { all, fork } from '@redux-saga/core/effects';
 import { AuthSagas } from 'lattice-auth';
-import { fork } from 'redux-saga/effects';
 
 import * as EdmSagas from '../../containers/edm/EdmSagas';
 import * as EntitySetSagas from '../../containers/entitysets/EntitySetSagas';
@@ -12,7 +12,7 @@ import * as TopUtilizersSagas from '../../containers/toputilizers/TopUtilizersSa
 
 export default function* sagas() :Generator<*, *, *> {
 
-  yield [
+  yield all([
     // "lattice-auth" sagas
     fork(AuthSagas.watchAuthAttempt),
     fork(AuthSagas.watchAuthSuccess),
@@ -36,6 +36,6 @@ export default function* sagas() :Generator<*, *, *> {
     fork(TopUtilizersSagas.downloadTopUtilizersWatcher),
     fork(TopUtilizersSagas.getNeighborTypesWatcher),
     fork(TopUtilizersSagas.getTopUtilizersWatcher),
-    fork(TopUtilizersSagas.loadTopUtilizerNeighborsWatcher)
-  ];
+    fork(TopUtilizersSagas.loadTopUtilizerNeighborsWatcher),
+  ]);
 }

@@ -11,6 +11,7 @@ export const EDM = {
   ENTITY_SET_METADATA_BY_ID: 'entitySetMetadataById',
   ENTITY_TYPES_BY_ID: 'entityTypesById',
   ENTITY_TYPES_BY_FQN: 'entityTypesByFqn',
+  IS_LOADING_EDM: 'isLoadingEdm',
   PROPERTY_TYPES_BY_ID: 'propertyTypesById',
   PROPERTY_TYPES_BY_FQN: 'propertyTypesByFqn'
 };
@@ -21,6 +22,7 @@ export const ENTITY_SETS = {
   IS_LOADING_ENTITY_SETS: 'isLoadingEntitySets',
   SELECTED_ENTITY_SET: 'selectedEntitySet',
   SHOW_ASSOCIATION_ENTITY_SETS: 'showAssociationEntitySets',
+  SHOW_AUDIT_ENTITY_SETS: 'showAuditEntitySets',
   PAGE: 'pageNum',
   TOTAL_HITS: 'totalHits'
 };
@@ -33,7 +35,8 @@ export const EXPLORE = {
   IS_LOADING_ENTITY_NEIGHBORS: 'isLoadingEntityNeighbors',
   IS_SEARCHING_DATA: 'isSearchingData',
   SEARCH_RESULTS: 'searchResults',
-  UNFILTERED_SEARCH_RESULTS: 'unfilteredSearchResults'
+  UNFILTERED_SEARCH_RESULTS: 'unfilteredSearchResults',
+  LOCATIONS_BY_ENTITY: 'locationsByEntity'
 };
 
 export const TOP_UTILIZERS = {

@@ -543,7 +543,7 @@ class DataTable extends React.Component<Props, State> {
                       columnWidth={this.getGridColumnWidth}
                       estimatedColumnSize={COLUMN_MIN_WIDTH}
                       height={ROW_MIN_HEIGHT}
-                      innerRef={this.setTableHeadGrid}
+                      ref={this.setTableHeadGrid}
                       overscanColumnCount={overscanColumnCount}
                       overscanRowCount={overscanRowCount}
                       rowHeight={ROW_MIN_HEIGHT}
@@ -558,7 +558,7 @@ class DataTable extends React.Component<Props, State> {
                       columnWidth={this.getGridColumnWidth}
                       estimatedColumnSize={COLUMN_MIN_WIDTH}
                       height={gridHeight}
-                      innerRef={this.setTableBodyGrid}
+                      ref={this.setTableBodyGrid}
                       onScroll={onScroll}
                       overscanColumnCount={overscanColumnCount}
                       overscanRowCount={overscanRowCount}

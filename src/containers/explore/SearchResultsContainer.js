@@ -120,14 +120,20 @@ class SearchResultsContainer extends React.Component<Props, State> {
       actions,
       entityTypesById,
       neighborsById,
-      selectedEntitySet
+      selectedEntitySet,
+      propertyTypesById
     } = this.props;
 
     const entityKeyId = getEntityKeyId(entity);
     const entitySetId = selectedEntitySet.get('id');
     const selectedEntitySetId = entitySetId;
     const entityType = entityTypesById.get(selectedEntitySet.get('entityTypeId'), Map());
-    actions.selectEntity({ entityKeyId, entitySetId, entityType });
+    actions.selectEntity({
+      entityKeyId,
+      entitySetId,
+      entityType,
+      propertyTypesById
+    });
     if (!neighborsById.has(entityKeyId)) {
       actions.loadEntityNeighbors({ entitySetId, entity, selectedEntitySetId });
     }
