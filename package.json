@@ -40,7 +40,7 @@
     "immutable": "4.0.0-rc.10",
     "jwt-decode": "~2.2.0",
     "lattice": "0.54.2",
-    "lattice-auth": "0.12.1",
+    "lattice-auth": "0.13.0",
     "lattice-sagas": "0.15.0",
     "lattice-ui-kit": "0.2.1",
     "lodash": "~4.17.10",
