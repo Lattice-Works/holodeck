@@ -4,6 +4,7 @@
 
 import React from 'react';
 
+import isFunction from 'lodash/isFunction';
 import styled from 'styled-components';
 import { AuthActions } from 'lattice-auth';
 import { connect } from 'react-redux';
@@ -11,14 +12,14 @@ import { Redirect, Route, Switch } from 'react-router';
 import { bindActionCreators } from 'redux';
 
 import HeaderNav from '../../components/nav/HeaderNav';
-import DataManagementContainer from '../manage/DataManagementContainer';
 import ExploreContainer from '../explore/ExploreContainer';
-import ExploreEntitySetContainer from '../explore/ExploreEntitySetContainer';
-import ReportsContainer from '../reports/ReportsContainer';
 import TopUtilizersContainer from '../toputilizers/TopUtilizersContainer';
+import { GOOGLE_TRACKING_ID } from '../../core/tracking/google/GoogleAnalytics';
 import { STATE, EDM } from '../../utils/constants/StateConstants';
 import { loadEdm } from '../edm/EdmActionFactory';
 import * as Routes from '../../core/router/Routes';
+
+declare var gtag :?Function;
 
 const { logout } = AuthActions;
 
@@ -66,18 +67,24 @@ class AppContainer extends React.Component<Props> {
 
   }
 
-  render() {
-    const { actions } = this.props;
+  handleOnClickLogOut = () => {
 
+    const { actions } = this.props;
+    actions.logout();
+
+    if (isFunction(gtag)) {
+      gtag('config', GOOGLE_TRACKING_ID, { user_id: undefined, send_page_view: false });
+    }
+  }
+
+  render() {
     return (
       <AppWrapper>
         <AppBodyWrapper>
-          <HeaderNav logout={actions.logout} />
+          <HeaderNav logout={this.handleOnClickLogOut} />
           <Switch>
             <Route path={Routes.EXPLORE} component={ExploreContainer} />
             <Route path={Routes.TOP_UTILIZERS} component={TopUtilizersContainer} />
-            {/* <Route path={Routes.MANAGE} component={DataManagementContainer} />
-            <Route path={Routes.REPORTS} component={ReportsContainer} /> */}
             <Redirect to={Routes.TOP_UTILIZERS} />
           </Switch>
         </AppBodyWrapper>
