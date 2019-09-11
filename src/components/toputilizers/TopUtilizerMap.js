@@ -71,7 +71,12 @@ export default class TopUtilizerMap extends React.Component<Props, State> {
   constructor(props :Props) {
     super(props);
 
-    console.log('TopUtilizerMap : fix this entrySeq() thing');
+    const {
+      entityTypesById,
+      neighborTypes,
+      selectedEntitySet,
+    } = props;
+
     const locationId = props.propertyTypesById
       .entrySeq()
       // .filter(([id, propertyType]) => getFqnString(propertyType.get('type', Map())) === PROPERTY_TYPES.LOCATION)
@@ -81,7 +86,12 @@ export default class TopUtilizerMap extends React.Component<Props, State> {
       .map(([id]) => id)
       .get(0);
 
-    const neighborOptions = this.getNeighborOptions(locationId, props);
+    const neighborOptions = this.getNeighborOptions({
+      entityTypesById,
+      locationId,
+      neighborTypes,
+      selectedEntitySet,
+    });
 
     this.state = {
       locationId,
@@ -92,10 +102,23 @@ export default class TopUtilizerMap extends React.Component<Props, State> {
   }
 
   componentWillReceiveProps(nextProps :Props) {
-    const { locationId } = this.state;
+
     const { selectedEntitySet, neighborsById } = this.props;
-    if (selectedEntitySet !== nextProps.selectedEntitySet || neighborsById !== nextProps.neighborsById) {
-      const neighborOptions = this.getNeighborOptions(locationId, nextProps);
+    const { locationId } = this.state;
+    const {
+      entityTypesById,
+      neighborTypes,
+      neighborsById: nextNeighborsById,
+      selectedEntitySet: nextSelectedEntitySet,
+    } = nextProps;
+
+    if (selectedEntitySet !== nextSelectedEntitySet || neighborsById !== nextNeighborsById) {
+      const neighborOptions = this.getNeighborOptions({
+        entityTypesById,
+        locationId,
+        neighborTypes,
+        selectedEntitySet: nextSelectedEntitySet,
+      });
       this.setState({
         neighborOptions,
         [FILTERS.SELECTED_TYPE]: neighborOptions.get(0)
@@ -106,8 +129,12 @@ export default class TopUtilizerMap extends React.Component<Props, State> {
   hasLocations = (locationId :UUID, entityTypeId :UUID, entityTypesById :Map) => entityTypesById
     .getIn([entityTypeId, 'properties'], List()).includes(locationId)
 
-  getNeighborOptions = (locationId :UUID, props :Props) => {
-    const { neighborTypes, selectedEntitySet, entityTypesById } = props;
+  getNeighborOptions = ({
+    entityTypesById,
+    locationId,
+    neighborTypes,
+    selectedEntitySet,
+  } :Object) => {
 
     const neighborTypeList = this.hasLocations(locationId, selectedEntitySet.get('entityTypeId'), entityTypesById)
       ? List.of({

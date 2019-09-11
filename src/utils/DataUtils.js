@@ -12,11 +12,7 @@ import { TOP_UTILIZERS_FILTER } from './constants/TopUtilizerConstants';
 
 const {
   ASSOC_ID,
-  ASSOC_TITLE,
   NEIGHBOR_ID,
-  NEIGHBOR_TITLE,
-  IS_SRC,
-  VALUE,
   LABEL
 } = TOP_UTILIZERS_FILTER;
 

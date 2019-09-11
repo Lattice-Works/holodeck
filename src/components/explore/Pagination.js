@@ -54,6 +54,9 @@ const MAX_PAGE_DISPLAY = 4;
 // the pages displayed in the pagination controls does not shift.
 const SHIFT_THRESHOLD = 3;
 
+/* eslint-disable jsx-a11y/click-events-have-key-events */
+/* eslint-disable jsx-a11y/anchor-is-valid */
+/* eslint-disable jsx-a11y/no-static-element-interactions */
 const Pagination = (props :Props) => {
 
   const { numPages } = props;
@@ -100,7 +103,6 @@ const Pagination = (props :Props) => {
     pages = [...Array(1 + (end - start)).keys()].map((v) => start + v);
   }
 
-
   const indices = pages.map((page) => {
     const active = activePage === page;
 
@@ -139,5 +141,6 @@ const Pagination = (props :Props) => {
     </PageList>
   );
 };
+/* eslint-enable */
 
 export default Pagination;

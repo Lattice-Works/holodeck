@@ -39,7 +39,6 @@ function* loadEdmWorker(action :SequenceAction) :Generator<*, *, *> {
     }));
   }
   catch (error) {
-    console.error(error);
     yield put(loadEdm.failure(action.id, error));
   }
   finally {
@@ -47,6 +46,11 @@ function* loadEdmWorker(action :SequenceAction) :Generator<*, *, *> {
   }
 }
 
-export function* loadEdmWatcher() :Generator<*, *, *> {
+function* loadEdmWatcher() :Generator<*, *, *> {
   yield takeEvery(LOAD_EDM, loadEdmWorker);
 }
+
+export {
+  loadEdmWatcher,
+  loadEdmWorker,
+};

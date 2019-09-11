@@ -113,6 +113,7 @@ type Props = {
   selectedNeighborTypes :Object[];
 };
 
+/* eslint-disable react/jsx-props-no-spreading */
 export default class TopUtilizersSelect extends React.Component<Props> {
 
   getEdgeValue = (associationTypeId :UUID, neighborTypeId :UUID, src :any) => (src
@@ -236,3 +237,4 @@ export default class TopUtilizersSelect extends React.Component<Props> {
     );
   }
 }
+/* eslint-enable */

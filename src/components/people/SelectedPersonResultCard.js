@@ -8,7 +8,6 @@ import { List, Map } from 'immutable';
 
 import defaultProfileIcon from '../../assets/svg/profile-placeholder-card-large.svg';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { IMAGE_PREFIX } from '../../utils/constants/DataConstants';
 import { FixedWidthWrapper } from '../layout/Layout';
 import { formatDateList } from '../../utils/FormattingUtils';
 

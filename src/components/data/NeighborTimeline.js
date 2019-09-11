@@ -180,7 +180,19 @@ export default class NeighborTimeline extends React.Component<Props, State> {
   constructor(props :Props) {
     super(props);
 
-    const { orderedNeighbors, dateTypeOptions, dateTypeColors } = this.preprocessProps(props);
+    const {
+      entitySetsById,
+      entityTypesById,
+      neighbors,
+      propertyTypesById,
+    } = props;
+    const { orderedNeighbors, dateTypeOptions, dateTypeColors } = this.preprocessProps({
+      entitySetsById,
+      entityTypesById,
+      neighbors,
+      propertyTypesById,
+    });
+
     const selectedDateTypes = this.getDefaultSelectedDateTypes(
       props.entitySetPropertyMetadata,
       props.propertyTypesByFqn,
@@ -270,13 +282,13 @@ export default class NeighborTimeline extends React.Component<Props, State> {
     return updatedNeighbors;
   }
 
-  preprocessProps = (props :Props) => {
-    const {
-      entitySetsById,
-      entityTypesById,
-      neighbors,
-      propertyTypesById
-    } = props;
+  preprocessProps = ({
+    entitySetsById,
+    entityTypesById,
+    neighbors,
+    propertyTypesById,
+  } :Object) => {
+
     const entitySetMap = this.getDatePropertiesForEntitySets(entitySetsById, entityTypesById, propertyTypesById);
 
     let orderedNeighbors = List();
@@ -431,7 +443,9 @@ export default class NeighborTimeline extends React.Component<Props, State> {
 
       return (
         <ColumnWrapper key={index}>
-          {isNewYear ? this.renderYear(year) : null}
+          {
+            isNewYear && this.renderYear(year)
+          }
           <EventRow>
             <DateLabel>
               <div>{isNewDay ? day : ''}</div>

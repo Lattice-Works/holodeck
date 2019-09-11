@@ -23,7 +23,7 @@ import ResourceBarChart from './resources/ResourceBarChart';
 import ResourceTimeline from './resources/ResourceTimeline';
 import ResourceDropdownFilter from './resources/ResourceDropdownFilter';
 import { getEntityTitle } from '../../utils/TagUtils';
-import { COUNT_FQN, DATE_FILTER_CLASS } from '../../utils/constants/DataConstants';
+import { COUNT_FQN } from '../../utils/constants/DataConstants';
 import { RESOURCE_TYPES, DEFAULT_COST_RATES } from '../../utils/constants/TopUtilizerConstants';
 import {
   DURATION_TYPES,
@@ -158,13 +158,47 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
   }
 
   componentDidMount() {
-    this.preprocess(this.props);
+
+    const {
+      countBreakdown,
+      entityTypesById,
+      lastQueryRun,
+      neighborsById,
+      propertyTypesById,
+      results,
+    } = this.props;
+
+    this.preprocess({
+      countBreakdown,
+      entityTypesById,
+      lastQueryRun,
+      neighborsById,
+      propertyTypesById,
+      results,
+    });
   }
 
   componentWillReceiveProps(nextProps :Props) {
+
     const { neighborsById } = this.props;
-    if (nextProps.neighborsById.size !== neighborsById.size) {
-      this.preprocess(nextProps);
+    const {
+      countBreakdown,
+      entityTypesById,
+      lastQueryRun,
+      propertyTypesById,
+      results,
+      neighborsById: nextNeighborsById,
+    } = nextProps;
+
+    if (nextNeighborsById.size !== neighborsById.size) {
+      this.preprocess({
+        countBreakdown,
+        entityTypesById,
+        lastQueryRun,
+        propertyTypesById,
+        results,
+        neighborsById: nextNeighborsById,
+      });
     }
   }
 
@@ -237,15 +271,14 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
     return DEFAULT_COST_RATES[fqn] || 0;
   }
 
-  preprocess = (props :Props) => {
-    const {
-      countBreakdown,
-      entityTypesById,
-      neighborsById,
-      propertyTypesById,
-      results,
-      lastQueryRun
-    } = props;
+  preprocess = ({
+    countBreakdown,
+    entityTypesById,
+    lastQueryRun,
+    neighborsById,
+    propertyTypesById,
+    results,
+  } :Object) => {
 
     if (!countBreakdown.size) {
       return;
