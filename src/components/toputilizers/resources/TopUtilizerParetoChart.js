@@ -51,7 +51,7 @@ const ParetoTooltip = ({ payload, eventType }) => {
       </TooltipRow>
     </ChartTooltip>
   );
-}
+};
 
 const TopUtilizerParetoChart = ({
   countBreakdown,

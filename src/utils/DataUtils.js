@@ -39,7 +39,7 @@ export const getFqnString = (fqn) => {
   return `${namespace}.${name}`;
 };
 
-export const getEntityKeyId = entity => entity.getIn([OPENLATTICE_ID_FQN, 0]);
+export const getEntityKeyId = (entity) => entity.getIn([OPENLATTICE_ID_FQN, 0]);
 
 export const getNeighborCountsForFilters = (filters, neighbors) => {
   let counts = Map();
@@ -56,7 +56,7 @@ export const getNeighborCountsForFilters = (filters, neighbors) => {
     }
   });
 
-  return filters.map(filter => fromJS({
+  return filters.map((filter) => fromJS({
     [COUNT_FQN]: counts.getIn([filter.get(ASSOC_ID), filter.get(NEIGHBOR_ID)]),
     [LABEL]: filter.get(LABEL)
   }));
@@ -89,7 +89,7 @@ export const getEntitySetPropertyTypes = ({ selectedEntitySet, entityTypesById, 
 
   return entityTypesById
     .getIn([selectedEntitySet.get('entityTypeId'), 'properties'], List())
-    .map(propertyTypeId => propertyTypesById.get(propertyTypeId));
+    .map((propertyTypeId) => propertyTypesById.get(propertyTypeId));
 };
 
 export const isPersonType = (props) => {

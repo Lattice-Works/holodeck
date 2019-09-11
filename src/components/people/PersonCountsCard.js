@@ -62,7 +62,7 @@ const Value = styled.div`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: ${props => (props.blue ? BLUE.BLUE_2 : '#2e2e34')};
+  color: ${(props) => (props.blue ? BLUE.BLUE_2 : '#2e2e34')};
 
   &:last-child {
     font-weight: 400;
@@ -85,7 +85,7 @@ const PersonCountsCard = ({ counts, total } :Props) => (
         <Value>Total</Value>
         <Value>{total}</Value>
       </CountRow>
-      {counts.map(countItem => (
+      {counts.map((countItem) => (
         <CountRow key={countItem.get(TOP_UTILIZERS_FILTER.LABEL)}>
           <Value blue>{countItem.get(TOP_UTILIZERS_FILTER.LABEL)}</Value>
           <Value>{countItem.get(COUNT_FQN)}</Value>

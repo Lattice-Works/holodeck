@@ -50,13 +50,13 @@ const Value = styled.div`
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: 400;
-  color: ${props => (props.na ? '#8e929b' : '#2e2e34')};
+  color: ${(props) => (props.na ? '#8e929b' : '#2e2e34')};
 `;
 
 const ValueWithLabel = styled.div`
   display: flex;
   flex-direction: column;
-  width: ${props => (props.extraWide ? 66 : 33)}%;
+  width: ${(props) => (props.extraWide ? 66 : 33)}%;
 `;
 
 const PersonDetailsWrapper = styled.div`

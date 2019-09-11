@@ -43,7 +43,7 @@ const TimelineLineDescriptor = styled.div`
     width: 30px;
     height: 2px;
     margin-left: 40px;
-    background-color: ${props => props.color};
+    background-color: ${(props) => props.color};
   }
 
   div:last-child {

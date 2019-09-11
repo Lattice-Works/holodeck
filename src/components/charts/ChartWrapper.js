@@ -131,7 +131,7 @@ const YLabelWrapper = styled.div`
   height: 100%;
   width: 20px;
   max-width: 20px;
-  justify-self: ${props => (props.secondary ? 'flex-end' : 'flex-start')};
+  justify-self: ${(props) => (props.secondary ? 'flex-end' : 'flex-start')};
   display: flex;
   flex-direction: row;
   align-items: center;

@@ -184,9 +184,7 @@ class DataTable extends React.Component<Props, State> {
     let headerIdToWidthMap :Map<string, number> = this.getHeaderIdToWidthMap(props.headers, props.data);
 
     const tableWidth :number = headerIdToWidthMap.reduce(
-      (widthSum :number, columnWidth :number) :number => {
-        return widthSum + columnWidth;
-      },
+      (widthSum :number, columnWidth :number) :number => widthSum + columnWidth,
       0
     );
 
@@ -218,9 +216,7 @@ class DataTable extends React.Component<Props, State> {
       let headerIdToWidthMap :Map<string, number> = this.getHeaderIdToWidthMap(nextProps.headers, nextProps.data);
 
       const tableWidth :number = headerIdToWidthMap.reduce(
-        (widthSum :number, columnWidth :number) :number => {
-          return widthSum + columnWidth;
-        },
+        (widthSum :number, columnWidth :number) :number => widthSum + columnWidth,
         0
       );
 

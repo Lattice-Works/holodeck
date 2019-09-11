@@ -1,7 +1,7 @@
 import styled, { css } from 'styled-components';
 
 export const FixedWidthWrapper = styled.div`
-  width: ${props => props.width || '960px'};
+  width: ${(props) => props.width || '960px'};
 `;
 
 export const HeaderComponentWrapper = styled.div`
@@ -65,7 +65,7 @@ export const DropdownWrapper = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: ${props => (props.noPadding ? 0 : '20px')};
+  padding: ${(props) => (props.noPadding ? 0 : '20px')};
 `;
 
 export const DropdownRowWrapper = styled.div`
@@ -75,7 +75,7 @@ export const DropdownRowWrapper = styled.div`
   align-items: center;
   width: 100%;
 
-  ${props => (props.radioHalfSize ? css`
+  ${(props) => (props.radioHalfSize ? css`
     label {
       width: 49%;
       text-align: left;
@@ -90,8 +90,8 @@ export const DropdownTab = styled.div`
   font-family: 'Open Sans', sans-serif;
   font-size: 14px;
   font-weight: 600;
-  color: ${props => (props.selected ? '#555e6f' : '#8e929b')};
-  border-bottom: 1px solid ${props => (props.selected ? '#555e6f' : 'transparent')};
+  color: ${(props) => (props.selected ? '#555e6f' : '#8e929b')};
+  border-bottom: 1px solid ${(props) => (props.selected ? '#555e6f' : 'transparent')};
 
   &:hover {
     cursor: pointer;
@@ -111,10 +111,10 @@ export const TabsContainer = styled.div`
 export const PropertyTypeCheckboxWrapper = styled.div`
   padding: 20px;
   display: grid;
-  grid-template-columns: ${props => (props.twoCols ? '48% 48%' : '32% 32% 32%')};
+  grid-template-columns: ${(props) => (props.twoCols ? '48% 48%' : '32% 32% 32%')};
   grid-auto-rows: 25px;
   grid-column-gap: 10px;
-  grid-row-gap: ${props => (props.twoCols ? 30 : 20)}px;
+  grid-row-gap: ${(props) => (props.twoCols ? 30 : 20)}px;
   grid-auto-flow: row;
   align-items: center;
 `;
@@ -130,5 +130,5 @@ export const InputGroup = styled.div`
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-end;
-  width: ${props => (props.fullSize ? '100%' : '19%')};
+  width: ${(props) => (props.fullSize ? '100%' : '19%')};
 `;
