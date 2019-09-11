@@ -65,7 +65,8 @@ type Props = {
     getTopUtilizers :() => void,
     updateFilteredTypes :(filteredTypes :Set<*>) => void,
     reIndexEntitiesById :(unfilteredTopUtilizerResults :List<*>) => void,
-    getNeighborTypes :(id :string) => void
+    getNeighborTypes :(id :string) => void,
+    selectEntitySetById :(id :string) => void,
   }
 };
 
@@ -122,7 +123,7 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
     return result;
   }
 
-  onPropertyTypeChange = (e) => {
+  onPropertyTypeChange = (e :any) => {
     const { value, checked } = e.target;
     const { actions, unfilteredResults } = this.props;
     let { filteredPropertyTypes } = this.props;

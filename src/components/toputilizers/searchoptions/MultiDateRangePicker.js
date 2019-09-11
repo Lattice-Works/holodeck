@@ -25,17 +25,6 @@ import { DATE_FORMAT } from '../../../utils/constants/DateTimeConstants';
 import { DATE_DATATYPES } from '../../../utils/constants/DataModelConstants';
 import { TOP_UTILIZERS_FILTER } from '../../../utils/constants/TopUtilizerConstants';
 
-type Props = {
-  dateRanges :List,
-  dateRangeViewing :boolean,
-  selectedNeighborTypes :Object[],
-  entityTypesById :Map<string, *>,
-  propertyTypesById :Map<string, *>,
-  onAddRange :() => void,
-  setDateRangeViewing :(index :number) => void,
-  onDateRangeChange :(dateRanges :List<*>) => void
-}
-
 const DateInputGroup = styled(InputGroup)`
   width: 250px;
   margin-right: 20px;
@@ -65,33 +54,33 @@ const SelectedRangesTab = ({
   dateRangeViewing,
   onAddRange,
   setDateRangeViewing
-} :Props) => {
+} :Object) => {
   let tabs = dateRanges.map((range, index) => {
     const { start, end } = range;
     const text = (start.length && end.length) ? `${start} - ${end}` : 'New date range';
     return (
       <DropdownTab
-          key={index}
+          key={text}
           selected={index === dateRangeViewing}
           onClick={() => setDateRangeViewing(index)}>
         {text}
       </DropdownTab>
     );
   });
-  if (!dateRanges.filter(range => !range.start.length && !range.end.length).size) {
+  if (!dateRanges.filter((range) => !range.start.length && !range.end.length).size) {
     tabs = tabs.push(<DropdownTab key={-1} onClick={onAddRange}>Add New</DropdownTab>);
   }
   return <TabsContainer>{tabs}</TabsContainer>;
 };
 
-const DateRangeSelection = ({ dateRanges, dateRangeViewing, onDateRangeChange } :Props) => {
+const DateRangeSelection = ({ dateRanges, dateRangeViewing, onDateRangeChange } :Object) => {
   const selectedDateRange = dateRanges.get(dateRangeViewing);
   const { start, end } = selectedDateRange;
 
   const onChange = (key, valueStr) => {
     const valueMoment = moment(valueStr);
     const value = valueMoment.isValid() ? valueMoment.format(DATE_FORMAT) : '';
-    const newValue = Object.assign({}, selectedDateRange, { [key]: value });
+    const newValue = { ...selectedDateRange, [key]: value };
     onDateRangeChange(dateRanges.set(dateRangeViewing, newValue));
   };
 
@@ -103,7 +92,7 @@ const DateRangeSelection = ({ dateRanges, dateRangeViewing, onDateRangeChange } 
           <DatePicker
               value={start}
               dateFormat={DATE_FORMAT}
-              onChange={date => onChange('start', date)}
+              onChange={(date) => onChange('start', date)}
               selectProps={{
                 placeholder: `e.g. ${moment().format(DATE_FORMAT)}`,
               }} />
@@ -115,7 +104,7 @@ const DateRangeSelection = ({ dateRanges, dateRangeViewing, onDateRangeChange } 
           <DatePicker
               value={end}
               dateFormat={DATE_FORMAT}
-              onChange={date => onChange('end', date)}
+              onChange={(date) => onChange('end', date)}
               selectProps={{
                 placeholder: `e.g. ${moment().format(DATE_FORMAT)}`,
               }} />
@@ -151,7 +140,7 @@ const DatePropertySelection = ({
   selectedNeighborTypes,
   entityTypesById,
   propertyTypesById
-} :Props) => {
+} :Object) => {
 
   const selectedDateRange = dateRanges.get(dateRangeViewing);
   const { start, end, properties } = selectedDateRange;
@@ -167,7 +156,7 @@ const DatePropertySelection = ({
   const onChange = (e, datePair) => {
     const { checked } = e.target;
     const newProperties = checked ? properties.add(datePair) : properties.delete(datePair);
-    const updatedDateRange = Object.assign({}, selectedDateRange, { properties: newProperties });
+    const updatedDateRange = { ...selectedDateRange, properties: newProperties };
     onDateRangeChange(dateRanges.set(dateRangeViewing, updatedDateRange));
   };
 
@@ -177,15 +166,16 @@ const DatePropertySelection = ({
     return `${propertyTypeTitle} of ${entityTypeTitle}`;
   };
 
-  const checkboxes = getDateProperties(selectedNeighborTypes, entityTypesById, propertyTypesById).map(datePair => (
-    <SingleCheckboxWrapper key={datePair}>
-      <StyledCheckbox
-          label={getDatePropertyLabel(datePair)}
-          checked={properties.has(datePair)}
-          disabled={reserved.has(datePair)}
-          onChange={e => onChange(e, datePair)} />
-    </SingleCheckboxWrapper>
-  ));
+  const checkboxes = getDateProperties(selectedNeighborTypes, entityTypesById, propertyTypesById)
+    .map((datePair) => (
+      <SingleCheckboxWrapper key={datePair}>
+        <StyledCheckbox
+            label={getDatePropertyLabel(datePair)}
+            checked={properties.has(datePair)}
+            disabled={reserved.has(datePair)}
+            onChange={(e) => onChange(e, datePair)} />
+      </SingleCheckboxWrapper>
+    ));
 
   return (
     <PropertyCheckboxWrapper>
@@ -194,12 +184,50 @@ const DatePropertySelection = ({
   );
 };
 
-const MultiDateRangePicker = (props :Props) => (
-  <DropdownWrapper>
-    <SelectedRangesTab {...props} />
-    <DateRangeSelection {...props} />
-    <DatePropertySelection {...props} />
-  </DropdownWrapper>
-);
+type Props = {
+  dateRangeViewing :number;
+  dateRanges :List;
+  entityTypesById :Map<string, *>;
+  onAddRange :() => void;
+  onDateRangeChange :(dateRanges :List<*>) => void;
+  propertyTypesById :Map<string, *>;
+  selectedNeighborTypes :Object[];
+  setDateRangeViewing :(index :number) => void;
+};
+
+const MultiDateRangePicker = (props :Props) => {
+
+  const {
+    dateRangeViewing,
+    dateRanges,
+    entityTypesById,
+    onAddRange,
+    onDateRangeChange,
+    propertyTypesById,
+    selectedNeighborTypes,
+    setDateRangeViewing,
+  } = props;
+
+  return (
+    <DropdownWrapper>
+      <SelectedRangesTab
+          dateRangeViewing={dateRangeViewing}
+          dateRanges={dateRanges}
+          onAddRange={onAddRange}
+          setDateRangeViewing={setDateRangeViewing} />
+      <DateRangeSelection
+          dateRanges={dateRanges}
+          dateRangeViewing={dateRangeViewing}
+          onDateRangeChange={onDateRangeChange} />
+      <DatePropertySelection
+          dateRanges={dateRanges}
+          dateRangeViewing={dateRangeViewing}
+          onDateRangeChange={onDateRangeChange}
+          selectedNeighborTypes={selectedNeighborTypes}
+          entityTypesById={entityTypesById}
+          propertyTypesById={propertyTypesById} />
+    </DropdownWrapper>
+  );
+};
 
 export default MultiDateRangePicker;

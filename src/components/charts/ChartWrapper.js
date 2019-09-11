@@ -3,6 +3,8 @@
  */
 
 import React from 'react';
+import type { Node } from 'react';
+
 import styled from 'styled-components';
 
 import BasicButton from '../buttons/BasicButton';
@@ -15,7 +17,7 @@ type Props = {
   yLabelRight? :string,
   downloadFn? :() => void,
   infoText? :string,
-  children :React.Node
+  children :Node
 };
 
 const Card = styled.div`

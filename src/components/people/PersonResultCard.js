@@ -8,7 +8,7 @@ import { List, Map } from 'immutable';
 
 import defaultProfileIcon from '../../assets/svg/profile-placeholder-round.svg';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { COUNT_FQN, IMAGE_PREFIX } from '../../utils/constants/DataConstants';
+import { COUNT_FQN } from '../../utils/constants/DataConstants';
 import { TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
 import { BLUE } from '../../utils/constants/Colors';
 import { FixedWidthWrapper } from '../layout/Layout';
@@ -23,9 +23,19 @@ const {
   PICTURE
 } = PROPERTY_TYPES;
 
+const getHoverStyles = ({ disabled }) => {
+  if (!disabled) {
+    return css`
+      cursor: pointer;
+      box-shadow: 0 5px 15px 0 rgba(0, 0, 0, 0.07);
+    `;
+  }
+  return null;
+};
+
 const CardWrapper = styled(FixedWidthWrapper)`
   margin: 10px 0;
-  height: ${props => (props.withCounts ? 'fit-content' : '75px')};
+  height: ${(props) => (props.withCounts ? 'fit-content' : '75px')};
   background-color: #ffffff;
   border: 1px solid #e1e1eb;
   border-radius: 5px;
@@ -33,15 +43,7 @@ const CardWrapper = styled(FixedWidthWrapper)`
   flex-direction: column;
 
   &:hover {
-    ${(props) => {
-    if (!props.disabled) {
-        return css`
-          cursor: pointer;
-          box-shadow: 0 5px 15px 0 rgba(0, 0, 0, 0.07);
-        `;
-      }
-      return '';
-    }}
+    ${getHoverStyles}
   }
 `;
 
@@ -111,10 +113,6 @@ const ProfileImg = styled.img`
   border-radius: 100%;
 `;
 
-const NA = styled.div`
-  color: #8e929b !important;
-`;
-
 const Label = styled.span`
   font-family: 'Open Sans', sans-serif;
   font-size: 11px;
@@ -130,7 +128,7 @@ const Value = styled.div`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-weight: ${props => (props.blue ? '600' : '400')};
+  font-weight: ${(props) => (props.blue ? '600' : '400')};
   color: ${(props) => {
     if (props.na) {
       return '#8e929b';
@@ -145,15 +143,8 @@ const Value = styled.div`
 const ValueWithLabel = styled.div`
   display: flex;
   flex-direction: column;
-  width: ${props => props.width}px;
+  width: ${(props) => props.width}px;
 `;
-
-type Props = {
-  index? :number,
-  person :Map<*, *>,
-  onClick? :() => void,
-  counts? :List<Map<string, number>>
-};
 
 const getProfileImgSrc = (person) => {
   let image = person.getIn([MUGSHOT, 0], person.getIn([PICTURE, 0]));
@@ -181,7 +172,7 @@ const renderCounts = (counts) => {
         <Label>SCORE DETAILS</Label>
         <Label>SCORE</Label>
       </CountRow>
-      {counts.map(countItem => (
+      {counts.map((countItem) => (
         <CountRow key={countItem.get(TOP_UTILIZERS_FILTER.LABEL)}>
           <Value blue>{countItem.get(TOP_UTILIZERS_FILTER.LABEL)}</Value>
           <Value>{countItem.get(COUNT_FQN)}</Value>
@@ -215,9 +206,16 @@ const renderDatasources = (person) => {
 
   return (
     <DatasourceWrapper>
-      {person.get(DATASOURCE, List()).map(datasource => <span key={datasource}>{datasource}</span>)}
+      {person.get(DATASOURCE, List()).map((datasource) => <span key={datasource}>{datasource}</span>)}
     </DatasourceWrapper>
   );
+};
+
+type Props = {
+  counts :List<Map<string, number>>;
+  index :number;
+  onClick :() => void;
+  person :Map<*, *>;
 };
 
 const PersonResultCard = ({
@@ -238,9 +236,9 @@ const PersonResultCard = ({
 };
 
 PersonResultCard.defaultProps = {
+  counts: null,
   index: -1,
   onClick: undefined,
-  counts: null
 };
 
 export default PersonResultCard;

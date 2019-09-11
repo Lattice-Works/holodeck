@@ -9,6 +9,7 @@ import {
   takeEvery
 } from '@redux-saga/core/effects';
 import { DataApi, EntityDataModelApi, SearchApi } from 'lattice';
+import type { SequenceAction } from 'redux-reqseq';
 
 import {
   LOAD_ENTITY_SET_SIZES,
@@ -24,7 +25,7 @@ function* loadEntitySetSizesWorker(action :SequenceAction) :Generator<*, *, *> {
     yield put(loadEntitySetSizes.request(action.id));
 
     const entitySetIds = action.value;
-    const sizes = yield all(entitySetIds.map(id => call(DataApi.getEntitySetSize, id)));
+    const sizes = yield all(entitySetIds.map((id) => call(DataApi.getEntitySetSize, id)));
     const results = {};
     entitySetIds.forEach((entitySetId, index) => {
       results[entitySetId] = sizes[index];

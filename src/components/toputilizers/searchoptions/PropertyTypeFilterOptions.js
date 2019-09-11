@@ -4,6 +4,8 @@
 
 import React from 'react';
 
+import { List } from 'immutable';
+
 import StyledCheckbox from '../../controls/StyledCheckbox';
 import { PropertyTypeCheckboxWrapper } from '../../layout/Layout';
 import { getFqnString } from '../../../utils/DataUtils';

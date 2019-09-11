@@ -4,6 +4,7 @@
 
 import React from 'react';
 import styled from 'styled-components';
+import { List, Map } from 'immutable';
 import {
   Line,
   Bar,

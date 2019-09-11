@@ -3,7 +3,9 @@
  */
 
 import React from 'react';
+
 import styled from 'styled-components';
+import { List } from 'immutable';
 
 type Props = {
   keyHeader :string,
@@ -33,7 +35,7 @@ const Table = styled.table.attrs({
 const StyledCell = styled.td`
   width: 100%;
   text-align: left;
-  padding: ${props => (props.withInput ? '0' : '6px 15px')};
+  padding: ${(props) => (props.withInput ? '0' : '6px 15px')};
   margin: 0;
 
   input {
@@ -113,7 +115,7 @@ const NumberInputTable = ({
             <Row key={key}>
               <StyledCell>{label}</StyledCell>
               <StyledCell withInput>
-                <input value={formattedValue} onChange={e => onInputChange(e, key)} />
+                <input value={formattedValue} onChange={(e) => onInputChange(e, key)} />
               </StyledCell>
             </Row>
           );

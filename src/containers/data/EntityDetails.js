@@ -39,33 +39,6 @@ import { getDateFilters, getPairFilters, matchesFilters } from '../../utils/Enti
 
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 
-type Props = {
-  rankingsById? :Map<string, number>,
-  breadcrumbs :List<string>,
-  isLoadingNeighbors :boolean,
-  isTopUtilizers :boolean,
-  neighborsById :Map<string, *>,
-  entitiesById :Map<string, *>,
-  entityTypesById :Map<string, *>,
-  entitySetsById :Map<string, *>,
-  entitySetPropertyMetadata :Map<string, *>,
-  propertyTypesByFqn :Map<string, *>,
-  propertyTypesById :Map<string, *>,
-  selectedEntitySetId :string,
-  countBreakdown :Map<*, *>,
-  lastQueryRun :Object,
-  actions :{
-    selectBreadcrumb :(index :number) => void,
-    selectEntity :(entityKeyId :string) => void,
-    loadEntityNeighbors :({ entityKeyId :string, entitySetId :string, selectedEntitySetId :string }) => void
-  }
-};
-
-type State = {
-  layout :string,
-  showingAllNeighbors :boolean
-}
-
 const NeighborsWrapper = styled(FixedWidthWrapper)`
   display: flex;
   flex-direction: column;
@@ -91,6 +64,38 @@ const LAYOUTS = {
 const HEADERS = {
   PROPERTY: 'Property',
   DATA: 'Data'
+};
+
+type Props = {
+  actions :{
+    loadEntityNeighbors :({ entitySetId :UUID, entity :any, selectedEntitySetId :UUID }) => void;
+    selectBreadcrumb :(index :number) => void;
+    selectEntity :({
+      entityKeyId :UUID,
+      entitySetId :UUID,
+      entityType :Map,
+      propertyTypesById :Map,
+    }) => void;
+  };
+  breadcrumbs :List<string>;
+  countBreakdown :Map<*, *>;
+  entitiesById :Map<string, *>;
+  entitySetPropertyMetadata :Map<string, *>;
+  entitySetsById :Map<string, *>;
+  entityTypesById :Map<string, *>;
+  isLoadingNeighbors :boolean;
+  isTopUtilizers :boolean;
+  lastQueryRun :Object;
+  neighborsById :Map<string, *>;
+  propertyTypesByFqn :Map<string, *>;
+  propertyTypesById :Map<string, *>;
+  rankingsById :Map<string, number>;
+  selectedEntitySetId :string;
+};
+
+type State = {
+  layout :string;
+  showingAllNeighbors :boolean;
 };
 
 class EntityDetails extends React.Component<Props, State> {
@@ -123,7 +128,7 @@ class EntityDetails extends React.Component<Props, State> {
   getCounts = () => {
     const { countBreakdown, entityTypesById, propertyTypesById } = this.props;
 
-    const getEntityTypeTitle = id => entityTypesById.getIn([id, 'title'], '');
+    const getEntityTypeTitle = (id) => entityTypesById.getIn([id, 'title'], '');
 
     return countBreakdown.get(this.getSelectedEntityKeyId(), Map()).entrySeq()
       .filter(([pair]) => pair !== 'score')
@@ -315,9 +320,9 @@ class EntityDetails extends React.Component<Props, State> {
   renderBreadcrumbs = () => {
     const { actions, breadcrumbs } = this.props;
 
-    const crumbs = List.of({ [BREADCRUMB.TITLE]: 'Search Results' }).concat(breadcrumbs).map((crumb, index) => {
-      return Object.assign({}, crumb, { [BREADCRUMB.ON_CLICK]: () => actions.selectBreadcrumb(index) });
-    });
+    const crumbs = List.of({ [BREADCRUMB.TITLE]: 'Search Results' })
+      .concat(breadcrumbs)
+      .map((crumb, index) => ({ ...crumb, [BREADCRUMB.ON_CLICK]: () => actions.selectBreadcrumb(index) }));
     return <Breadcrumbs breadcrumbs={crumbs} />;
   }
 

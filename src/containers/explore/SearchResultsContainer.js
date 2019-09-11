@@ -35,34 +35,6 @@ import { getEntityKeyId, getFqnString, isPersonType } from '../../utils/DataUtil
 import * as ExploreActionFactory from './ExploreActionFactory';
 import * as TopUtilizersActionFactory from '../toputilizers/TopUtilizersActionFactory';
 
-type Props = {
-  results :List<*>,
-  filteredPropertyTypes? :Set<string>,
-  isTopUtilizers :boolean,
-
-  countBreakdown :Map<*, *>,
-  selectedEntitySet :Map<*, *>,
-  breadcrumbs :List<string>,
-  neighborsById :Map<string, *>,
-  entityTypesById :Map<string, *>,
-  entitySetsById :Map<string, *>,
-  propertyTypesById :Map<string, *>,
-  totalHits :number,
-  isDownloadingTopUtilizers :boolean,
-  actions :{
-    selectEntity :(entityKeyId :string) => void,
-    loadEntityNeighbors :({ entitySetId :string, entity :Map<*, *> }) => void,
-    downloadTopUtilizers :({ name :string, results :Map<*, *> }) => void
-  }
-}
-
-type State = {
-  layout :string,
-  showCountDetails :boolean,
-  start :number
-}
-
-
 const ToolbarWrapper = styled.div`
   width: 100%;
   display: flex;
@@ -88,7 +60,7 @@ const NumResults = styled.div`
   font-size: 12px;
   line-height: normal;
   color: #8e929b;
-  margin-left: ${props => (props.withMargin ? 30 : 0)}px;
+  margin-left: ${(props) => (props.withMargin ? 30 : 0)}px;
 `;
 
 const LAYOUTS = {
@@ -98,10 +70,41 @@ const LAYOUTS = {
 
 const MAX_RESULTS = 20;
 
+type Props = {
+  actions :{
+    selectEntity :(obj :Object) => void;
+    loadEntityNeighbors :({ entitySetId :string, entity :Map<*, *> }) => void;
+    downloadTopUtilizers :({ name :string, results :Map<*, *> }) => void;
+  };
+  breadcrumbs :List<string>;
+  countBreakdown :Map<*, *>;
+  currLayout ?:string;
+  entityTypesById :Map<string, *>;
+  executeSearch :Function;
+  filteredPropertyTypes ?:Set<string>;
+  isDownloadingTopUtilizers :boolean;
+  isTopUtilizers :boolean;
+  neighborsById :Map<string, *>;
+  propertyTypesById :Map<string, *>;
+  renderLayout :Function;
+  results :List<*>;
+  searchStart ?:number;
+  selectedEntitySet :Map<*, *>;
+  totalHits :number;
+};
+
+type State = {
+  layout :string;
+  showCountDetails :boolean;
+  start :number;
+};
+
 class SearchResultsContainer extends React.Component<Props, State> {
 
   static defaultProps = {
-    filteredPropertyTypes: Set()
+    currLayout: undefined,
+    filteredPropertyTypes: Set(),
+    searchStart: 0,
   };
 
   constructor(props :Props) {
@@ -113,7 +116,7 @@ class SearchResultsContainer extends React.Component<Props, State> {
     };
   }
 
-  updateLayout = layout => this.setState({ layout });
+  updateLayout = (layout) => this.setState({ layout });
 
   onSelect = (index, entity) => {
     const {
@@ -142,7 +145,7 @@ class SearchResultsContainer extends React.Component<Props, State> {
   getCountsForUtilizer = (entityKeyId) => {
     const { countBreakdown, entityTypesById, propertyTypesById } = this.props;
 
-    const getEntityTypeTitle = id => entityTypesById.getIn([id, 'title'], '');
+    const getEntityTypeTitle = (id) => entityTypesById.getIn([id, 'title'], '');
 
     return countBreakdown.get(entityKeyId, Map()).entrySeq()
       .filter(([pair]) => pair !== 'score')
@@ -192,12 +195,12 @@ class SearchResultsContainer extends React.Component<Props, State> {
 
     const propertyTypes = entityTypesById
       .getIn([selectedEntitySet.get('entityTypeId'), 'properties'], List())
-      .map(id => propertyTypesById.get(id));
+      .map((id) => propertyTypesById.get(id));
 
     propertyTypes.forEach((propertyType) => {
       const id = getFqnString(propertyType.get('type'));
       const value = propertyType.get('title');
-      if (!filteredPropertyTypes.has(id)) {
+      if (filteredPropertyTypes && !filteredPropertyTypes.has(id)) {
         const isImg = IMAGE_PROPERTY_TYPES.includes(id);
         propertyTypeHeaders = propertyTypeHeaders.push(fromJS({ id, value, isImg }));
       }
@@ -222,7 +225,7 @@ class SearchResultsContainer extends React.Component<Props, State> {
       const name = `${selectedEntitySet.get('title')} - Top Utilizers`;
       const fields = entityTypesById
         .getIn([selectedEntitySet.get('entityTypeId'), 'properties'], List())
-        .map(id => getFqnString(propertyTypesById.getIn([id, 'type'])));
+        .map((id) => getFqnString(propertyTypesById.getIn([id, 'type'])));
       actions.downloadTopUtilizers({ name, fields, results });
     }
   }
@@ -342,7 +345,7 @@ class SearchResultsContainer extends React.Component<Props, State> {
           <Pagination
               numPages={numPages}
               activePage={currPage}
-              onChangePage={page => this.updatePage(((page - 1) * MAX_RESULTS), layout)} />
+              onChangePage={(page) => this.updatePage(((page - 1) * MAX_RESULTS), layout)} />
         </FixedWidthWrapper>
       </CenteredColumnContainer>
     );
@@ -356,7 +359,6 @@ function mapStateToProps(state :Map<*, *>) :Object {
   const topUtilizers = state.get(STATE.TOP_UTILIZERS);
   return {
     entityTypesById: edm.get(EDM.ENTITY_TYPES_BY_ID),
-    entitySetsById: edm.get(EDM.ENTITY_SETS_BY_ID),
     propertyTypesById: edm.get(EDM.PROPERTY_TYPES_BY_ID),
     selectedEntitySet: entitySets.get(ENTITY_SETS.SELECTED_ENTITY_SET),
     breadcrumbs: explore.get(EXPLORE.BREADCRUMBS),

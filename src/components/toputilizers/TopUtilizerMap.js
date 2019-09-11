@@ -10,27 +10,16 @@ import {
   OrderedSet,
   fromJS
 } from 'immutable';
+import { Models } from 'lattice';
 
 import SimpleMap from '../map/SimpleMap';
 import ResourceDropdownFilter from './resources/ResourceDropdownFilter';
 import { getEntityTitle } from '../../utils/TagUtils';
 import { CenteredColumnContainer, FixedWidthWrapper, TitleText } from '../layout/Layout';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { getEntityKeyId, getFqnString } from '../../utils/DataUtils';
+import { getEntityKeyId } from '../../utils/DataUtils';
 
-type Props = {
-  results :List<*>,
-  neighborsById :Map<*, *>,
-  locationsById :Map<*, *>,
-  entityTypesById :Map<*, *>,
-  propertyTypesById :Map<*, *>,
-  selectedEntitySet :Map<*, *>,
-  neighborTypes :List<*>
-}
-
-type State = {
-  neighborOptions :List<*>,
-}
+const { FullyQualifiedName } = Models;
 
 const FilterWrapper = styled.div`
   width: 100%;
@@ -60,14 +49,37 @@ const BLANK_OPTION = fromJS({
   label: 'All'
 });
 
+type Props = {
+  entityTypesById :Map<*, *>;
+  locationsById :Map<*, *>;
+  neighborTypes :List<*>;
+  neighborsById :Map<*, *>;
+  propertyTypesById :Map<*, *>;
+  results :List<*>;
+  selectedEntitySet :Map<*, *>;
+}
+
+type State = {
+  SELECTED_TYPE :Object;
+  SELECTED_UTILIZER :Object;
+  locationId :UUID;
+  neighborOptions :List<*>;
+};
+
 export default class TopUtilizerMap extends React.Component<Props, State> {
 
   constructor(props :Props) {
     super(props);
 
-    const locationId = props.propertyTypesById.entrySeq().filter(([id, propertyType]) => getFqnString(
-      propertyType.get('type', Map())
-    ) === PROPERTY_TYPES.LOCATION).map(([id]) => id).get(0);
+    console.log('TopUtilizerMap : fix this entrySeq() thing');
+    const locationId = props.propertyTypesById
+      .entrySeq()
+      // .filter(([id, propertyType]) => getFqnString(propertyType.get('type', Map())) === PROPERTY_TYPES.LOCATION)
+      .filter(([id, propertyType]) => (
+        FullyQualifiedName.toString(propertyType.get('type', Map())) === PROPERTY_TYPES.LOCATION
+      ))
+      .map(([id]) => id)
+      .get(0);
 
     const neighborOptions = this.getNeighborOptions(locationId, props);
 
@@ -79,7 +91,7 @@ export default class TopUtilizerMap extends React.Component<Props, State> {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps(nextProps :Props) {
     const { locationId } = this.state;
     const { selectedEntitySet, neighborsById } = this.props;
     if (selectedEntitySet !== nextProps.selectedEntitySet || neighborsById !== nextProps.neighborsById) {
@@ -91,10 +103,10 @@ export default class TopUtilizerMap extends React.Component<Props, State> {
     }
   }
 
-  hasLocations = (locationId, entityTypeId, entityTypesById) => entityTypesById
+  hasLocations = (locationId :UUID, entityTypeId :UUID, entityTypesById :Map) => entityTypesById
     .getIn([entityTypeId, 'properties'], List()).includes(locationId)
 
-  getNeighborOptions = (locationId, props) => {
+  getNeighborOptions = (locationId :UUID, props :Props) => {
     const { neighborTypes, selectedEntitySet, entityTypesById } = props;
 
     const neighborTypeList = this.hasLocations(locationId, selectedEntitySet.get('entityTypeId'), entityTypesById)
@@ -103,21 +115,25 @@ export default class TopUtilizerMap extends React.Component<Props, State> {
         label: selectedEntitySet.get('title')
       }) : List();
 
-    return neighborTypeList.concat(neighborTypes
-      .filter(type => type.getIn(['neighborEntityType', 'properties']).includes(locationId))
-      .map(type => ({
-        value: type.getIn(['neighborEntityType', 'id']),
-        label: type.getIn(['neighborEntityType', 'title'])
-      })));
+    return neighborTypeList.concat(
+      neighborTypes
+        .filter((type) => type.getIn(['neighborEntityType', 'properties']).includes(locationId))
+        .map((type) => ({
+          value: type.getIn(['neighborEntityType', 'id']),
+          label: type.getIn(['neighborEntityType', 'title'])
+        }))
+    );
   }
 
-  renderSelectDropdown = (key, label, options) => {
+  renderSelectDropdown = (key :string, label :string, options :Object[]) => {
+
+    const { [key]: value } = this.state;
     const onChange = (newValue) => {
       this.setState({ [key]: newValue });
     };
     return (
       <ResourceDropdownFilter
-          value={this.state[key]}
+          value={value}
           label={label}
           options={options}
           onChange={onChange}
@@ -126,8 +142,7 @@ export default class TopUtilizerMap extends React.Component<Props, State> {
   }
 
   getLocations = () => {
-    const selectedItem = this.state[FILTERS.SELECTED_TYPE].value;
-    const selectedUtilizer = this.state[FILTERS.SELECTED_UTILIZER].value;
+
     const {
       results,
       neighborsById,
@@ -135,10 +150,17 @@ export default class TopUtilizerMap extends React.Component<Props, State> {
       locationsById
     } = this.props;
 
+    const {
+      [FILTERS.SELECTED_TYPE]: selectedType,
+      [FILTERS.SELECTED_UTILIZER]: selectedUtilizerState,
+    } = this.state;
+    const selectedItem = selectedType.value;
+    const selectedUtilizer = selectedUtilizerState.value;
+
     let locations = Map();
 
     const utilizerList = selectedUtilizer
-      ? results.filter(result => getEntityKeyId(result) === selectedUtilizer)
+      ? results.filter((result) => getEntityKeyId(result) === selectedUtilizer)
       : results;
 
     utilizerList.forEach((result) => {
@@ -150,8 +172,10 @@ export default class TopUtilizerMap extends React.Component<Props, State> {
       else {
         const coords = neighborsById
           .get(entityKeyId, List())
-          .filter(neighborObj => selectedItem === neighborObj.getIn(['neighborEntitySet', 'entityTypeId']))
-          .flatMap(neighborObj => locationsById.get(getEntityKeyId(neighborObj.get('neighborDetails', Map())), List()));
+          .filter((neighborObj) => selectedItem === neighborObj.getIn(['neighborEntitySet', 'entityTypeId']))
+          .flatMap(
+            (neighborObj) => locationsById.get(getEntityKeyId(neighborObj.get('neighborDetails', Map())), List())
+          );
 
         if (coords && coords.size) {
           locations = locations.set(entityKeyId, coords);

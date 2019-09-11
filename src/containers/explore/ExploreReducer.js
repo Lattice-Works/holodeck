@@ -75,12 +75,12 @@ const updateLocationsById = (locationsById, entity) => {
     const entityKeyId = getEntityKeyId(entity);
     const locations = entity.get(PROPERTY_TYPES.LOCATION, List()).map((coordinate) => {
       const [latitude, longitude] = coordinate.split(',');
-      if (Number.isNaN(Number.parseFloat(longitude, 0), 10) || Number.isNaN(Number.parseFloat(latitude, 0), 10)) {
+      if (Number.isNaN(Number.parseFloat(longitude)) || Number.isNaN(Number.parseFloat(latitude))) {
         return undefined;
       }
 
       return [longitude, latitude];
-    }).filter(val => val !== undefined);
+    }).filter((val) => val !== undefined);
 
     if (locations && locations.size) {
       return locationsById.set(entityKeyId, locations);
@@ -91,7 +91,7 @@ const updateLocationsById = (locationsById, entity) => {
 };
 
 const filterSearchResults = (searchResults, filteredTypes) => searchResults
-  .map(entity => filterEntity(entity, filteredTypes));
+  .map((entity) => filterEntity(entity, filteredTypes));
 
 const updateEntitiesIdForNeighbors = (
   initEntitiesById,

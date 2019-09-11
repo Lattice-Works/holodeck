@@ -3,26 +3,16 @@
  */
 
 import React, { Component } from 'react';
+
 import styled from 'styled-components';
+import { List } from 'immutable';
 
 import downArrowIcon from '../../assets/svg/down-arrow.svg';
 import BasicButton from './BasicButton';
 import StyledCheckbox from '../controls/StyledCheckbox';
 
-/*
- * styled components
- */
-
- type Props = {
-   title :string,
-   options :{ label :string, onClick :() => void }[],
-   openAbove? :boolean,
-   fullSize? :boolean,
-   selected :Immutable.List<*>
- }
-
 const RefWrapper = styled.div`
-  width: ${props => (props.fullSize ? '100%' : 'auto')};
+  width: ${(props) => (props.fullSize ? '100%' : 'auto')};
 `;
 
 const SearchableSelectWrapper = styled.div`
@@ -30,7 +20,7 @@ const SearchableSelectWrapper = styled.div`
   display: flex;
   flex: 0 auto;
   flex-direction: column;
-  width: ${props => (props.fullSize ? '100%' : 'auto')};
+  width: ${(props) => (props.fullSize ? '100%' : 'auto')};
   margin: 0;
   padding: 0;
   position: relative;
@@ -40,7 +30,7 @@ const SearchInputWrapper = styled.div`
   display: flex;
   flex: 0 0 auto;
   flex-direction: row;
-  height: ${props => (props.short ? '39px' : '45px')};
+  height: ${(props) => (props.short ? '39px' : '45px')};
   position: relative;
 `;
 
@@ -54,7 +44,7 @@ const SearchIcon = styled.div`
 
 
 const SearchButton = styled(BasicButton)`
-  width: ${props => (props.fullSize ? '100%' : 'auto')};
+  width: ${(props) => (props.fullSize ? '100%' : 'auto')};
   font-family: 'Open Sans', sans-serif;
   flex: 1 0 auto;
   font-size: 14px;
@@ -71,12 +61,12 @@ const DataTableWrapper = styled.div`
   position: absolute;
   z-index: 1;
   width: 100%;
-  visibility: ${props => (props.isVisible ? 'visible' : 'hidden')}};
+  visibility: ${(props) => (props.isVisible ? 'visible' : 'hidden')}};
   box-shadow: 0 10px 20px 0 rgba(0, 0, 0, 0.1);
-  margin: ${props => (props.openAbove ? '-303px 0 0 0' : '45px 0 0 0')};
-  bottom: ${props => (props.openAbove ? '45px' : 'auto')};
-  max-width: ${props => (props.fullSize ? '100%' : '400px')};
-  width: ${props => (props.fullSize ? '100%' : 'auto')};
+  margin: ${(props) => (props.openAbove ? '-303px 0 0 0' : '45px 0 0 0')};
+  bottom: ${(props) => (props.openAbove ? '45px' : 'auto')};
+  max-width: ${(props) => (props.fullSize ? '100%' : '400px')};
+  width: ${(props) => (props.fullSize ? '100%' : 'auto')};
 `;
 
 const SearchOptionContainer = styled.div`
@@ -91,13 +81,29 @@ const SearchOptionContainer = styled.div`
   }
 `;
 
+type Props = {
+  fullSize ?:boolean;
+  onChange :Function;
+  openAbove ?:boolean;
+  options :{ label :string, onClick :() => void }[];
+  selected :List<any>;
+  short ?:boolean;
+  title :string;
+};
+
+type State = {
+  isVisibleDataTable :boolean;
+};
+
 export default class CheckboxDropdownButton extends Component<Props, State> {
 
   static defaultProps = {
+    fullSize: false,
     openAbove: false,
-    transparent: false,
-    fullSize: false
+    short: false,
   }
+
+  node :?HTMLDivElement;
 
   constructor(props :Props) {
     super(props);
@@ -114,41 +120,49 @@ export default class CheckboxDropdownButton extends Component<Props, State> {
     document.removeEventListener('mousedown', this.closeDataTable, false);
   }
 
-  closeDataTable = (e) => {
-    if (this.node.contains(e.target)) {
+  closeDataTable = (e :MouseEvent) => {
+    // $FlowFixMe
+    if (this.node && this.node.contains(e.target)) {
       return;
     }
     this.setState({ isVisibleDataTable: false });
   }
 
-  toggleDataTable = (e) => {
+  toggleDataTable = (e :SyntheticEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-
+    const { isVisibleDataTable } = this.state;
     this.setState({
-      isVisibleDataTable: !this.state.isVisibleDataTable
+      isVisibleDataTable: !isVisibleDataTable
     });
   }
 
-  handleOnSelect = (label :string) => {
-    this.props.onSelect(this.props.options.get(label));
-  }
-
   renderTable = () => {
-    const tableOptions = this.props.options.map(option => (
+
+    const { onChange, options, selected } = this.props;
+
+    const tableOptions = options.map((option :Object) => (
       <StyledCheckbox
-          onChange={this.props.onChange}
+          onChange={onChange}
           label={option.label}
           value={option.value}
-          checked={this.props.selected.includes(option.value)} />
+          checked={selected.includes(option.value)} />
     ));
     return <SearchOptionContainer>{tableOptions}</SearchOptionContainer>;
   }
 
+  setWrapperRef = (ref :any) => {
+
+    this.node = ref;
+  }
+
   render() {
-    const { title, short, fullSize } = this.props;
+
+    const { title, short } = this.props;
     const { isVisibleDataTable } = this.state;
+
+    /* eslint-disable react/jsx-props-no-spreading */
     return (
-      <RefWrapper ref={(node) => { this.node = node; }} {...this.props}>
+      <RefWrapper ref={this.setWrapperRef} {...this.props}>
         <SearchableSelectWrapper isVisibleDataTable={isVisibleDataTable} {...this.props}>
           <SearchInputWrapper short={short}>
             <SearchButton onClick={this.toggleDataTable} {...this.props}>
@@ -170,6 +184,6 @@ export default class CheckboxDropdownButton extends Component<Props, State> {
         </SearchableSelectWrapper>
       </RefWrapper>
     );
+    /* eslint-enable */
   }
-
 }

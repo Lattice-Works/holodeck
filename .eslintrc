@@ -70,6 +70,7 @@
           "OrderedList",
           "Map",
           "OrderedMap",
+          "Seq",
           "Set",
           "OrderedSet",
           "SortableContainer",
@@ -113,7 +114,7 @@
     "jsx-a11y/href-no-hash": "off",
 
     "react/default-props-match-prop-types": [
-      "warn",
+      "error",
       {
         "allowRequiredDefaults": true
       }

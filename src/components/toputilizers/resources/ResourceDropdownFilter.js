@@ -6,14 +6,6 @@ import React from 'react';
 import styled from 'styled-components';
 import Select, { components } from 'react-select';
 
-type Props = {
-  value :string,
-  label :string,
-  options :Object[],
-  onChange :(e :Object) => void,
-  withMargin? :boolean
-};
-
 const SelectWrapper = styled.div`
   display: flex;
   flex-direction: column;
@@ -21,7 +13,7 @@ const SelectWrapper = styled.div`
   width: 100%;
   margin-top: 30px;
   &:not(:last-child) {
-    margin-right: ${props => (props.withMargin ? 20 : 0)}px;
+    margin-right: ${(props) => (props.withMargin ? 20 : 0)}px;
   }
 `;
 
@@ -46,10 +38,10 @@ const StyledOption = styled.div`
   color: #555e6f;
   font-family: 'Open Sans';
   font-size: 14px;
-  margin-bottom: ${props => (props.selected ? 0 : '10px')};
+  margin-bottom: ${(props) => (props.selected ? 0 : '10px')};
 
   &:hover {
-    background-color: ${props => (props.selected ? 'transparent' : '#f0f0f7')};
+    background-color: ${(props) => (props.selected ? 'transparent' : '#f0f0f7')};
     cursor: pointer;
   }
 
@@ -60,26 +52,38 @@ const StyledOption = styled.div`
   }
 `;
 
-const renderOption = (data, selected, onClick) => (
-  <StyledOption selected={selected} onClick={onClick ? onClick : () => {}}>
+const noop = () => {};
+
+const renderOption = (data, selected, onClick = noop) => (
+  <StyledOption selected={selected} onClick={onClick}>
     {data.num > 0 ? <span>{data.num}</span> : null}
     <div>{data.label}</div>
   </StyledOption>
 );
 
-const Option = (props) => {
+const Option = (props :any) => {
   const { setValue, data } = props;
-  return renderOption(data, false, () => setValue(data), !!data.num);
+  return renderOption(data, false, () => setValue(data));
 };
 
-const SingleValue = (props) => {
+const SingleValue = (props :any) => {
   const { data } = props;
-
+  /* eslint-disable react/jsx-props-no-spreading */
   return (
     <components.SingleValue {...props}>
-      {renderOption(data, true, null, !!data.num)}
+      {renderOption(data, true)}
     </components.SingleValue>
   );
+  /* eslint-enable */
+};
+
+
+type Props = {
+  label :string;
+  onChange :(e :Object) => void;
+  options :Object[];
+  value :string;
+  withMargin? :boolean;
 };
 
 const ResourceDropdownFilter = ({
@@ -99,7 +103,7 @@ const ResourceDropdownFilter = ({
         isClearable={false}
         components={{ Option, SingleValue }}
         styles={{
-          container: base => ({
+          container: (base) => ({
             ...base,
             outline: 'none',
             border: '0'
@@ -110,6 +114,6 @@ const ResourceDropdownFilter = ({
 
 ResourceDropdownFilter.defaultProps = {
   withMargin: false
-}
+};
 
 export default ResourceDropdownFilter;

@@ -3,6 +3,7 @@
  */
 
 import { newRequestSequence } from 'redux-reqseq';
+import type { RequestSequence } from 'redux-reqseq';
 
 const LOAD_ENTITY_SET_SIZES :string = 'LOAD_ENTITY_SET_SIZES';
 const loadEntitySetSizes :RequestSequence = newRequestSequence(LOAD_ENTITY_SET_SIZES);

@@ -4,7 +4,7 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import { List, Map, fromJS, mergeDeep } from 'immutable';
+import { List, Map, fromJS } from 'immutable';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronUp } from '@fortawesome/pro-regular-svg-icons';
 
@@ -13,17 +13,6 @@ import Banner from '../cards/Banner';
 import { IMAGE_PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { TableWrapper } from '../layout/Layout';
 import { getFqnString } from '../../utils/DataUtils';
-
-type Props = {
-  neighborsById :Map<string, Map<*, *>>,
-  propertyTypesById :Map<string, *>,
-  entityTypesById :Map<string, *>,
-  onSelectEntity :({ entitySetId :string, entity :Map<*, *> }) => void
-}
-
-type State = {
-  hidden :boolean
-};
 
 const AssociationGroupWrapper = styled.div`
   width: 100%;
@@ -34,7 +23,7 @@ const AssociationGroupWrapper = styled.div`
 const Row = styled.div`
   display: flex;
   flex-direction: row;
-  justify-content: ${props => (props.justifyLeft ? 'flex-start' : 'space-between')};
+  justify-content: ${(props) => (props.justifyLeft ? 'flex-start' : 'space-between')};
   align-items: center;
 `;
 
@@ -93,6 +82,17 @@ const UpIcon = styled(FontAwesomeIcon).attrs({
   margin-left: 5px;
 `;
 
+type Props = {
+  entityTypesById :Map<string, *>;
+  neighborsById :Map<string, Map<*, *>>;
+  onSelectEntity :({ entitySetId :string, entity :Map<*, *> }) => void;
+  propertyTypesById :Map<string, *>;
+}
+
+type State = {
+  hidden :boolean;
+};
+
 export default class AssociationGroup extends React.Component<Props, State> {
 
   constructor(props :Props) {
@@ -107,7 +107,7 @@ export default class AssociationGroup extends React.Component<Props, State> {
     return neighborsById.valueSeq().getIn([0, 0, 'associationEntitySet', 'title'], '');
   }
 
-  getPropertyHeaders = (entityTypeId) => {
+  getPropertyHeaders = (entityTypeId :UUID) => {
     const { entityTypesById, propertyTypesById } = this.props;
     return entityTypesById.getIn([entityTypeId, 'properties'], List()).map((propertyTypeId) => {
       const propertyType = propertyTypesById.get(propertyTypeId, Map());
@@ -118,14 +118,14 @@ export default class AssociationGroup extends React.Component<Props, State> {
     });
   }
 
-  getOnRowClick = (entitySetId) => {
+  getOnRowClick = (entitySetId :UUID) => {
     const { onSelectEntity } = this.props;
-    return (index, entity) => {
+    return (index :number, entity :Map) => {
       onSelectEntity({ entitySetId, entity });
     };
   }
 
-  renderNeighborTable = (neighborEntitySetId, neighbors) => {
+  renderNeighborTable = (neighborEntitySetId :UUID, neighbors :List) => {
     const firstNeighbor = neighbors.get(0, Map());
     const neighborTitle = firstNeighbor.getIn(['neighborEntitySet', 'title'], '');
 
