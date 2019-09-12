@@ -8,7 +8,6 @@ import { List, Map } from 'immutable';
 
 import defaultProfileIcon from '../../assets/svg/profile-placeholder-card-large.svg';
 import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { IMAGE_PREFIX } from '../../utils/constants/DataConstants';
 import { FixedWidthWrapper } from '../layout/Layout';
 import { formatDateList } from '../../utils/FormattingUtils';
 
@@ -50,13 +49,13 @@ const Value = styled.div`
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: 400;
-  color: ${props => (props.na ? '#8e929b' : '#2e2e34')};
+  color: ${(props) => (props.na ? '#8e929b' : '#2e2e34')};
 `;
 
 const ValueWithLabel = styled.div`
   display: flex;
   flex-direction: column;
-  width: ${props => (props.extraWide ? 66 : 33)}%;
+  width: ${(props) => (props.extraWide ? 66 : 33)}%;
 `;
 
 const PersonDetailsWrapper = styled.div`

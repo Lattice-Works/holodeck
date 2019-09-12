@@ -64,7 +64,7 @@ const filterEntity = (entity, filteredTypes) => {
 };
 
 const filterResults = (searchResults, filteredTypes) => searchResults
-  .map(entity => filterEntity(entity, filteredTypes));
+  .map((entity) => filterEntity(entity, filteredTypes));
 
 function reducer(state :Map<> = INITIAL_STATE, action :Object) {
   switch (action.type) {

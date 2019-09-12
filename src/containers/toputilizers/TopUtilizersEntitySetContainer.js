@@ -32,41 +32,42 @@ import * as TopUtilizersActionFactory from './TopUtilizersActionFactory';
 import * as Routes from '../../core/router/Routes';
 
 type Props = {
-  history :string[],
-  selectedEntitySetId :string,
-  countBreakdown :Map<*, *>,
-  selectedEntitySet :?Map<*, *>,
-  selectedEntitySetSize :?number,
-  neighborsById :Map<string, *>,
-  locationsById :Map<string, *>,
-  entityTypesById :Map<string, *>,
-  propertyTypesByFqn :Map<string, *>,
-  propertyTypesById :Map<string, *>,
-  entitySetPropertyMetadata :Map<string, *>,
-  filteredPropertyTypes :Set<string>,
-  isLoadingNeighborTypes :boolean,
-  neighborTypes :List<*>,
-  numberOfUtilizers :number,
-  display :string,
-  isLoadingResults :boolean,
-  isLoadingResultCounts :boolean,
-  results :List<*>,
-  unfilteredResults :List<*>,
-  lastQueryRun :string,
   actions :{
-    changeNumUtilizers :(numUtilizers :number) => void,
-    changeTopUtilizersDisplay :(display :string) => void,
-    clearTopUtilizersResults :() => void,
-    unmountTopUtilizers :() => void,
-    selectEntitySet :(entitySet? :Map<*, *>) => void,
-    selectEntity :(entityKeyId :string) => void,
-    selectBreadcrumb :(index :number) => void,
-    loadEntityNeighbors :({ entitySetId :string, entity :Map<*, *> }) => void,
-    getTopUtilizers :() => void,
-    updateFilteredTypes :(filteredTypes :Set<*>) => void,
-    reIndexEntitiesById :(unfilteredTopUtilizerResults :List<*>) => void,
-    getNeighborTypes :(id :string) => void
-  }
+    changeNumUtilizers :(numUtilizers :number) => void;
+    changeTopUtilizersDisplay :(display :string) => void;
+    clearTopUtilizersResults :() => void;
+    getNeighborTypes :(id :string) => void;
+    getTopUtilizers :() => void;
+    // loadEntityNeighbors :({ entitySetId :string, entity :Map<*, *> }) => void;
+    reIndexEntitiesById :(unfilteredTopUtilizerResults :List<*>) => void;
+    // selectBreadcrumb :(index :number) => void;
+    // selectEntity :(entityKeyId :string) => void;
+    selectEntitySet :(entitySet? :Map<*, *>) => void;
+    selectEntitySetById :(id :string) => void;
+    unmountTopUtilizers :() => void;
+    updateFilteredTypes :(filteredTypes :Set<*>) => void;
+  };
+  countBreakdown :Map<*, *>;
+  display :string;
+  entitySetPropertyMetadata :Map<string, *>;
+  entityTypesById :Map<string, *>;
+  filteredPropertyTypes :Set<string>;
+  history :string[];
+  isLoadingNeighborTypes :boolean;
+  isLoadingResultCounts :boolean;
+  isLoadingResults :boolean;
+  lastQueryRun :string;
+  locationsById :Map<string, *>;
+  neighborTypes :List<*>;
+  neighborsById :Map<string, *>;
+  numberOfUtilizers :number;
+  propertyTypesByFqn :Map<string, *>;
+  propertyTypesById :Map<string, *>;
+  results :List<*>;
+  selectedEntitySet :?Map<*, *>;
+  selectedEntitySetId :string;
+  selectedEntitySetSize :?number;
+  unfilteredResults :List<*>;
 };
 
 const ResultsWrapper = styled.div`
@@ -76,13 +77,28 @@ const ResultsWrapper = styled.div`
 class TopUtilizersEntitySetContainer extends React.Component<Props> {
 
   componentDidMount() {
-    const { actions, selectedEntitySet, selectedEntitySetId } = this.props;
+
+    const {
+      actions,
+      entitySetPropertyMetadata,
+      entityTypesById,
+      propertyTypesById,
+      selectedEntitySet,
+      selectedEntitySetId,
+    } = this.props;
 
     if (selectedEntitySetId && !selectedEntitySet) {
       actions.selectEntitySetById(selectedEntitySetId);
     }
 
-    actions.updateFilteredTypes(this.getDefaultFilteredPropertyTypes(this.props));
+    actions.updateFilteredTypes(
+      this.getDefaultFilteredPropertyTypes({
+        entitySetPropertyMetadata,
+        entityTypesById,
+        propertyTypesById,
+        selectedEntitySet,
+      })
+    );
   }
 
   componentWillUnmount() {
@@ -90,39 +106,60 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
     actions.unmountTopUtilizers();
   }
 
-  componentWillReceiveProps(nextProps) {
-    const { actions, selectedEntitySet } = this.props;
-    if (selectedEntitySet !== nextProps.selectedEntitySet) {
-      actions.updateFilteredTypes(this.getDefaultFilteredPropertyTypes(nextProps));
-      actions.reIndexEntitiesById(nextProps.unfilteredResults);
+  componentWillReceiveProps(nextProps :Props) {
 
-      if (nextProps.selectedEntitySet) {
-        actions.getNeighborTypes(nextProps.selectedEntitySet.get('id'));
+    const { actions, selectedEntitySet } = this.props;
+    const {
+      entitySetPropertyMetadata,
+      entityTypesById,
+      propertyTypesById,
+      unfilteredResults,
+      selectedEntitySet: nextSelectedEntitySet
+    } = nextProps;
+
+    if (selectedEntitySet !== nextSelectedEntitySet) {
+      actions.updateFilteredTypes(
+        this.getDefaultFilteredPropertyTypes({
+          entitySetPropertyMetadata,
+          entityTypesById,
+          propertyTypesById,
+          selectedEntitySet: nextSelectedEntitySet,
+        })
+      );
+      actions.reIndexEntitiesById(unfilteredResults);
+      if (nextSelectedEntitySet) {
+        actions.getNeighborTypes(nextSelectedEntitySet.get('id'));
       }
     }
   }
 
-  getDefaultFilteredPropertyTypes = (props :Props) => {
-    const { entitySetPropertyMetadata, selectedEntitySet } = props;
+  getDefaultFilteredPropertyTypes = ({
+    entitySetPropertyMetadata,
+    entityTypesById,
+    propertyTypesById,
+    selectedEntitySet,
+  } :Object) => {
+
     let result = Set();
     if (selectedEntitySet) {
       const entitySetId = selectedEntitySet.get('id');
-      getEntitySetPropertyTypes(props).forEach((propertyType) => {
-        const fqn = getFqnString(propertyType.get('type', Map()));
-        const propertyTypeId = propertyType.get('id');
-        const shouldHide = entitySetPropertyMetadata
-          .getIn([entitySetId, propertyTypeId, 'propertyTags'], List())
-          .includes(PROPERTY_TAGS.HIDE);
-        if (shouldHide) {
-          result = result.add(fqn);
-        }
-      });
+      getEntitySetPropertyTypes({ selectedEntitySet, entityTypesById, propertyTypesById })
+        .forEach((propertyType) => {
+          const fqn = getFqnString(propertyType.get('type', Map()));
+          const propertyTypeId = propertyType.get('id');
+          const shouldHide = entitySetPropertyMetadata
+            .getIn([entitySetId, propertyTypeId, 'propertyTags'], List())
+            .includes(PROPERTY_TAGS.HIDE);
+          if (shouldHide) {
+            result = result.add(fqn);
+          }
+        });
     }
 
     return result;
   }
 
-  onPropertyTypeChange = (e) => {
+  onPropertyTypeChange = (e :any) => {
     const { value, checked } = e.target;
     const { actions, unfilteredResults } = this.props;
     let { filteredPropertyTypes } = this.props;
@@ -159,7 +196,7 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
       return <LoadingSpinner />;
     }
 
-    if (results.size) {
+    if (results.size && selectedEntitySet) {
       const selectedEntityType = entityTypesById.get(selectedEntitySet.get('entityTypeId', ''));
 
       switch (display) {

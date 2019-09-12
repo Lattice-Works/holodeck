@@ -3,20 +3,11 @@
  */
 
 import React from 'react';
+
 import Immutable from 'immutable';
-import styled, { css } from 'styled-components';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import styled from 'styled-components';
 import { faChevronDown, faChevronUp } from '@fortawesome/pro-regular-svg-icons';
-
-type Props = {
-  entitySet :Immutable.Map<*, *>,
-  size :?number,
-  onClick :(entitySet :Immutable.Map<*, *>) => void
-}
-
-type State = {
-  expanded :boolean
-}
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 const RightJustifyWrapper = styled.div`
   width: 100%;
@@ -68,9 +59,9 @@ const Card = styled.div`
     font-weight: 600;
     color: #2e2e34;
     margin: 0 0 15px 0;
-    overflow: ${props => (props.expanded ? 'visible' : 'hidden')};
+    overflow: ${(props) => (props.expanded ? 'visible' : 'hidden')};
     text-overflow: ellipsis;
-    white-space: ${props => (props.expanded ? 'normal' : 'nowrap')};
+    white-space: ${(props) => (props.expanded ? 'normal' : 'nowrap')};
   }
 
   span {
@@ -79,9 +70,9 @@ const Card = styled.div`
     font-family: 'Open Sans', sans-serif;
     font-size: 12px;
     color: #8e929b;
-    overflow: ${props => (props.expanded ? 'visible' : 'hidden')};
+    overflow: ${(props) => (props.expanded ? 'visible' : 'hidden')};
     text-overflow: ellipsis;
-    white-space: ${props => (props.expanded ? 'normal' : 'nowrap')};
+    white-space: ${(props) => (props.expanded ? 'normal' : 'nowrap')};
     display: block;
   }
 `;
@@ -98,6 +89,16 @@ const UpIcon = styled(FontAwesomeIcon).attrs({
   margin-left: 5px;
 `;
 
+type Props = {
+  entitySet :Immutable.Map<*, *>;
+  onClick :(entitySet :Immutable.Map<*, *>) => void;
+  size :?number;
+}
+
+type State = {
+  expanded :boolean;
+};
+
 export default class EntitySetCard extends React.Component<Props, State> {
 
   constructor(props :Props) {
@@ -107,19 +108,26 @@ export default class EntitySetCard extends React.Component<Props, State> {
     };
   }
 
-  toggleExpand = (e) => {
+  toggleExpand = (e :SyntheticEvent<HTMLButtonElement>) => {
+    const { expanded } = this.state;
     e.stopPropagation();
-    this.setState({ expanded: !this.state.expanded });
+    this.setState({ expanded: !expanded });
   }
 
   render() {
+
     const { entitySet, size, onClick } = this.props;
     const { expanded } = this.state;
+
+    let countStr = '';
+    if (typeof size === 'number') {
+      countStr = `${size.toLocaleString()} ${size === 1 ? 'entity' : 'entities'}`;
+    }
 
     return (
       <Card onClick={onClick} expanded={expanded}>
         <h1>{entitySet.get('title', '')}</h1>
-        <span>{size === undefined ? '' : `${size.toLocaleString()} ${size === 1 ? 'entity' : 'entities'}`}</span>
+        <span>{countStr}</span>
         <span>{entitySet.get('description', '')}</span>
         <RightJustifyWrapper>
           <DetailsButton onClick={this.toggleExpand}>

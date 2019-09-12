@@ -4,6 +4,7 @@
 
 import { call, put, takeEvery } from '@redux-saga/core/effects';
 import { SearchApi } from 'lattice';
+import type { SequenceAction } from 'redux-reqseq';
 
 import { getEntityKeyId } from '../../utils/DataUtils';
 import { PAGE_SIZE } from '../../utils/constants/ExploreConstants';

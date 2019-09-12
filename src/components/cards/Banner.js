@@ -6,7 +6,7 @@ export default styled.span`
   justify-content: center;
   align-items: center;
   border-radius: 8.5px;
-  background-color: ${props => (props.secondary ? '#b6bbc7' : '#8045ff')};
+  background-color: ${(props) => (props.secondary ? '#b6bbc7' : '#8045ff')};
   font-family: 'Open Sans', sans-serif;
   font-size: 13px;
   font-weight: 600;

@@ -17,15 +17,6 @@ import StyledInput from '../controls/StyledInput';
 import { SecondaryLink } from '../buttons/SecondaryButton';
 import { FixedWidthWrapper, HeaderComponentWrapper } from '../layout/Layout';
 
-type Props = {
-  selectedEntitySet :?Map<*, *>,
-  selectedEntitySetSize :?number,
-  searchTerm :string,
-  deselectEntitySet :() => void,
-  executeSearch :() => void,
-  onChange :(e) => void
-};
-
 const CenteredHeaderWrapper = styled(HeaderComponentWrapper)`
   display: flex;
   justify-content: center;
@@ -62,7 +53,7 @@ const InputGroup = styled.div`
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-end;
-  width: ${props => (props.fullSize ? '100%' : '19%')};
+  width: ${(props) => (props.fullSize ? '100%' : '19%')};
 `;
 
 const InputLabel = styled.span`
@@ -92,6 +83,15 @@ const DownloadButton = styled(SecondaryLink)`
   }
 `;
 
+type Props = {
+  deselectEntitySet :() => void;
+  executeSearch :(startVal :?number) => void;
+  onChange :() => void;
+  searchTerm :string;
+  selectedEntitySet :?Map<*, *>;
+  selectedEntitySetSize :?number;
+};
+
 const SearchParameterSelection = ({
   selectedEntitySet,
   selectedEntitySetSize,
@@ -100,7 +100,8 @@ const SearchParameterSelection = ({
   executeSearch,
   onChange
 } :Props) => {
-  const entitySetTitle = selectedEntitySet.get('title');
+
+  const entitySetTitle = selectedEntitySet ? selectedEntitySet.get('title') : '';
 
   const onKeyPress = (e) => {
     const { key } = e;
@@ -109,7 +110,8 @@ const SearchParameterSelection = ({
     }
   };
 
-  const downloadUrl = DataApi.getEntitySetDataFileUrl(selectedEntitySet.get('id'), 'csv');
+  const entitySetId :UUID = selectedEntitySet ? selectedEntitySet.get('id', '') : '';
+  const downloadUrl = DataApi.getEntitySetDataFileUrl(entitySetId, 'csv');
 
   return (
     <CenteredHeaderWrapper>
@@ -125,9 +127,8 @@ const SearchParameterSelection = ({
           <div>Search</div>
           <span><FontAwesomeIcon icon={faDatabase} /></span>
           <span>{entitySetTitle}</span>
-          {selectedEntitySetSize === undefined
-            ? null
-            : (
+          {
+            typeof selectedEntitySetSize === 'number' && (
               <StyledBanner>
                 {`${selectedEntitySetSize.toLocaleString()} ${selectedEntitySetSize === 1 ? 'entity' : 'entities'}`}
               </StyledBanner>

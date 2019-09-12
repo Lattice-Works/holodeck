@@ -22,36 +22,6 @@ import * as Routes from '../../core/router/Routes';
 import * as EntitySetActionFactory from './EntitySetActionFactory';
 import * as TopUtilizersActionFactory from '../toputilizers/TopUtilizersActionFactory';
 
-type Props = {
-  actionText :string,
-  path :string,
-  page :number,
-  totalHits :number,
-  history :string[],
-  isLoadingEdm :boolean,
-  isLoadingEntitySets :boolean,
-  entitySetSearchResults :List<*>,
-  entitySetSizes :Map<*, *>,
-  showAssociationEntitySets :boolean,
-  showAuditEntitySets :boolean,
-  actions :{
-    searchEntitySets :({
-      searchTerm :string,
-      start :number,
-      maxHits :number
-    }) => void,
-    selectEntitySet :(entitySet? :Map<*, *>) => void,
-    selectEntitySetPage :(page :number) => void,
-    setShowAssociationEntitySets :(show :boolean) => void,
-    setShowAuditEntitySets :(show :boolean) => void,
-    getNeighborTypes :(id :string) => void
-  }
-};
-
-type State = {
-  temp :boolean
-};
-
 const HeaderContainer = styled(HeaderComponentWrapper)`
   display: flex;
   flex-direction: row;
@@ -108,7 +78,39 @@ const CheckboxRow = styled(ComponentWrapper)`
 
 const PAGE_SIZE = 24;
 
+type Props = {
+  actionText :string,
+  path :string,
+  page :number,
+  totalHits :number,
+  history :string[],
+  isLoadingEdm :boolean,
+  isLoadingEntitySets :boolean,
+  entitySetSearchResults :List<*>,
+  entitySetSizes :Map<*, *>,
+  showAssociationEntitySets :boolean,
+  showAuditEntitySets :boolean,
+  actions :{
+    searchEntitySets :({
+      searchTerm :string,
+      start :number,
+      maxHits :number
+    }) => void,
+    selectEntitySet :(entitySet? :Map<*, *>) => void,
+    selectEntitySetPage :(page :number) => void,
+    setShowAssociationEntitySets :(show :boolean) => void,
+    setShowAuditEntitySets :(show :boolean) => void,
+    getNeighborTypes :(id :string) => void
+  }
+};
+
+type State = {
+  searchTerm :string;
+};
+
 class EntitySetSearch extends React.Component<Props, State> {
+
+  searchTimeout :?TimeoutID;
 
   constructor(props :Props) {
     super(props);
@@ -120,7 +122,6 @@ class EntitySetSearch extends React.Component<Props, State> {
   }
 
   componentDidMount() {
-    const { actions } = this.props;
     this.executeSearch(1, '*');
   }
 
@@ -134,7 +135,7 @@ class EntitySetSearch extends React.Component<Props, State> {
     });
   }
 
-  handleInputChange = (e :SyntheticEvent) => {
+  handleInputChange = (e :any) => {
     const { actions } = this.props;
     this.setState({ searchTerm: e.target.value });
 
@@ -171,7 +172,7 @@ class EntitySetSearch extends React.Component<Props, State> {
       return <LoadingSpinner />;
     }
 
-    return entitySetSearchResults.map(entitySetObj => (
+    return entitySetSearchResults.map((entitySetObj) => (
       <EntitySetCard
           key={entitySetObj.getIn(['entitySet', 'id'])}
           entitySet={entitySetObj.get('entitySet', Map())}
@@ -181,7 +182,8 @@ class EntitySetSearch extends React.Component<Props, State> {
   }
 
   routeToManage = () => {
-    this.props.history.push(Routes.MANAGE);
+    const { history } = this.props;
+    history.push(Routes.MANAGE);
   }
 
   render() {

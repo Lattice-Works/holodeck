@@ -12,8 +12,8 @@ const Control = styled.label`
   font-family: 'Open Sans', sans-serif;
   font-size: 14px;
   font-weight: normal;
-  color: ${props => (props.checked ? '#2e2e34' : '#8e929b')};
-  cursor: ${props => (props.disabled ? 'default' : 'pointer')};
+  color: ${(props) => (props.checked ? '#2e2e34' : '#8e929b')};
+  cursor: ${(props) => (props.disabled ? 'default' : 'pointer')};
 
   input {
     position: absolute;
@@ -94,13 +94,13 @@ const CheckboxLabel = styled.span`
 `;
 
 type Props = {
-  name :string,
-  label :string,
-  value :string,
+  name :?string,
+  label :?string,
+  value :?string,
   checked :boolean,
   onChange :(event :Object) => void,
-  disabled? :boolean,
-  dataSection? :?string
+  disabled :boolean,
+  dataSection :?string
 };
 
 const StyledCheckbox = ({
@@ -126,8 +126,11 @@ const StyledCheckbox = ({
 );
 
 StyledCheckbox.defaultProps = {
+  dataSection: '',
   disabled: false,
-  dataSection: ''
+  label: undefined,
+  name: undefined,
+  value: undefined,
 };
 
 export default StyledCheckbox;

@@ -6,6 +6,7 @@ import React from 'react';
 
 import isFunction from 'lodash/isFunction';
 import styled from 'styled-components';
+import { Map } from 'immutable';
 import { AuthActions } from 'lattice-auth';
 import { connect } from 'react-redux';
 import { Redirect, Route, Switch } from 'react-router';
@@ -108,4 +109,5 @@ function mapDispatchToProps(dispatch :Function) :Object {
   };
 }
 
+// $FlowFixMe
 export default connect(mapStateToProps, mapDispatchToProps)(AppContainer);

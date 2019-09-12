@@ -3,6 +3,7 @@
  */
 
 import { newRequestSequence } from 'redux-reqseq';
+import type { RequestSequence } from 'redux-reqseq';
 
 const LOAD_EDM :string = 'LOAD_EDM';
 const loadEdm :RequestSequence = newRequestSequence(LOAD_EDM);

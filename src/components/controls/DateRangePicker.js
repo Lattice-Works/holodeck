@@ -31,7 +31,7 @@ const InputGroup = styled.div`
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-end;
-  width: ${props => (props.fullSize ? '100%' : '33%')};
+  width: ${(props) => (props.fullSize ? '100%' : '33%')};
 `;
 
 const InputLabel = styled.span`
@@ -50,7 +50,7 @@ const FullWidthInfoButton = styled(InfoButton)`
 
 export default class DateRangePicker extends React.Component<Props, State> {
 
-  constructor(props) {
+  constructor(props :Props) {
     super(props);
     this.state = {
       startDate: props.defaultStart,
@@ -70,7 +70,7 @@ export default class DateRangePicker extends React.Component<Props, State> {
             <DatePicker
                 value={startDate}
                 dateFormat={DATE_FORMAT}
-                onChange={date => this.setState({ startDate: date })}
+                onChange={(date) => this.setState({ startDate: date })}
                 selectProps={{
                   placeholder: DATE_FORMAT,
                 }} />
@@ -82,7 +82,7 @@ export default class DateRangePicker extends React.Component<Props, State> {
             <DatePicker
                 value={endDate}
                 dateFormat={DATE_FORMAT}
-                onChange={date => this.setState({ endDate: date })}
+                onChange={(date) => this.setState({ endDate: date })}
                 selectProps={{
                   placeholder: DATE_FORMAT,
                 }} />

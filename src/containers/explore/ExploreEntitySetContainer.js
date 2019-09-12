@@ -24,25 +24,26 @@ import * as TopUtilizersActionFactory from '../toputilizers/TopUtilizersActionFa
 import * as Routes from '../../core/router/Routes';
 
 type Props = {
-  selectedEntitySetId :string,
-  isLoadingResults :boolean,
-  selectedEntitySet :Map<*, *>,
-  results :List<*>,
-  selectedEntitySetSize :?number,
-  history :string[],
   actions :{
-    searchEntitySetData :({ searchTerm :string, start :number, entitySetId :string }) => void,
-    selectEntitySet :(entitySet? :Map<*, *>) => void,
-    selectEntity :(entityKeyId :string) => void,
-    unmountExplore :() => void,
-    clearExploreSearchResults :() => void
-  }
+    clearExploreSearchResults :() => void;
+    searchEntitySetData :({ searchTerm :string, start :number, entitySetId :string }) => void;
+    selectEntity :(entityKeyId :string) => void;
+    selectEntitySet :(entitySet? :Map<*, *>) => void;
+    selectEntitySetById :(id :string) => void;
+    unmountExplore :() => void;
+  };
+  history :string[];
+  isLoadingResults :boolean;
+  results :List<*>;
+  selectedEntitySet :Map<*, *>;
+  selectedEntitySetId :string;
+  selectedEntitySetSize :?number;
 };
 
 type State = {
-  searchTerm :string,
-  searchStart :number,
-  currLayout :string
+  currLayout :string;
+  searchStart :number;
+  searchTerm :string;
 };
 
 const ResultsWrapper = styled.div`
@@ -95,7 +96,7 @@ class ExploreEntitySetContainer extends React.Component<Props, State> {
     return null;
   }
 
-  onSearchTermChange = (e) => {
+  onSearchTermChange = (e :any) => {
     const { value } = e.target;
     this.setState({ searchTerm: value });
   }

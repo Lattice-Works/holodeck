@@ -28,33 +28,6 @@ import {
   InputLabel
 } from '../layout/Layout';
 
-type Props = {
-  display :string,
-  searchHasRun :boolean,
-  isLoadingNeighborTypes :boolean,
-  neighborTypes :List<*>,
-  numberOfUtilizers :number,
-  propertyTypesById :Map<string, Map<*, *>>,
-  entityTypesById :Map<string, Map<*, *>>,
-  selectedEntitySet :?Map<*, *>,
-  selectedEntitySetSize :?number,
-  selectedEntitySetPropertyTypes :List<*>,
-  filteredPropertyTypes :List<*>,
-  onPropertyTypeChange :(propertyTypeId :string) => void,
-  changeTopUtilizersDisplay :(display :string) => void,
-  deselectEntitySet :() => void,
-  getTopUtilizers :() => void,
-  changeNumUtilizers :(numUtilizers :number) => void
-};
-
-type State = {
-  countType :string,
-  dateRanges :List,
-  dateRangeViewing :boolean,
-  selectedNeighborTypes :Object[],
-  durationTypeWeights :Map<*, *>
-};
-
 const CenteredHeaderWrapper = styled(HeaderComponentWrapper)`
   display: flex;
   justify-content: center;
@@ -97,12 +70,38 @@ const StyledBanner = styled(Banner)`
   color: #ffffff !important;
 `;
 
-const newDateRange = Object.assign({}, {
+const newDateRange = {
   start: '',
   end: '',
   properties: Set()
-});
+};
 
+type Props = {
+  changeNumUtilizers :(numUtilizers :number) => void;
+  changeTopUtilizersDisplay :(display :string) => void;
+  deselectEntitySet :() => void;
+  display :string;
+  entityTypesById :Map<string, Map<*, *>>;
+  filteredPropertyTypes :List<*>;
+  getTopUtilizers :(obj :Object) => void;
+  isLoadingNeighborTypes :boolean;
+  neighborTypes :List<*>;
+  numberOfUtilizers :number;
+  onPropertyTypeChange :(propertyTypeId :string) => void;
+  propertyTypesById :Map<string, Map<*, *>>;
+  searchHasRun :boolean;
+  selectedEntitySet :Map<*, *>;
+  selectedEntitySetPropertyTypes :List<*>;
+  selectedEntitySetSize :?number;
+};
+
+type State = {
+  countType :string;
+  dateRangeViewing :number;
+  dateRanges :List;
+  durationTypeWeights :Map<*, *>;
+  selectedNeighborTypes :Object[];
+};
 export default class TopUtilizerParameterSelection extends React.Component<Props, State> {
 
   constructor(props :Props) {
@@ -162,7 +161,7 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
     );
   }
 
-  renderNavButton = (buttonDisplay) => {
+  renderNavButton = (buttonDisplay :string) => {
     const { display, changeTopUtilizersDisplay } = this.props;
 
     const selected = buttonDisplay === display;
@@ -173,7 +172,7 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
     );
   }
 
-  getDurationPropertiesForType = (entityTypeId) => {
+  getDurationPropertiesForType = (entityTypeId :UUID) => {
     const { entityTypesById, propertyTypesById } = this.props;
 
     return entityTypesById.getIn([entityTypeId, 'properties'], List())
@@ -223,8 +222,8 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
           durationTypeWeights={durationTypeWeights}
           selectedNeighborTypes={selectedNeighborTypes}
           availableDurationProperties={this.getAvailableDurationProperties()}
-          onChange={e => this.setState({ countType: e.target.value })}
-          onDurationWeightChange={newWeights => this.setState({ durationTypeWeights: newWeights })} />
+          onChange={(e) => this.setState({ countType: e.target.value })}
+          onDurationWeightChange={(newWeights) => this.setState({ durationTypeWeights: newWeights })} />
     );
   }
 
@@ -244,15 +243,18 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
           dateRanges={dateRanges}
           dateRangeViewing={dateRangeViewing}
           onAddRange={onAddRange}
-          setDateRangeViewing={index => this.setState({ dateRangeViewing: index })}
-          onDateRangeChange={newDateRanges => this.setState({ dateRanges: newDateRanges })}
+          setDateRangeViewing={(index) => this.setState({ dateRangeViewing: index })}
+          onDateRangeChange={(newDateRanges) => this.setState({ dateRanges: newDateRanges })}
           selectedNeighborTypes={selectedNeighborTypes} />
     );
   }
 
   resetWeights = () => {
     const { selectedNeighborTypes } = this.state;
-    const resetTypes = selectedNeighborTypes.map(type => Object.assign({}, type, { [TOP_UTILIZERS_FILTER.WEIGHT]: 1 }));
+    const resetTypes = selectedNeighborTypes.map((type) => ({
+      ...type,
+      [TOP_UTILIZERS_FILTER.WEIGHT]: 1
+    }));
     this.setState({ selectedNeighborTypes: resetTypes });
   }
 
@@ -262,12 +264,12 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
     return (
       <WeightsPicker
           selectedNeighborTypes={selectedNeighborTypes}
-          setNeighborTypes={neighborTypes => this.setState({ selectedNeighborTypes: neighborTypes })}
+          setNeighborTypes={(neighborTypes) => this.setState({ selectedNeighborTypes: neighborTypes })}
           resetWeights={this.resetWeights} />
     );
   }
 
-  onSelectedNeighborPairChange = (newList) => {
+  onSelectedNeighborPairChange = (newList :Object[]) => {
     const { countType, durationTypeWeights } = this.state;
 
     let newDurationTypeWeights = Map();
@@ -348,12 +350,12 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
             <div>Search</div>
             <span><FontAwesomeIcon icon={faDatabase} /></span>
             <span>{entitySetTitle}</span>
-            {selectedEntitySetSize === undefined
-              ? null
-              : (
+            {
+              typeof selectedEntitySetSize === 'number' && (
                 <StyledBanner>
                   {`${selectedEntitySetSize.toLocaleString()} ${selectedEntitySetSize === 1 ? 'entity' : 'entities'}`}
-                </StyledBanner>)
+                </StyledBanner>
+              )
             }
           </Title>
           <InputRow>

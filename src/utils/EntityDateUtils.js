@@ -138,7 +138,7 @@ export const getDateFilters = (query, propertyTypesById) => {
       if (filterList) {
         Object.entries(filterList).forEach(([id, ptFilters]) => {
           const fqn = getFqnString(propertyTypesById.getIn([id, 'type']));
-          const dateFilters = fromJS(ptFilters.filter(filter => filter['@class'] === DATE_FILTER_CLASS));
+          const dateFilters = fromJS(ptFilters.filter((filter) => filter['@class'] === DATE_FILTER_CLASS));
           if (dateFilters.size) {
             filters = filters.setIn([pair, field, fqn], dateFilters);
           }

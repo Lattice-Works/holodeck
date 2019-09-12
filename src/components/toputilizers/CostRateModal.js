@@ -104,7 +104,7 @@ export default class CostRateModal extends React.Component<Props, State> {
     }
   }
 
-  getTitle = (triplet) => {
+  getTitle = (triplet :List) => {
     const { entityTypesById, propertyTypesById } = this.props;
 
     const assocTitle = entityTypesById.getIn([triplet.get(0), 'title'], '');
@@ -162,7 +162,7 @@ export default class CostRateModal extends React.Component<Props, State> {
     );
   }
 
-  renderButtons = (hasJustifications) => (
+  renderButtons = (hasJustifications :number) => (
     <HeaderRow>
       {hasJustifications ? this.renderJustificationsButton() : <div />}
       <InfoButtonWide onClick={this.onSubmit}>Set Cost Rate</InfoButtonWide>
@@ -174,7 +174,7 @@ export default class CostRateModal extends React.Component<Props, State> {
     return costRates.keySeq().map((triplet) => {
       const fqn = getFqnString(propertyTypesById.getIn([triplet.get(2), 'type'], Map()));
       return DefaultCostExplanations[fqn];
-    }).filter(val => !!val);
+    }).filter((val) => !!val);
   }
 
   render() {

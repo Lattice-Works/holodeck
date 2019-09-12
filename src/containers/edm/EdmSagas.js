@@ -9,6 +9,7 @@ import {
   takeEvery
 } from '@redux-saga/core/effects';
 import { EntityDataModelApi } from 'lattice';
+import type { SequenceAction } from 'redux-reqseq';
 
 import {
   LOAD_EDM,
@@ -27,7 +28,7 @@ function* loadEdmWorker(action :SequenceAction) :Generator<*, *, *> {
 
     const entitySetMetadata = yield call(
       EntityDataModelApi.getPropertyMetadataForEntitySets,
-      entitySets.map(es => es.id)
+      entitySets.map((es) => es.id)
     );
 
     yield put(loadEdm.success(action.id, {
@@ -38,7 +39,6 @@ function* loadEdmWorker(action :SequenceAction) :Generator<*, *, *> {
     }));
   }
   catch (error) {
-    console.error(error);
     yield put(loadEdm.failure(action.id, error));
   }
   finally {
@@ -46,6 +46,11 @@ function* loadEdmWorker(action :SequenceAction) :Generator<*, *, *> {
   }
 }
 
-export function* loadEdmWatcher() :Generator<*, *, *> {
+function* loadEdmWatcher() :Generator<*, *, *> {
   yield takeEvery(LOAD_EDM, loadEdmWorker);
 }
+
+export {
+  loadEdmWatcher,
+  loadEdmWorker,
+};

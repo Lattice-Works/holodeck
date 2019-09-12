@@ -12,22 +12,6 @@ import DataTable from './DataTable';
 import { getEntityTitle } from '../../utils/TagUtils';
 import { getFqnString } from '../../utils/DataUtils';
 
-type Props = {
-  neighbor :Map<*, *>,
-  propertyTypeTitle :string,
-  colors :{
-    PRIMARY :string,
-    SECONDARY :string
-  },
-  entityTypesById :Map<*, *>,
-  propertyTypesById :Map<*, *>,
-  onClick :() => void
-};
-
-type State = {
-  open :boolean
-}
-
 const ROW_WIDTH = 730;
 
 const TimelineRowWrapper = styled.div`
@@ -93,9 +77,25 @@ const EntityTitle = styled.div`
   }
 `;
 
+type Props = {
+  colors :{
+    PRIMARY :string;
+    SECONDARY :string;
+  };
+  entityTypesById :Map<*, *>;
+  neighbor :Map<*, *>;
+  onClick :() => void;
+  propertyTypeTitle :string;
+  propertyTypesById :Map<*, *>;
+};
+
+type State = {
+  open :boolean;
+};
+
 export default class TimelineRow extends React.Component<Props, State> {
 
-  constructor(props) {
+  constructor(props :Props) {
     super(props);
     this.state = {
       open: false
@@ -130,7 +130,7 @@ export default class TimelineRow extends React.Component<Props, State> {
     );
   }
 
-  getPropertyHeaders = (entityTypeId) => {
+  getPropertyHeaders = (entityTypeId :UUID) => {
     const { entityTypesById, propertyTypesById } = this.props;
     return entityTypesById.getIn([entityTypeId, 'properties'], List()).map((propertyTypeId) => {
       const propertyType = propertyTypesById.get(propertyTypeId, Map());

@@ -4,6 +4,7 @@
 
 import React from 'react';
 import styled from 'styled-components';
+import { Map } from 'immutable';
 
 import AssociationGroup from './AssociationGroup';
 
@@ -14,10 +15,10 @@ const AssociationGroupContainer = styled.div`
 `;
 
 type Props = {
-  neighbors :Map<string, Map<string, Map<*, *>>>,
-  propertyTypesById :Map<string, *>,
-  entityTypesById :Map<string, *>,
-  onSelectEntity :({ entitySetId :string, entity :Map<*, *> }) => void
+  entityTypesById :Map<string, *>;
+  neighbors :Map<string, Map<string, Map<*, *>>>;
+  onSelectEntity :({ entitySetId :string, entity :Map<*, *> }) => void;
+  propertyTypesById :Map<string, *>;
 };
 
 const NeighborTables = ({
