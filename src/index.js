@@ -39,7 +39,12 @@ const GlobalStyle = createGlobalStyle`
     color: #135;
     font-family: 'Open Sans', sans-serif;
     height: 100%;
+    line-height: 1.5;
     width: 100%;
+  }
+
+  input {
+    line-height: 1.5;
   }
 
   * {
