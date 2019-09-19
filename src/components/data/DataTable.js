@@ -38,6 +38,7 @@ const CELL_HOV_COLOR = '#f8f8f8';
  */
 
 const TableContainer = styled.div`
+  background-color: #fff;
   border: 1px solid ${BORDER_COLOR};
   display: flex;
   flex: 1 0 auto;

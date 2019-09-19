@@ -24,13 +24,7 @@ import Pagination from '../../components/explore/Pagination';
 import { COUNT_FQN } from '../../utils/constants/DataConstants';
 import { IMAGE_PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
-import {
-  STATE,
-  ENTITY_SETS,
-  EXPLORE,
-  TOP_UTILIZERS
-} from '../../utils/constants/StateConstants';
-import { CenteredColumnContainer, FixedWidthWrapper, TableWrapper } from '../../components/layout/Layout';
+import { STATE, EXPLORE, TOP_UTILIZERS } from '../../utils/constants/StateConstants';
 import { getEntityKeyId, isPersonType } from '../../utils/DataUtils';
 import * as ExploreActionFactory from './ExploreActionFactory';
 import * as TopUtilizersActionFactory from '../toputilizers/TopUtilizersActionFactory';
@@ -93,7 +87,7 @@ type Props = {
   renderLayout :Function;
   results :List<*>;
   searchStart ?:number;
-  selectedEntitySet :Map<*, *>;
+  selectedEntitySet :Map;
   totalHits :number;
 };
 
@@ -237,9 +231,7 @@ class SearchResultsContainer extends React.Component<Props, State> {
     });
 
     return (
-      <TableWrapper>
-        <DataTable headers={propertyTypeHeaders} data={results} onRowClick={this.onSelect} />
-      </TableWrapper>
+      <DataTable headers={propertyTypeHeaders} data={results} onRowClick={this.onSelect} />
     );
   };
 
@@ -377,22 +369,19 @@ class SearchResultsContainer extends React.Component<Props, State> {
     const currPage = (start / MAX_RESULTS) + 1;
 
     return (
-      <CenteredColumnContainer>
-        <FixedWidthWrapper>
-          {!isExploring ? this.renderLayoutToolbar() : null}
-          {resultContent}
-          <Pagination
-              numPages={numPages}
-              activePage={currPage}
-              onChangePage={(page) => this.updatePage(((page - 1) * MAX_RESULTS), layout)} />
-        </FixedWidthWrapper>
-      </CenteredColumnContainer>
+      <>
+        {!isExploring && this.renderLayoutToolbar()}
+        {resultContent}
+        <Pagination
+            numPages={numPages}
+            activePage={currPage}
+            onChangePage={(page) => this.updatePage(((page - 1) * MAX_RESULTS), layout)} />
+      </>
     );
   }
 }
 
 function mapStateToProps(state :Map<*, *>) :Object {
-  const entitySets = state.get(STATE.ENTITY_SETS);
   const explore = state.get(STATE.EXPLORE);
   const topUtilizers = state.get(STATE.TOP_UTILIZERS);
   return {
@@ -404,7 +393,6 @@ function mapStateToProps(state :Map<*, *>) :Object {
     neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
     propertyTypes: state.getIn(['edm', 'propertyTypes'], List()),
     propertyTypesIndexMap: state.getIn(['edm', 'propertyTypesIndexMap'], Map()),
-    selectedEntitySet: entitySets.get(ENTITY_SETS.SELECTED_ENTITY_SET),
   };
 }
 

@@ -85,10 +85,7 @@ type Props = {
     setShowAuditEntitySets :RequestSequence;
   };
   entitySetSearchResults :List<*>;
-  entitySetSizes :Map<*, *>;
-  history :string[];
   page :number;
-  path :string;
   requestStates :{
     SEARCH_ENTITY_SETS :RequestState;
   };
@@ -125,7 +122,7 @@ class EntitySetSearch extends React.Component<Props, State> {
     actions.searchEntitySets({
       searchTerm: searchTermInit || '*',
       start: 0,
-      maxHits: 100
+      maxHits: 10000
     });
   }
 
@@ -145,14 +142,14 @@ class EntitySetSearch extends React.Component<Props, State> {
     }, 500);
   }
 
-  handleSelect = (entitySetObj) => {
-    const { actions, history, path } = this.props;
-    const entitySet = entitySetObj.get('entitySet', Map());
-    const id = entitySet.get('id');
-    actions.selectEntitySet(entitySet);
-    actions.getNeighborTypes(id);
-    history.push(`${path}/${id}`);
-  }
+  // handleSelect = (entitySetObj) => {
+  //   const { actions, history, path } = this.props;
+  //   const entitySet = entitySetObj.get('entitySet', Map());
+  //   const id = entitySet.get('id');
+  //   actions.selectEntitySet(entitySet);
+  //   actions.getNeighborTypes(id);
+  //   history.push(`${path}/${id}`);
+  // }
 
   goToEntitySet = (entitySetId :UUID) => {
 
@@ -166,7 +163,6 @@ class EntitySetSearch extends React.Component<Props, State> {
     const {
       actions,
       entitySetSearchResults,
-      entitySetSizes,
       page,
       requestStates,
       showAssociationEntitySets,
@@ -205,7 +201,6 @@ class EntitySetSearch extends React.Component<Props, State> {
         <EntitySetCard
             key={entitySetId}
             entitySet={entitySet}
-            size={entitySetSizes.get(entitySetId)}
             onClick={() => this.goToEntitySet(entitySetId)} />
       );
     });
@@ -274,12 +269,9 @@ function mapStateToProps(state :Map<*, *>) :Object {
       if (!showAuditEntitySets && flags.includes('AUDIT')) {
         return false;
       }
-
       return true;
     });
   }
-  const totalHits = entitySetSearchResults.size;
-
   entitySetSearchResults = entitySetSearchResults.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return {
@@ -287,11 +279,10 @@ function mapStateToProps(state :Map<*, *>) :Object {
     entitySetSearchResults,
     showAssociationEntitySets,
     showAuditEntitySets,
-    totalHits,
-    entitySetSizes: entitySets.get(ENTITY_SETS.ENTITY_SET_SIZES),
     requestStates: {
       [SEARCH_ENTITY_SETS]: state.getIn([STATE.ENTITY_SETS, SEARCH_ENTITY_SETS, 'requestState']),
     },
+    totalHits: entitySets.get(ENTITY_SETS.TOTAL_HITS),
   };
 }
 

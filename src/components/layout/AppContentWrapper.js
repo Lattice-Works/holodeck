@@ -37,22 +37,22 @@ const AppContentOuterWrapper = styled.div`
 
 const getInnerComputedStyles = ({ contentWidth } :Props) => {
 
-  let finalMaxWidth = `${APP_CONTAINER_MAX_WIDTH}px`;
+  let finalMaxWidth = APP_CONTAINER_MAX_WIDTH;
   let finalWidth;
   if (contentWidth) {
     // setting "max-width" along with "width: 100%" instead of just "width" achieves the same effect when the browser
     // is really wide, however, it additionally allows the content width to shrink with the browser, which I think
     // would be desired behavior
-    finalMaxWidth = `${contentWidth}px`;
+    finalMaxWidth = contentWidth;
     finalWidth = '100%';
   }
 
   if (finalMaxWidth > APP_CONTAINER_MAX_WIDTH) {
-    finalMaxWidth = `${APP_CONTAINER_MAX_WIDTH}px`;
+    finalMaxWidth = APP_CONTAINER_MAX_WIDTH;
   }
 
   return css`
-    max-width: ${finalMaxWidth};
+    max-width: ${finalMaxWidth}px;
     min-width: ${APP_CONTAINER_MIN_WIDTH}px;
     width: ${finalWidth};
   `;

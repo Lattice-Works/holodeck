@@ -3,7 +3,6 @@
  */
 
 import React from 'react';
-import styled from 'styled-components';
 import { List, Map } from 'immutable';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
@@ -23,6 +22,7 @@ import * as TopUtilizersActions from '../toputilizers/TopUtilizersActionFactory'
 import * as Routes from '../../core/router/Routes';
 import * as RoutingActions from '../../core/router/RoutingActions';
 import { AppContentWrapper } from '../../components/layout';
+import { APP_CONTENT_WIDTH } from '../../core/style/Sizes';
 import { isValidUUID } from '../../utils/ValidationUtils';
 import type { GoToRoot, GoToRoute } from '../../core/router/RoutingActions';
 
@@ -47,10 +47,6 @@ type State = {
   searchStart :number;
   searchTerm :string;
 };
-
-const ResultsWrapper = styled.div`
-  margin: 30px 0;
-`;
 
 class ExploreEntitySetContainer extends React.Component<Props, State> {
 
@@ -87,7 +83,8 @@ class ExploreEntitySetContainer extends React.Component<Props, State> {
   }
 
   renderResults = () => {
-    const { isLoadingResults, results } = this.props;
+
+    const { isLoadingResults, results, selectedEntitySet } = this.props;
     const { searchStart, currLayout } = this.state;
 
     if (isLoadingResults) {
@@ -97,6 +94,7 @@ class ExploreEntitySetContainer extends React.Component<Props, State> {
     if (results.size) {
       return (
         <SearchResultsContainer
+            selectedEntitySet={selectedEntitySet}
             searchStart={searchStart}
             currLayout={currLayout}
             results={results.get('hits', List())}
@@ -167,7 +165,7 @@ class ExploreEntitySetContainer extends React.Component<Props, State> {
 
     return (
       <>
-        <AppContentWrapper>
+        <AppContentWrapper bgColor="#fff" contentWidth={APP_CONTENT_WIDTH}>
           <SearchParameterSelection
               selectedEntitySet={selectedEntitySet}
               selectedEntitySetSize={selectedEntitySetSize}
@@ -176,14 +174,13 @@ class ExploreEntitySetContainer extends React.Component<Props, State> {
               executeSearch={this.executeSearch}
               searchTerm={searchTerm} />
         </AppContentWrapper>
-        <ResultsWrapper>
+        <AppContentWrapper contentWidth={APP_CONTENT_WIDTH}>
           {this.renderResults()}
-        </ResultsWrapper>
+        </AppContentWrapper>
       </>
     );
   }
 }
-
 
 function mapStateToProps(state :Map<*, *>, props :Object) :Object {
 

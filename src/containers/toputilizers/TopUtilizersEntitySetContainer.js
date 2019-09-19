@@ -270,9 +270,10 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
         default:
           return (
             <SearchResultsContainer
-                results={results}
                 filteredPropertyTypes={filteredPropertyTypes}
-                isTopUtilizers />
+                isTopUtilizers
+                results={results}
+                selectedEntitySet={selectedEntitySet} />
           );
       }
     }
