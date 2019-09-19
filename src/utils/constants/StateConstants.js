@@ -1,19 +1,7 @@
 export const STATE = {
-  EDM: 'EDM',
   ENTITY_SETS: 'ENTITY_SETS',
   EXPLORE: 'EXPLORE',
   TOP_UTILIZERS: 'TOP_UTILIZERS'
-};
-
-export const EDM = {
-  EDM_WAS_LOADED: 'edmWasLoaded',
-  ENTITY_SETS_BY_ID: 'entitySetsById',
-  ENTITY_SET_METADATA_BY_ID: 'entitySetMetadataById',
-  ENTITY_TYPES_BY_ID: 'entityTypesById',
-  ENTITY_TYPES_BY_FQN: 'entityTypesByFqn',
-  IS_LOADING_EDM: 'isLoadingEdm',
-  PROPERTY_TYPES_BY_ID: 'propertyTypesById',
-  PROPERTY_TYPES_BY_FQN: 'propertyTypesByFqn'
 };
 
 export const ENTITY_SETS = {

@@ -114,7 +114,13 @@ const DateRangeSelection = ({ dateRanges, dateRangeViewing, onDateRangeChange } 
   );
 };
 
-const getDateProperties = (selectedNeighborTypes, entityTypesById, propertyTypesById) => {
+const getDateProperties = (
+  selectedNeighborTypes,
+  entityTypes,
+  entityTypesIndexMap,
+  propertyTypes,
+  propertyTypesIndexMap,
+) => {
   let dateProperties = OrderedSet();
   let entityTypeIds = OrderedSet();
   selectedNeighborTypes.forEach((neighborTypes) => {
@@ -123,8 +129,12 @@ const getDateProperties = (selectedNeighborTypes, entityTypesById, propertyTypes
   });
 
   entityTypeIds.forEach((eid) => {
-    entityTypesById.getIn([eid, 'properties'], List()).forEach((pid) => {
-      if (DATE_DATATYPES.includes(propertyTypesById.getIn([pid, 'datatype']))) {
+    const entityTypeIndex = entityTypesIndexMap.get(eid);
+    const entityType = entityTypes.get(entityTypeIndex, Map());
+    entityType.get('properties', List()).forEach((pid) => {
+      const propertyTypeIndex = propertyTypesIndexMap.get(pid);
+      const propertyType = propertyTypes.get(propertyTypeIndex, Map());
+      if (DATE_DATATYPES.includes(propertyType.get('datatype'))) {
         dateProperties = dateProperties.add(List.of(eid, pid));
       }
     });
@@ -134,12 +144,14 @@ const getDateProperties = (selectedNeighborTypes, entityTypesById, propertyTypes
 };
 
 const DatePropertySelection = ({
-  dateRanges,
   dateRangeViewing,
+  dateRanges,
+  entityTypes,
+  entityTypesIndexMap,
   onDateRangeChange,
+  propertyTypes,
+  propertyTypesIndexMap,
   selectedNeighborTypes,
-  entityTypesById,
-  propertyTypesById
 } :Object) => {
 
   const selectedDateRange = dateRanges.get(dateRangeViewing);
@@ -161,21 +173,30 @@ const DatePropertySelection = ({
   };
 
   const getDatePropertyLabel = (pair) => {
-    const entityTypeTitle = entityTypesById.getIn([pair.get(0), 'title'], '');
-    const propertyTypeTitle = propertyTypesById.getIn([pair.get(1), 'title'], '');
+    const entityTypeIndex = entityTypesIndexMap.get(pair.get(0));
+    const entityType = entityTypes.get(entityTypeIndex, Map());
+    const entityTypeTitle = entityType.get('title');
+    const propertyTypeIndex = propertyTypesIndexMap.get(pair.get(1));
+    const propertyType = propertyTypes.get(propertyTypeIndex, Map());
+    const propertyTypeTitle = propertyType.get('title', '');
     return `${propertyTypeTitle} of ${entityTypeTitle}`;
   };
 
-  const checkboxes = getDateProperties(selectedNeighborTypes, entityTypesById, propertyTypesById)
-    .map((datePair) => (
-      <SingleCheckboxWrapper key={datePair}>
-        <StyledCheckbox
-            label={getDatePropertyLabel(datePair)}
-            checked={properties.has(datePair)}
-            disabled={reserved.has(datePair)}
-            onChange={(e) => onChange(e, datePair)} />
-      </SingleCheckboxWrapper>
-    ));
+  const checkboxes = getDateProperties(
+    selectedNeighborTypes,
+    entityTypes,
+    entityTypesIndexMap,
+    propertyTypes,
+    propertyTypesIndexMap,
+  ).map((datePair) => (
+    <SingleCheckboxWrapper key={datePair}>
+      <StyledCheckbox
+          label={getDatePropertyLabel(datePair)}
+          checked={properties.has(datePair)}
+          disabled={reserved.has(datePair)}
+          onChange={(e) => onChange(e, datePair)} />
+    </SingleCheckboxWrapper>
+  ));
 
   return (
     <PropertyCheckboxWrapper>
@@ -187,10 +208,12 @@ const DatePropertySelection = ({
 type Props = {
   dateRangeViewing :number;
   dateRanges :List;
-  entityTypesById :Map<string, *>;
+  entityTypes :List;
+  entityTypesIndexMap :Map;
   onAddRange :() => void;
   onDateRangeChange :(dateRanges :List<*>) => void;
-  propertyTypesById :Map<string, *>;
+  propertyTypes :List;
+  propertyTypesIndexMap :Map;
   selectedNeighborTypes :Object[];
   setDateRangeViewing :(index :number) => void;
 };
@@ -200,10 +223,12 @@ const MultiDateRangePicker = (props :Props) => {
   const {
     dateRangeViewing,
     dateRanges,
-    entityTypesById,
+    entityTypes,
+    entityTypesIndexMap,
     onAddRange,
     onDateRangeChange,
-    propertyTypesById,
+    propertyTypes,
+    propertyTypesIndexMap,
     selectedNeighborTypes,
     setDateRangeViewing,
   } = props;
@@ -220,12 +245,14 @@ const MultiDateRangePicker = (props :Props) => {
           dateRangeViewing={dateRangeViewing}
           onDateRangeChange={onDateRangeChange} />
       <DatePropertySelection
-          dateRanges={dateRanges}
           dateRangeViewing={dateRangeViewing}
+          dateRanges={dateRanges}
+          entityTypes={entityTypes}
+          entityTypesIndexMap={entityTypesIndexMap}
           onDateRangeChange={onDateRangeChange}
-          selectedNeighborTypes={selectedNeighborTypes}
-          entityTypesById={entityTypesById}
-          propertyTypesById={propertyTypesById} />
+          propertyTypes={propertyTypes}
+          propertyTypesIndexMap={propertyTypesIndexMap}
+          selectedNeighborTypes={selectedNeighborTypes} />
     </DropdownWrapper>
   );
 };

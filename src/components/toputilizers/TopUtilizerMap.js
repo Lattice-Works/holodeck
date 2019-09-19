@@ -50,11 +50,13 @@ const BLANK_OPTION = fromJS({
 });
 
 type Props = {
-  entityTypesById :Map<*, *>;
+  entityTypes :List;
+  entityTypesIndexMap :Map;
   locationsById :Map<*, *>;
   neighborTypes :List<*>;
   neighborsById :Map<*, *>;
-  propertyTypesById :Map<*, *>;
+  propertyTypes :List;
+  propertyTypesIndexMap :Map;
   results :List<*>;
   selectedEntitySet :Map<*, *>;
 }
@@ -69,25 +71,27 @@ type State = {
 export default class TopUtilizerMap extends React.Component<Props, State> {
 
   constructor(props :Props) {
+
     super(props);
 
     const {
-      entityTypesById,
+      entityTypes,
+      entityTypesIndexMap,
       neighborTypes,
+      propertyTypes,
       selectedEntitySet,
     } = props;
 
-    const locationId = props.propertyTypesById
-      .entrySeq()
-      // .filter(([id, propertyType]) => getFqnString(propertyType.get('type', Map())) === PROPERTY_TYPES.LOCATION)
-      .filter(([id, propertyType]) => (
-        FullyQualifiedName.toString(propertyType.get('type', Map())) === PROPERTY_TYPES.LOCATION
-      ))
-      .map(([id]) => id)
-      .get(0);
+    const locationId = propertyTypes
+      .find((propertyType :Map) => {
+        const propertyTypeFQN = FullyQualifiedName.toString(propertyType.get('type', Map()));
+        return propertyTypeFQN === PROPERTY_TYPES.LOCATION;
+      })
+      .get('id');
 
     const neighborOptions = this.getNeighborOptions({
-      entityTypesById,
+      entityTypes,
+      entityTypesIndexMap,
       locationId,
       neighborTypes,
       selectedEntitySet,
@@ -106,7 +110,8 @@ export default class TopUtilizerMap extends React.Component<Props, State> {
     const { selectedEntitySet, neighborsById } = this.props;
     const { locationId } = this.state;
     const {
-      entityTypesById,
+      entityTypes,
+      entityTypesIndexMap,
       neighborTypes,
       neighborsById: nextNeighborsById,
       selectedEntitySet: nextSelectedEntitySet,
@@ -114,7 +119,8 @@ export default class TopUtilizerMap extends React.Component<Props, State> {
 
     if (selectedEntitySet !== nextSelectedEntitySet || neighborsById !== nextNeighborsById) {
       const neighborOptions = this.getNeighborOptions({
-        entityTypesById,
+        entityTypes,
+        entityTypesIndexMap,
         locationId,
         neighborTypes,
         selectedEntitySet: nextSelectedEntitySet,
@@ -126,17 +132,20 @@ export default class TopUtilizerMap extends React.Component<Props, State> {
     }
   }
 
-  hasLocations = (locationId :UUID, entityTypeId :UUID, entityTypesById :Map) => entityTypesById
-    .getIn([entityTypeId, 'properties'], List()).includes(locationId)
+  hasLocations = (locationId :UUID, entityType :Map) => entityType.get('properties', List()).includes(locationId);
 
   getNeighborOptions = ({
-    entityTypesById,
+    entityTypes,
+    entityTypesIndexMap,
     locationId,
     neighborTypes,
     selectedEntitySet,
   } :Object) => {
 
-    const neighborTypeList = this.hasLocations(locationId, selectedEntitySet.get('entityTypeId'), entityTypesById)
+    const entityTypeId = selectedEntitySet.get('entityTypeId');
+    const entityTypeIndex = entityTypesIndexMap.get(entityTypeId);
+    const entityType = entityTypes.get(entityTypeIndex, Map());
+    const neighborTypeList = this.hasLocations(locationId, entityType)
       ? List.of({
         value: selectedEntitySet.get('id'),
         label: selectedEntitySet.get('title')
@@ -216,21 +225,25 @@ export default class TopUtilizerMap extends React.Component<Props, State> {
 
   render() {
     const {
+      entityTypes,
+      entityTypesIndexMap,
+      propertyTypes,
+      propertyTypesIndexMap,
       results,
       selectedEntitySet,
-      entityTypesById,
-      propertyTypesById
     } = this.props;
     const { neighborOptions } = this.state;
 
-    const selectedEntityType = entityTypesById.get(selectedEntitySet.get('entityTypeId'));
+    const entityTypeId = selectedEntitySet.get('entityTypeId');
+    const entityTypeIndex = entityTypesIndexMap.get(entityTypeId);
+    const selectedEntityType = entityTypes.get(entityTypeIndex, Map());
 
     const utilizerOptions = [
       BLANK_OPTION.toJS(),
       ...results.map((utilizer, index) => {
         const value = getEntityKeyId(utilizer);
         const num = index + 1;
-        const label = getEntityTitle(selectedEntityType, propertyTypesById, utilizer);
+        const label = getEntityTitle(selectedEntityType, propertyTypes, propertyTypesIndexMap, utilizer);
         return { value, num, label };
       }).toJS()
     ];

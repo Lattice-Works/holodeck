@@ -5,6 +5,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { List, Map, Set } from 'immutable';
+import { Models } from 'lattice';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -18,18 +19,23 @@ import TopUtilizerResources from '../../components/toputilizers/TopUtilizerResou
 import TopUtilizerMap from '../../components/toputilizers/TopUtilizerMap';
 import {
   STATE,
-  EDM,
   ENTITY_SETS,
   EXPLORE,
   TOP_UTILIZERS
 } from '../../utils/constants/StateConstants';
 import { PROPERTY_TAGS } from '../../utils/constants/DataModelConstants';
 import { RESULT_DISPLAYS } from '../../utils/constants/TopUtilizerConstants';
-import { getFqnString, getEntitySetPropertyTypes } from '../../utils/DataUtils';
-import * as EntitySetActionFactory from '../entitysets/EntitySetActionFactory';
+import { getEntitySetPropertyTypes } from '../../utils/DataUtils';
+import * as EntitySetActions from '../entitysets/EntitySetActions';
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 import * as TopUtilizersActionFactory from './TopUtilizersActionFactory';
 import * as Routes from '../../core/router/Routes';
+
+const { FullyQualifiedName } = Models;
+
+const ResultsWrapper = styled.div`
+  margin: 30px 0;
+`;
 
 type Props = {
   actions :{
@@ -49,8 +55,9 @@ type Props = {
   };
   countBreakdown :Map<*, *>;
   display :string;
-  entitySetPropertyMetadata :Map<string, *>;
-  entityTypesById :Map<string, *>;
+  entitySetsMetaData :Map;
+  entityTypes :List;
+  entityTypesIndexMap :Map;
   filteredPropertyTypes :Set<string>;
   history :string[];
   isLoadingNeighborTypes :boolean;
@@ -61,18 +68,14 @@ type Props = {
   neighborTypes :List<*>;
   neighborsById :Map<string, *>;
   numberOfUtilizers :number;
-  propertyTypesByFqn :Map<string, *>;
-  propertyTypesById :Map<string, *>;
+  propertyTypes :List;
+  propertyTypesIndexMap :Map;
   results :List<*>;
   selectedEntitySet :?Map<*, *>;
-  selectedEntitySetId :string;
+  selectedEntitySetId :?UUID;
   selectedEntitySetSize :?number;
   unfilteredResults :List<*>;
 };
-
-const ResultsWrapper = styled.div`
-  margin: 30px 0;
-`;
 
 class TopUtilizersEntitySetContainer extends React.Component<Props> {
 
@@ -80,9 +83,11 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
 
     const {
       actions,
-      entitySetPropertyMetadata,
-      entityTypesById,
-      propertyTypesById,
+      entitySetsMetaData,
+      entityTypes,
+      entityTypesIndexMap,
+      propertyTypes,
+      propertyTypesIndexMap,
       selectedEntitySet,
       selectedEntitySetId,
     } = this.props;
@@ -93,9 +98,11 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
 
     actions.updateFilteredTypes(
       this.getDefaultFilteredPropertyTypes({
-        entitySetPropertyMetadata,
-        entityTypesById,
-        propertyTypesById,
+        entitySetsMetaData,
+        entityTypes,
+        entityTypesIndexMap,
+        propertyTypes,
+        propertyTypesIndexMap,
         selectedEntitySet,
       })
     );
@@ -110,9 +117,11 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
 
     const { actions, selectedEntitySet } = this.props;
     const {
-      entitySetPropertyMetadata,
-      entityTypesById,
-      propertyTypesById,
+      entitySetsMetaData,
+      entityTypes,
+      entityTypesIndexMap,
+      propertyTypes,
+      propertyTypesIndexMap,
       unfilteredResults,
       selectedEntitySet: nextSelectedEntitySet
     } = nextProps;
@@ -120,9 +129,11 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
     if (selectedEntitySet !== nextSelectedEntitySet) {
       actions.updateFilteredTypes(
         this.getDefaultFilteredPropertyTypes({
-          entitySetPropertyMetadata,
-          entityTypesById,
-          propertyTypesById,
+          entitySetsMetaData,
+          entityTypes,
+          entityTypesIndexMap,
+          propertyTypes,
+          propertyTypesIndexMap,
           selectedEntitySet: nextSelectedEntitySet,
         })
       );
@@ -134,26 +145,33 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
   }
 
   getDefaultFilteredPropertyTypes = ({
-    entitySetPropertyMetadata,
-    entityTypesById,
-    propertyTypesById,
+    entitySetsMetaData,
+    entityTypes,
+    entityTypesIndexMap,
+    propertyTypes,
+    propertyTypesIndexMap,
     selectedEntitySet,
   } :Object) => {
 
     let result = Set();
     if (selectedEntitySet) {
       const entitySetId = selectedEntitySet.get('id');
-      getEntitySetPropertyTypes({ selectedEntitySet, entityTypesById, propertyTypesById })
-        .forEach((propertyType) => {
-          const fqn = getFqnString(propertyType.get('type', Map()));
-          const propertyTypeId = propertyType.get('id');
-          const shouldHide = entitySetPropertyMetadata
-            .getIn([entitySetId, propertyTypeId, 'propertyTags'], List())
-            .includes(PROPERTY_TAGS.HIDE);
-          if (shouldHide) {
-            result = result.add(fqn);
-          }
-        });
+      getEntitySetPropertyTypes({
+        selectedEntitySet,
+        entityTypes,
+        entityTypesIndexMap,
+        propertyTypes,
+        propertyTypesIndexMap,
+      }).forEach((propertyType) => {
+        const propertyTypeFQN = FullyQualifiedName.toString(propertyType.get('type', Map()));
+        const propertyTypeId = propertyType.get('id');
+        const shouldHide = entitySetsMetaData
+          .getIn([entitySetId, propertyTypeId, 'propertyTags'], List())
+          .includes(PROPERTY_TAGS.HIDE);
+        if (shouldHide) {
+          result = result.add(propertyTypeFQN);
+        }
+      });
     }
 
     return result;
@@ -178,14 +196,15 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
     const {
       countBreakdown,
       display,
-      entityTypesById,
+      entityTypes,
+      entityTypesIndexMap,
       filteredPropertyTypes,
       isLoadingResults,
       isLoadingResultCounts,
       neighborsById,
       locationsById,
-      propertyTypesByFqn,
-      propertyTypesById,
+      propertyTypes,
+      propertyTypesIndexMap,
       results,
       lastQueryRun,
       selectedEntitySet,
@@ -197,46 +216,53 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
     }
 
     if (results.size && selectedEntitySet) {
-      const selectedEntityType = entityTypesById.get(selectedEntitySet.get('entityTypeId', ''));
+
+      const entityTypeId :UUID = selectedEntitySet.get('entityTypeId');
+      const entityTypeIndex :number = entityTypesIndexMap.get(entityTypeId);
+      const selectedEntityType :Map = entityTypes.get(entityTypeIndex, Map());
 
       switch (display) {
 
         case RESULT_DISPLAYS.DASHBOARD:
           return (
             <TopUtilizerDashboard
-                entityTypesById={entityTypesById}
-                propertyTypesById={propertyTypesById}
-                propertyTypesByFqn={propertyTypesByFqn}
-                selectedEntitySet={selectedEntitySet}
-                selectedEntityType={selectedEntityType}
+                countBreakdown={countBreakdown}
+                entityTypes={entityTypes}
+                entityTypesIndexMap={entityTypesIndexMap}
                 neighborsById={neighborsById}
+                propertyTypes={propertyTypes}
+                propertyTypesIndexMap={propertyTypesIndexMap}
                 results={results}
-                countBreakdown={countBreakdown} />
+                selectedEntitySet={selectedEntitySet}
+                selectedEntityType={selectedEntityType} />
           );
 
         case RESULT_DISPLAYS.RESOURCES:
           return (
             <TopUtilizerResources
-                results={results}
-                lastQueryRun={lastQueryRun}
                 countBreakdown={countBreakdown}
-                neighborsById={neighborsById}
-                entityTypesById={entityTypesById}
-                selectedEntityType={selectedEntityType}
+                entityTypes={entityTypes}
+                entityTypesIndexMap={entityTypesIndexMap}
                 isLoading={isLoadingResultCounts}
-                propertyTypesByFqn={propertyTypesByFqn}
-                propertyTypesById={propertyTypesById} />
+                lastQueryRun={lastQueryRun}
+                neighborsById={neighborsById}
+                propertyTypes={propertyTypes}
+                propertyTypesIndexMap={propertyTypesIndexMap}
+                results={results}
+                selectedEntityType={selectedEntityType} />
           );
 
         case RESULT_DISPLAYS.MAP:
           return (
             <TopUtilizerMap
-                results={results}
+                entityTypes={entityTypes}
+                entityTypesIndexMap={entityTypesIndexMap}
+                locationsById={locationsById}
                 neighborTypes={neighborTypes}
                 neighborsById={neighborsById}
-                locationsById={locationsById}
-                entityTypesById={entityTypesById}
-                propertyTypesById={propertyTypesById}
+                propertyTypes={propertyTypes}
+                propertyTypesIndexMap={propertyTypesIndexMap}
+                results={results}
                 selectedEntitySet={selectedEntitySet} />
           );
 
@@ -258,16 +284,18 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
     const {
       actions,
       display,
+      entityTypes,
+      entityTypesIndexMap,
+      filteredPropertyTypes,
       history,
       isLoadingNeighborTypes,
       neighborTypes,
       numberOfUtilizers,
-      propertyTypesById,
-      entityTypesById,
-      filteredPropertyTypes,
+      propertyTypes,
+      propertyTypesIndexMap,
       results,
       selectedEntitySet,
-      selectedEntitySetSize
+      selectedEntitySetSize,
     } = this.props;
 
     return (
@@ -285,8 +313,10 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
                   isLoadingNeighborTypes={isLoadingNeighborTypes}
                   numberOfUtilizers={numberOfUtilizers}
                   neighborTypes={neighborTypes}
-                  entityTypesById={entityTypesById}
-                  propertyTypesById={propertyTypesById}
+                  entityTypes={entityTypes}
+                  entityTypesIndexMap={entityTypesIndexMap}
+                  propertyTypes={propertyTypes}
+                  propertyTypesIndexMap={propertyTypesIndexMap}
                   getTopUtilizers={actions.getTopUtilizers}
                   onPropertyTypeChange={this.onPropertyTypeChange}
                   changeTopUtilizersDisplay={actions.changeTopUtilizersDisplay}
@@ -306,19 +336,24 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
   }
 }
 
-function mapStateToProps(state :Map<*, *>, ownProps :Object) :Object {
-  const selectedEntitySetId = ownProps.match.params.id;
+function mapStateToProps(state :Map, props :Object) :Object {
 
-  const edm = state.get(STATE.EDM);
+  const {
+    params: {
+      id: selectedEntitySetId = null,
+    } = {},
+  } = props.match;
+
   const entitySets = state.get(STATE.ENTITY_SETS);
   const explore = state.get(STATE.EXPLORE);
   const topUtilizers = state.get(STATE.TOP_UTILIZERS);
   return {
     selectedEntitySetId,
-    entityTypesById: edm.get(EDM.ENTITY_TYPES_BY_ID),
-    propertyTypesByFqn: edm.get(EDM.PROPERTY_TYPES_BY_FQN),
-    propertyTypesById: edm.get(EDM.PROPERTY_TYPES_BY_ID),
-    entitySetPropertyMetadata: edm.get(EDM.ENTITY_SET_METADATA_BY_ID),
+    entitySetsMetaData: state.getIn(['edm', 'entitySetsMetaData'], Map()),
+    entityTypes: state.getIn(['edm', 'entityTypes'], List()),
+    entityTypesIndexMap: state.getIn(['edm', 'entityTypesIndexMap'], Map()),
+    propertyTypes: state.getIn(['edm', 'propertyTypes'], List()),
+    propertyTypesIndexMap: state.getIn(['edm', 'propertyTypesIndexMap'], Map()),
     selectedEntitySet: entitySets.get(ENTITY_SETS.SELECTED_ENTITY_SET),
     selectedEntitySetSize: entitySets.getIn([
       ENTITY_SETS.ENTITY_SET_SIZES,
@@ -343,8 +378,8 @@ function mapStateToProps(state :Map<*, *>, ownProps :Object) :Object {
 function mapDispatchToProps(dispatch :Function) :Object {
   const actions :{ [string] :Function } = {};
 
-  Object.keys(EntitySetActionFactory).forEach((action :string) => {
-    actions[action] = EntitySetActionFactory[action];
+  Object.keys(EntitySetActions).forEach((action :string) => {
+    actions[action] = EntitySetActions[action];
   });
 
   Object.keys(ExploreActionFactory).forEach((action :string) => {

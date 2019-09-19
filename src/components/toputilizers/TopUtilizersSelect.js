@@ -3,11 +3,11 @@
  */
 
 import React from 'react';
-import Immutable from 'immutable';
 import Select, { components } from 'react-select';
 import styled, { css } from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/pro-light-svg-icons';
+import { List, Map } from 'immutable';
 
 
 import LoadingDots from '../loading/LoadingDots';
@@ -107,9 +107,9 @@ const LoadingInputPlaceholder = styled.div`
 
 type Props = {
   isLoadingNeighborTypes :boolean;
-  neighborTypes :Immutable.List<*>;
+  neighborTypes :List<*>;
   onChange :(neighborTypes :Object[]) => void;
-  selectedEntitySet :Immutable.Map<*, *>;
+  selectedEntitySet :Map<*, *>;
   selectedNeighborTypes :Object[];
 };
 

@@ -5,9 +5,10 @@
 import React from 'react';
 import moment from 'moment';
 import styled from 'styled-components';
-import { List, Map, Set } from 'immutable';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLongArrowUp, faLongArrowDown } from '@fortawesome/pro-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { List, Map } from 'immutable';
+import { Models } from 'lattice';
 
 import BasicButton from '../buttons/BasicButton';
 import HorizontalTimeline from './HorizontalTimeline';
@@ -17,7 +18,9 @@ import StyledCheckbox from '../controls/StyledCheckbox';
 import DateRangePicker from '../controls/DateRangePicker';
 import { DATE_DATATYPES, PROPERTY_TAGS } from '../../utils/constants/DataModelConstants';
 import { DEFAULT_COLORS } from '../../utils/constants/Colors';
-import { getEntityKeyId, getFqnString } from '../../utils/DataUtils';
+import { getEntityKeyId } from '../../utils/DataUtils';
+
+const { FullyQualifiedName } = Models;
 
 type DateEntry = {
   date :moment;
@@ -156,13 +159,15 @@ const DisplayTitle = styled.span.attrs({
 })``;
 
 type Props = {
-  entitySetPropertyMetadata :Map<string, *>;
-  entitySetsById :Map<string, *>;
-  entityTypesById :Map<string, *>;
+  entitySets :List;
+  entitySetsIndexMap :Map;
+  entitySetsMetaData :Map;
+  entityTypes :List;
+  entityTypesIndexMap :Map;
   neighbors :Map<string, Map<string, Map<*, *>>>;
   onSelectEntity :({ entitySetId :string, entity :Map<*, *> }) => void;
-  propertyTypesByFqn :Map<string, *>;
-  propertyTypesById :Map<string, *>;
+  propertyTypes :List;
+  propertyTypesIndexMap :Map;
 };
 
 type State = {
@@ -181,23 +186,26 @@ export default class NeighborTimeline extends React.Component<Props, State> {
     super(props);
 
     const {
-      entitySetsById,
-      entityTypesById,
+      entitySets,
+      entitySetsIndexMap,
+      entityTypes,
+      entityTypesIndexMap,
       neighbors,
-      propertyTypesById,
+      propertyTypes,
+      propertyTypesIndexMap,
     } = props;
+
     const { orderedNeighbors, dateTypeOptions, dateTypeColors } = this.preprocessProps({
-      entitySetsById,
-      entityTypesById,
+      entitySets,
+      entitySetsIndexMap,
+      entityTypes,
+      entityTypesIndexMap,
       neighbors,
-      propertyTypesById,
+      propertyTypes,
+      propertyTypesIndexMap,
     });
 
-    const selectedDateTypes = this.getDefaultSelectedDateTypes(
-      props.entitySetPropertyMetadata,
-      props.propertyTypesByFqn,
-      dateTypeOptions
-    );
+    const selectedDateTypes = this.getDefaultSelectedDateTypes(dateTypeOptions);
 
     this.state = {
       orderedNeighbors,
@@ -210,13 +218,22 @@ export default class NeighborTimeline extends React.Component<Props, State> {
     };
   }
 
-  getDefaultSelectedDateTypes = (entitySetPropertyMetadata :Map, propertyTypesByFqn :Map, dateTypeOptions :Map) => {
+  getDefaultSelectedDateTypes = (dateTypeOptions :Map) => {
+
+    const {
+      entitySetsMetaData,
+      propertyTypes,
+      propertyTypesIndexMap,
+    } = this.props;
+
     let result = Map();
     dateTypeOptions.entrySeq().forEach(([pair, ptList]) => {
       result = result.set(pair, ptList.filter((fqn) => {
-        const ptId = propertyTypesByFqn.getIn([fqn, 'id']);
-        const shouldShowForIndex = (index) => entitySetPropertyMetadata
-          .getIn([pair.get(index), ptId, 'propertyTags'], List())
+        const propertyTypeIndex = propertyTypesIndexMap.get(fqn);
+        const propertyType = propertyTypes.get(propertyTypeIndex, Map());
+        const propertyTypeId = propertyType.get('id');
+        const shouldShowForIndex = (index) => entitySetsMetaData
+          .getIn([pair.get(index), propertyTypeId, 'propertyTags'], List())
           .includes(PROPERTY_TAGS.TIMELINE);
         return shouldShowForIndex(0) || shouldShowForIndex(1);
       }));
@@ -225,24 +242,32 @@ export default class NeighborTimeline extends React.Component<Props, State> {
     return result;
   }
 
-  getDatePropertyTypeIds = (propertyTypesById :Map) => {
-    let dateIds = Set();
-    propertyTypesById.valueSeq().forEach((propertyType) => {
-      if (DATE_DATATYPES.includes(propertyType.get('datatype'))) {
-        dateIds = dateIds.add(propertyType.get('id'));
-      }
-    });
-    return dateIds;
-  }
-
-  getDatePropertiesForEntitySets = (entitySetsById :Map, entityTypesById :Map, propertyTypesById :Map) => {
+  getDatePropertiesForEntitySets = (
+    entitySets :List,
+    entitySetsIndexMap :Map,
+    entityTypes :List,
+    entityTypesIndexMap :Map,
+    propertyTypes :List,
+    propertyTypesIndexMap :Map,
+  ) => {
     let entitySetMap = Map();
-    entitySetsById.valueSeq().forEach((entitySet) => {
-      const entitySetId = entitySet.get('id');
-      const dateFqns = entityTypesById
-        .getIn([entitySet.get('entityTypeId'), 'properties'])
-        .filter((propertyTypeId) => DATE_DATATYPES.includes(propertyTypesById.getIn([propertyTypeId, 'datatype'])))
-        .map((propertyTypeId) => getFqnString(propertyTypesById.getIn([propertyTypeId, 'type'])));
+    entitySets.forEach((entitySet :Map) => {
+      const entitySetId :UUID = entitySet.get('id');
+      const entityTypeId :UUID = entitySet.get('entityTypeId');
+      const entityTypeIndex :number = entityTypesIndexMap.get(entityTypeId);
+      const entityType :Map = entityTypes.get(entityTypeIndex, Map());
+      const dateFqns = entityType
+        .get('properties', List())
+        .filter((propertyTypeId) => {
+          const propertyTypeIndex = propertyTypesIndexMap.get(propertyTypeId);
+          const propertyType = propertyTypes.get(propertyTypeIndex, Map());
+          return DATE_DATATYPES.includes(propertyType.get('datatype'));
+        })
+        .map((propertyTypeId) => {
+          const propertyTypeIndex = propertyTypesIndexMap.get(propertyTypeId);
+          const propertyType = propertyTypes.get(propertyTypeIndex, Map());
+          return FullyQualifiedName.toString(propertyType.get('type', Map()));
+        });
 
       entitySetMap = entitySetMap.set(entitySetId, dateFqns);
     });
@@ -283,13 +308,23 @@ export default class NeighborTimeline extends React.Component<Props, State> {
   }
 
   preprocessProps = ({
-    entitySetsById,
-    entityTypesById,
+    entitySets,
+    entitySetsIndexMap,
+    entityTypes,
+    entityTypesIndexMap,
     neighbors,
-    propertyTypesById,
+    propertyTypes,
+    propertyTypesIndexMap,
   } :Object) => {
 
-    const entitySetMap = this.getDatePropertiesForEntitySets(entitySetsById, entityTypesById, propertyTypesById);
+    const entitySetMap = this.getDatePropertiesForEntitySets(
+      entitySets,
+      entitySetsIndexMap,
+      entityTypes,
+      entityTypesIndexMap,
+      propertyTypes,
+      propertyTypesIndexMap,
+    );
 
     let orderedNeighbors = List();
     let dateTypeOptions = Map();
@@ -338,10 +373,6 @@ export default class NeighborTimeline extends React.Component<Props, State> {
       dateTypeOptions,
       dateTypeColors
     };
-  }
-
-  getEventName = (dateEntry :Object) => {
-    return dateEntry.neighbor.getIn(['neighborEntitySet', 'title']);
   }
 
   getPairFromNeighbor = (neighbor :Map) => {
@@ -411,9 +442,10 @@ export default class NeighborTimeline extends React.Component<Props, State> {
   renderTimeline = (filteredNeighbors :List) => {
     const { reverse } = this.state;
     const {
-      entityTypesById,
-      propertyTypesById,
-      propertyTypesByFqn,
+      entityTypes,
+      entityTypesIndexMap,
+      propertyTypes,
+      propertyTypesIndexMap,
       onSelectEntity
     } = this.props;
 
@@ -423,7 +455,8 @@ export default class NeighborTimeline extends React.Component<Props, State> {
     const neighborList = reverse ? filteredNeighbors.reverse() : filteredNeighbors;
     const rows = neighborList.map((dateEntry :DateEntry, index :number) => {
       const { date, neighbor, propertyTypeFqn } = dateEntry;
-      const propertyType = propertyTypesByFqn.get(propertyTypeFqn);
+      const propertyTypeIndex = propertyTypesIndexMap.get(propertyTypeFqn);
+      const propertyType = propertyTypes.get(propertyTypeIndex, Map());
 
       const year = date.format('YYYY');
       const day = date.format('MMMM D');
@@ -456,8 +489,10 @@ export default class NeighborTimeline extends React.Component<Props, State> {
                 propertyTypeTitle={propertyType.get('title')}
                 onClick={onClick}
                 colors={this.getColorsForNeighbor(neighbor)}
-                entityTypesById={entityTypesById}
-                propertyTypesById={propertyTypesById} />
+                entityTypes={entityTypes}
+                entityTypesIndexMap={entityTypesIndexMap}
+                propertyTypes={propertyTypes}
+                propertyTypesIndexMap={propertyTypesIndexMap} />
           </EventRow>
         </ColumnWrapper>
       );
@@ -500,10 +535,21 @@ export default class NeighborTimeline extends React.Component<Props, State> {
   }
 
   renderDisplayOptionGroup = ([pair, fqnList]) => {
-    const { entitySetsById, propertyTypesByFqn } = this.props;
+
+    const {
+      entitySets,
+      entitySetsIndexMap,
+      propertyTypes,
+      propertyTypesIndexMap,
+    } = this.props;
     const { selectedDateTypes, dateTypeColors } = this.state;
 
-    const getTitle = (id) => entitySetsById.getIn([id, 'title'], '');
+    const getTitle = (id) => {
+      const entitySetIndex :number = entitySetsIndexMap.get(id);
+      const entitySet :Map = entitySets.get(entitySetIndex, Map());
+      return entitySet.get('title', '');
+    };
+
     const headerText = `${getTitle(pair.get(0))} ${getTitle(pair.get(1))}`;
     const colors = dateTypeColors.get(pair);
 
@@ -516,13 +562,15 @@ export default class NeighborTimeline extends React.Component<Props, State> {
           <DisplayTitle color={colors.PRIMARY}>{headerText}</DisplayTitle>
         </DisplayOptionRow>
         {fqnList.map((fqn) => {
-          const ptTitle = propertyTypesByFqn.getIn([fqn, 'title'], '');
+          const propertyTypeIndex = propertyTypesIndexMap.get(fqn);
+          const propertyType = propertyTypes.get(propertyTypeIndex, Map());
+          const propertyTypeTitle = propertyType.get('title', '');
           return (
             <DisplayOptionRow key={`${headerText}|${fqn}`}>
               <StyledCheckbox
                   checked={selectedDateTypes.get(pair, List()).includes(fqn)}
                   onChange={(e) => this.onDisplayPTChange(e, pair, fqn)} />
-              <span>{ptTitle}</span>
+              <span>{propertyTypeTitle}</span>
             </DisplayOptionRow>
           );
         })}

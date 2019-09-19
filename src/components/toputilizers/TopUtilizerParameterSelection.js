@@ -4,9 +4,10 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import { Map, List, Set } from 'immutable';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDatabase } from '@fortawesome/pro-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Map, List, Set } from 'immutable';
+import { Models } from 'lattice';
 
 import BackNavButton from '../buttons/BackNavButton';
 import TabNavButton from '../buttons/TabNavButton';
@@ -20,13 +21,15 @@ import WeightsPicker from './searchoptions/WeightsPicker';
 import PropertyTypeFilterOptions from './searchoptions/PropertyTypeFilterOptions';
 import { DURATION_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { COUNT_TYPES, RESULT_DISPLAYS, TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
-import { getFqnString } from '../../utils/DataUtils';
+
 import {
   FixedWidthWrapper,
   HeaderComponentWrapper,
   InputGroup,
   InputLabel
 } from '../layout/Layout';
+
+const { FullyQualifiedName } = Models;
 
 const CenteredHeaderWrapper = styled(HeaderComponentWrapper)`
   display: flex;
@@ -81,14 +84,16 @@ type Props = {
   changeTopUtilizersDisplay :(display :string) => void;
   deselectEntitySet :() => void;
   display :string;
-  entityTypesById :Map<string, Map<*, *>>;
+  entityTypes :List;
+  entityTypesIndexMap :Map;
   filteredPropertyTypes :List<*>;
   getTopUtilizers :(obj :Object) => void;
   isLoadingNeighborTypes :boolean;
   neighborTypes :List<*>;
   numberOfUtilizers :number;
   onPropertyTypeChange :(propertyTypeId :string) => void;
-  propertyTypesById :Map<string, Map<*, *>>;
+  propertyTypes :List;
+  propertyTypesIndexMap :Map;
   searchHasRun :boolean;
   selectedEntitySet :Map<*, *>;
   selectedEntitySetPropertyTypes :List<*>;
@@ -118,7 +123,8 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
   searchTopUtilizers = () => {
     const {
       changeNumUtilizers,
-      entityTypesById,
+      entityTypes,
+      entityTypesIndexMap,
       filteredPropertyTypes,
       getTopUtilizers,
       selectedEntitySet,
@@ -145,7 +151,8 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
       dateFilters: dateRanges,
       countType,
       durationTypeWeights,
-      entityTypesById,
+      entityTypes,
+      entityTypesIndexMap,
       filteredPropertyTypes
     });
   }
@@ -173,12 +180,22 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
   }
 
   getDurationPropertiesForType = (entityTypeId :UUID) => {
-    const { entityTypesById, propertyTypesById } = this.props;
 
-    return entityTypesById.getIn([entityTypeId, 'properties'], List())
+    const {
+      entityTypes,
+      entityTypesIndexMap,
+      propertyTypes,
+      propertyTypesIndexMap,
+    } = this.props;
+
+    const entityTypeIndex = entityTypesIndexMap.get(entityTypeId);
+    const entityType = entityTypes.get(entityTypeIndex, Map());
+    return entityType.get('properties', List())
       .filter((propertyTypeId) => {
-        const fqn = getFqnString(propertyTypesById.getIn([propertyTypeId, 'type']));
-        return !!DURATION_TYPES[fqn];
+        const propertyTypeIndex = propertyTypesIndexMap.get(propertyTypeId);
+        const propertyType = propertyTypes.get(propertyTypeIndex, Map());
+        const propertyTypeFQN = FullyQualifiedName.toString(propertyType.get('type', Map()));
+        return !!DURATION_TYPES[propertyTypeFQN];
       });
 
   }
@@ -205,8 +222,10 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
 
   renderSearchOption = () => {
     const {
-      entityTypesById,
-      propertyTypesById,
+      entityTypes,
+      entityTypesIndexMap,
+      propertyTypes,
+      propertyTypesIndexMap,
       numberOfUtilizers,
       changeNumUtilizers
     } = this.props;
@@ -214,21 +233,28 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
 
     return (
       <CountTypeOptions
-          entityTypesById={entityTypesById}
-          propertyTypesById={propertyTypesById}
-          countType={countType}
-          numberOfUtilizers={numberOfUtilizers}
-          onNumUtilizersChange={changeNumUtilizers}
-          durationTypeWeights={durationTypeWeights}
-          selectedNeighborTypes={selectedNeighborTypes}
           availableDurationProperties={this.getAvailableDurationProperties()}
+          countType={countType}
+          durationTypeWeights={durationTypeWeights}
+          entityTypes={entityTypes}
+          entityTypesIndexMap={entityTypesIndexMap}
+          numberOfUtilizers={numberOfUtilizers}
           onChange={(e) => this.setState({ countType: e.target.value })}
-          onDurationWeightChange={(newWeights) => this.setState({ durationTypeWeights: newWeights })} />
+          onDurationWeightChange={(newWeights) => this.setState({ durationTypeWeights: newWeights })}
+          onNumUtilizersChange={changeNumUtilizers}
+          propertyTypes={propertyTypes}
+          propertyTypesIndexMap={propertyTypesIndexMap}
+          selectedNeighborTypes={selectedNeighborTypes} />
     );
   }
 
   renderDateRangePicker = () => {
-    const { entityTypesById, propertyTypesById } = this.props;
+    const {
+      entityTypes,
+      entityTypesIndexMap,
+      propertyTypes,
+      propertyTypesIndexMap,
+    } = this.props;
     const { dateRanges, dateRangeViewing, selectedNeighborTypes } = this.state;
 
     const onAddRange = () => this.setState({
@@ -238,14 +264,16 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
 
     return (
       <MultiDateRangePicker
-          entityTypesById={entityTypesById}
-          propertyTypesById={propertyTypesById}
-          dateRanges={dateRanges}
           dateRangeViewing={dateRangeViewing}
+          dateRanges={dateRanges}
+          entityTypes={entityTypes}
+          entityTypesIndexMap={entityTypesIndexMap}
           onAddRange={onAddRange}
-          setDateRangeViewing={(index) => this.setState({ dateRangeViewing: index })}
           onDateRangeChange={(newDateRanges) => this.setState({ dateRanges: newDateRanges })}
-          selectedNeighborTypes={selectedNeighborTypes} />
+          propertyTypes={propertyTypes}
+          propertyTypesIndexMap={propertyTypesIndexMap}
+          selectedNeighborTypes={selectedNeighborTypes}
+          setDateRangeViewing={(index) => this.setState({ dateRangeViewing: index })} />
     );
   }
 
@@ -305,17 +333,24 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
 
   canRenderLocations = () => {
     const {
-      selectedEntitySet,
+      entityTypes,
+      entityTypesIndexMap,
       neighborTypes,
-      entityTypesById,
-      propertyTypesById
+      propertyTypes,
+      selectedEntitySet,
     } = this.props;
 
-    const locationId = propertyTypesById.entrySeq().filter(([id, propertyType]) => getFqnString(
-      propertyType.get('type', Map())
-    ) === PROPERTY_TYPES.LOCATION).map(([id]) => id).get(0);
+    const locationId = propertyTypes
+      .find((propertyType :Map) => {
+        const propertyTypeFQN = FullyQualifiedName.toString(propertyType.get('type', Map()));
+        return propertyTypeFQN === PROPERTY_TYPES.LOCATION;
+      })
+      .get('id');
 
-    if (entityTypesById.getIn([selectedEntitySet.get('entityTypeId'), 'properties']).includes(locationId)) {
+    const entityTypeId = selectedEntitySet.get('entityTypeId');
+    const entityTypeIndex = entityTypesIndexMap.get(entityTypeId);
+    const entityType = entityTypes.get(entityTypeIndex, Map());
+    if (entityType.get('properties').includes(locationId)) {
       return true;
     }
 
@@ -333,12 +368,12 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
   render() {
     const { selectedNeighborTypes } = this.state;
     const {
+      deselectEntitySet,
+      isLoadingNeighborTypes,
+      neighborTypes,
       searchHasRun,
       selectedEntitySet,
       selectedEntitySetSize,
-      deselectEntitySet,
-      isLoadingNeighborTypes,
-      neighborTypes
     } = this.props;
 
     const entitySetTitle = selectedEntitySet.get('title');

@@ -35,17 +35,10 @@ const Container = styled.div`
 
 type Props = {
   colorsByValue :Map<string, string>;
-  countBreakdown :Map<string, *>;
   data :Object[];
-  entityTypesById :Map<string, *>;
-  neighborsById :Map<string, *>;
   pieProperties :Map<string, *>;
   piePropertiesByUtilizer :Map<string, *>;
-  propertyTypesByFqn :Map<string, *>;
-  propertyTypesById :Map<string, *>;
   results :List<*>;
-  selectedEntitySet :Map<*, *>;
-  selectedEntityType :Map<*, *>;
   title :string;
   totalCounts :Map<string, *>;
   utilizerData :Object[];

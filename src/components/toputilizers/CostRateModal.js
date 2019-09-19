@@ -4,30 +4,18 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import { List, Map, fromJS } from 'immutable';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes, faChevronUp, faChevronDown } from '@fortawesome/pro-light-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { List, Map, fromJS } from 'immutable';
+import { Models } from 'lattice';
 
 import NumberInputTable from '../tables/NumberInputTable';
 import InfoButton from '../buttons/InfoButton';
 import DefaultCostExplanations from './DefaultCostExplanations';
 import { TitleText } from '../layout/Layout';
 import { isNotNumber } from '../../utils/ValidationUtils';
-import { getFqnString } from '../../utils/DataUtils';
 
-type Props = {
-  costRates :Map<List<string>, number>,
-  entityTypesById :Map<string, *>,
-  propertyTypesById :Map<string, *>,
-  timeUnit :string,
-  onSetCostRate :(newCostRates :Map<List<string>, number>) => void,
-  onClose :() => void
-};
-
-type State = {
-  costRateValues :Map<List<string>, number>,
-  showingJustifications :boolean
-};
+const { FullyQualifiedName } = Models;
 
 const Wrapper = styled.div`
   padding: 30px;
@@ -87,6 +75,22 @@ const JustificationButton = styled.button`
   }
 `;
 
+type Props = {
+  costRates :Map<List<string>, number>;
+  entityTypes :List;
+  entityTypesIndexMap :Map;
+  onClose :() => void;
+  onSetCostRate :(newCostRates :Map<List<string>, number>) => void;
+  propertyTypes :List;
+  propertyTypesIndexMap :Map;
+  timeUnit :string;
+};
+
+type State = {
+  costRateValues :Map<List<string>, number>;
+  showingJustifications :boolean;
+};
+
 export default class CostRateModal extends React.Component<Props, State> {
 
   constructor(props :Props) {
@@ -105,13 +109,27 @@ export default class CostRateModal extends React.Component<Props, State> {
   }
 
   getTitle = (triplet :List) => {
-    const { entityTypesById, propertyTypesById } = this.props;
 
-    const assocTitle = entityTypesById.getIn([triplet.get(0), 'title'], '');
-    const neighborTitle = entityTypesById.getIn([triplet.get(1), 'title'], '');
-    const ptTitle = propertyTypesById.getIn([triplet.get(2), 'title'], '');
+    const {
+      entityTypes,
+      entityTypesIndexMap,
+      propertyTypes,
+      propertyTypesIndexMap,
+    } = this.props;
 
-    return `${assocTitle} ${neighborTitle} -- ${ptTitle}`;
+    const index1 = entityTypesIndexMap.get(triplet.get(0));
+    const index2 = entityTypesIndexMap.get(triplet.get(1));
+    const entityType1 = entityTypes.get(index1, Map());
+    const entityType2 = entityTypes.get(index2, Map());
+
+    const assocTitle = entityType1.get('title');
+    const neighborTitle = entityType2.get('title');
+
+    const propertyTypeIndex = propertyTypesIndexMap.get(triplet.get(2));
+    const propertyType = propertyTypes.get(propertyTypeIndex, Map());
+    const propertyTypeTitle = propertyType.get('title', '');
+
+    return `${assocTitle} ${neighborTitle} -- ${propertyTypeTitle}`;
   }
 
   renderTable = () => {
@@ -170,10 +188,12 @@ export default class CostRateModal extends React.Component<Props, State> {
   )
 
   renderJustifications = () => {
-    const { costRates, propertyTypesById } = this.props;
+    const { costRates, propertyTypes, propertyTypesIndexMap } = this.props;
     return costRates.keySeq().map((triplet) => {
-      const fqn = getFqnString(propertyTypesById.getIn([triplet.get(2), 'type'], Map()));
-      return DefaultCostExplanations[fqn];
+      const propertyTypeIndex = propertyTypesIndexMap.get(triplet.get(2));
+      const propertyType = propertyTypes.get(propertyTypeIndex, Map());
+      const propertyTypeFQN = FullyQualifiedName.toString(propertyType.get('type', Map()));
+      return DefaultCostExplanations[propertyTypeFQN];
     }).filter((val) => !!val);
   }
 

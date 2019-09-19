@@ -48,11 +48,11 @@ const Container = styled.div`
 const MAX_PIE_SIZE = 6;
 
 type Props = {
-  countBreakdown :Map<string, *>;
-  entityTypesById :Map<string, *>;
+  entityTypes :List;
+  entityTypesIndexMap :Map;
   neighborsById :Map<string, *>;
-  propertyTypesByFqn :Map<string, *>;
-  propertyTypesById :Map<string, *>;
+  propertyTypes :List;
+  propertyTypesIndexMap :Map;
   results :List<*>;
   selectedEntitySet :Map<*, *>;
   selectedEntityType :Map<*, *>;
@@ -108,11 +108,17 @@ export default class TopUtilizerPieCharts extends React.Component<Props, State> 
   }
 
   getUtilizerPieProperties = (props :Props) => {
-    const { selectedEntityType, propertyTypesById, results } = props;
+
+    const {
+      selectedEntityType,
+      propertyTypes,
+      propertyTypesIndexMap,
+      results
+    } = props;
 
     let pieProperties = Map();
 
-    const selfFqns = getPieChartPropertyFqns(selectedEntityType, propertyTypesById);
+    const selfFqns = getPieChartPropertyFqns(selectedEntityType, propertyTypes, propertyTypesIndexMap);
 
     results.forEach((entity) => {
       selfFqns.forEach((fqn) => {
@@ -151,8 +157,10 @@ export default class TopUtilizerPieCharts extends React.Component<Props, State> 
 
   getPieProperties = (props :Props) => {
     const {
-      entityTypesById,
-      propertyTypesById,
+      entityTypes,
+      entityTypesIndexMap,
+      propertyTypes,
+      propertyTypesIndexMap,
       neighborsById,
       results
     } = props;
@@ -175,10 +183,11 @@ export default class TopUtilizerPieCharts extends React.Component<Props, State> 
           totalCounts = totalCounts.set(neighborEntityTypeId, totalCounts.get(neighborEntityTypeId, 0) + 1);
 
           if (!typesWithoutTags.has(neighborEntityTypeId)) {
-
+            const entityTypeIndex :number = entityTypesIndexMap.get(neighborEntityTypeId);
+            const neighborEntityType :Map = entityTypes.get(entityTypeIndex, Map());
             const fqns = typesWithTags.has(neighborEntityTypeId)
               ? pieProperties.get(neighborEntityTypeId).keySeq()
-              : getPieChartPropertyFqns(entityTypesById.get(neighborEntityTypeId, Map()), propertyTypesById);
+              : getPieChartPropertyFqns(neighborEntityType, propertyTypes, propertyTypesIndexMap);
 
             if (!fqns.count()) {
               typesWithoutTags = typesWithoutTags.add(neighborEntityTypeId);
@@ -296,9 +305,11 @@ export default class TopUtilizerPieCharts extends React.Component<Props, State> 
   }
 
   renderPieChart = (fqn :string, valueMap :Map) => {
-    const { propertyTypesByFqn, selectedEntitySet } = this.props;
+    const { propertyTypes, propertyTypesIndexMap, selectedEntitySet } = this.props;
 
-    const propertyTypeTitle = propertyTypesByFqn.getIn([fqn, 'title']);
+    const propertyTypeIndex = propertyTypesIndexMap.get(fqn);
+    const propertyType = propertyTypes.get(propertyTypeIndex, Map());
+    const propertyTypeTitle = propertyType.get('title', '');
     const title = `${selectedEntitySet.get('title')} - ${propertyTypeTitle}`;
 
     let colorsByValue = Map();
@@ -326,11 +337,23 @@ export default class TopUtilizerPieCharts extends React.Component<Props, State> 
   }
 
   renderNeighborPieChart = (entityTypeId :UUID, fqn :string, valueMap :Map) => {
-    const { entityTypesById, propertyTypesByFqn, results } = this.props;
+
+    const {
+      entityTypes,
+      entityTypesIndexMap,
+      propertyTypes,
+      propertyTypesIndexMap,
+      results,
+    } = this.props;
     const { pieProperties, piePropertiesByUtilizer, totalCounts } = this.state;
 
-    const propertyTypeTitle = propertyTypesByFqn.getIn([fqn, 'title']);
-    const title = `${entityTypesById.getIn([entityTypeId, 'title'])} - ${propertyTypeTitle}`;
+    const propertyTypeIndex = propertyTypesIndexMap.get(fqn);
+    const propertyType = propertyTypes.get(propertyTypeIndex, Map());
+    const propertyTypeTitle = propertyType.get('title', '');
+    const entityTypeIndex :number = entityTypesIndexMap.get(entityTypeId);
+    const entityType :Map = entityTypes.get(entityTypeIndex, Map());
+    const entityTypeTitle :string = entityType.get('title');
+    const title = `${entityTypeTitle} - ${propertyTypeTitle}`;
 
     let colorsByValue = Map();
 
@@ -353,22 +376,18 @@ export default class TopUtilizerPieCharts extends React.Component<Props, State> 
       colorsByValue = colorsByValue.set(name, CHART_COLORS[index % CHART_COLORS.length]);
     });
 
-    /* eslint-disable react/jsx-props-no-spreading */
     return (
       <NeighborPieChart
           key={title}
           data={data}
-          {...this.props}
           utilizerData={utilizerData}
           colorsByValue={colorsByValue}
           pieProperties={pieProperties}
           piePropertiesByUtilizer={piePropertiesByUtilizer}
           results={results}
           totalCounts={totalCounts}
-          entityTypesById={entityTypesById}
           title={title} />
     );
-    /* eslint-enable */
   }
 
   render() {

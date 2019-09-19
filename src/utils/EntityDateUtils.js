@@ -5,10 +5,12 @@ import {
   Set,
   fromJS
 } from 'immutable';
+import { Models } from 'lattice';
 
 import { PROPERTY_TAGS } from './constants/DataModelConstants';
 import { DATE_FILTER_CLASS } from './constants/DataConstants';
-import { getFqnString } from './DataUtils';
+
+const { FullyQualifiedName } = Models;
 
 const dateProperties = {
   'general.person': [
@@ -63,7 +65,7 @@ const NEIGHBOR = 'neighborDetails';
 const ASSOCIATION = 'associationDetails';
 
 export const getDateProperties = (entityType) => {
-  const fqn = getFqnString(entityType.get('type'));
+  const fqn = FullyQualifiedName.toString(entityType.get('type'));
   return dateProperties[fqn] || [];
 };
 
@@ -93,23 +95,25 @@ export const getEntityDates = (entityType, entity, skipConversion) => getDatesFo
   skipConversion
 );
 
-const getTagsByFqn = (entityType, propertyTypesById) => {
+const getTagsByFqn = (entityType, propertyTypes, propertyTypesIndexMap) => {
   let tagsbyFqn = Map();
-
   entityType.get('propertyTags').entrySeq().forEach(([propertyTypeId, tags]) => {
-    tagsbyFqn = tagsbyFqn.set(getFqnString(propertyTypesById.getIn([propertyTypeId, 'type'])), tags);
+    const propertyTypeIndex = propertyTypesIndexMap.get(propertyTypeId);
+    const propertyType = propertyTypes.get(propertyTypeIndex, Map());
+    const propertyTypeFQN = FullyQualifiedName.toString(propertyType.get('type', Map()));
+    tagsbyFqn = tagsbyFqn.set(propertyTypeFQN, tags);
   });
-
   return tagsbyFqn;
 };
 
 export const getEntityEventDates = (
   entityType,
-  propertyTypesById,
+  propertyTypes,
+  propertyTypesIndexMap,
   entity,
   skipConversion
 ) => getDatesForList(
-  getTagsByFqn(entityType, propertyTypesById)
+  getTagsByFqn(entityType, propertyTypes, propertyTypesIndexMap)
     .entrySeq()
     .filter(([fqn, tags]) => tags.includes(PROPERTY_TAGS.EVENT_DATE))
     .map(([fqn]) => fqn),
@@ -119,7 +123,7 @@ export const getEntityEventDates = (
 
 export const getEntityDateStrings = (entityType, entity) => getEntityDates(entityType, entity, true);
 
-export const getDateFilters = (query, propertyTypesById) => {
+export const getDateFilters = (query, propertyTypes, propertyTypesIndexMap) => {
   const { neighborAggregations } = query;
 
   let filters = Map();
@@ -137,10 +141,12 @@ export const getDateFilters = (query, propertyTypesById) => {
     const updateDateFilters = (filterList, field) => {
       if (filterList) {
         Object.entries(filterList).forEach(([id, ptFilters]) => {
-          const fqn = getFqnString(propertyTypesById.getIn([id, 'type']));
+          const propertyTypeIndex = propertyTypesIndexMap.get(id);
+          const propertyType = propertyTypes.get(propertyTypeIndex, Map());
+          const propertyTypeFQN = FullyQualifiedName.toString(propertyType.get('type', Map()));
           const dateFilters = fromJS(ptFilters.filter((filter) => filter['@class'] === DATE_FILTER_CLASS));
           if (dateFilters.size) {
-            filters = filters.setIn([pair, field, fqn], dateFilters);
+            filters = filters.setIn([pair, field, propertyTypeFQN], dateFilters);
           }
         });
       }

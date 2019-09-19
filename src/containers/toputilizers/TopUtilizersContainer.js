@@ -16,7 +16,7 @@ const TopUtilizersContainer = () => (
         exact
         path={Routes.TOP_UTILIZERS}
         render={() => <EntitySetSearch actionText="search" path={Routes.TOP_UTILIZERS} />} />
-    <Route path={`${Routes.TOP_UTILIZERS}${Routes.ID}`} component={TopUtilizersEntitySetContainer} />
+    <Route path={`${Routes.TOP_UTILIZERS}/${Routes.ID_PATH}`} component={TopUtilizersEntitySetContainer} />
     <Redirect to={Routes.TOP_UTILIZERS} />
   </Switch>
 );

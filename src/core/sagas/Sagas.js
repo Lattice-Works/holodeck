@@ -4,11 +4,20 @@
 
 import { all, fork } from '@redux-saga/core/effects';
 import { AuthSagas } from 'lattice-auth';
+import {
+  DataApiSagas,
+  EntityDataModelApiSagas,
+  EntitySetsApiSagas,
+  SearchApiSagas,
+} from 'lattice-sagas';
 
-import * as EdmSagas from '../../containers/edm/EdmSagas';
+import * as AppSagas from '../../containers/app/AppSagas';
 import * as EntitySetSagas from '../../containers/entitysets/EntitySetSagas';
 import * as ExploreSagas from '../../containers/explore/ExploreSagas';
+import * as RoutingSagas from '../router/RoutingSagas';
 import * as TopUtilizersSagas from '../../containers/toputilizers/TopUtilizersSagas';
+
+import { EDMSagas } from '../edm';
 
 export default function* sagas() :Generator<*, *, *> {
 
@@ -20,8 +29,21 @@ export default function* sagas() :Generator<*, *, *> {
     fork(AuthSagas.watchAuthExpired),
     fork(AuthSagas.watchLogout),
 
-    /* EdmSagas */
-    fork(EdmSagas.loadEdmWatcher),
+    // "lattice-sagas" sagas
+    fork(DataApiSagas.getEntitySetSizeWatcher),
+    fork(EntityDataModelApiSagas.getAllEntityTypesWatcher),
+    fork(EntityDataModelApiSagas.getAllPropertyTypesWatcher),
+    fork(EntitySetsApiSagas.getAllEntitySetsWatcher),
+    fork(EntitySetsApiSagas.getEntitySetWatcher),
+    fork(EntitySetsApiSagas.getPropertyTypeMetaDataForEntitySetsWatcher),
+    fork(SearchApiSagas.searchEntitySetMetaDataWatcher),
+
+    // AppSagas
+    fork(AppSagas.initializeApplicationWatcher),
+
+    // EDMSagas
+    fork(EDMSagas.getEntityDataModelTypesWatcher),
+    fork(EDMSagas.getEntitySetsWithMetaDataWatcher),
 
     /* EntitySetSagas */
     fork(EntitySetSagas.loadEntitySetSizesWatcher),
@@ -31,6 +53,10 @@ export default function* sagas() :Generator<*, *, *> {
     /* ExploreSagas */
     fork(ExploreSagas.loadEntityNeighborsWatcher),
     fork(ExploreSagas.searchEntitySetDataWatcher),
+
+    // RoutingSagas
+    fork(RoutingSagas.goToRootWatcher),
+    fork(RoutingSagas.goToRouteWatcher),
 
     /* TopUtilizersSagas */
     fork(TopUtilizersSagas.downloadTopUtilizersWatcher),

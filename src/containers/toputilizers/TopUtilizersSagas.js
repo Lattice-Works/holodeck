@@ -113,7 +113,8 @@ function* getTopUtilizersWorker(action :SequenceAction) {
       dateFilters,
       countType,
       durationTypeWeights,
-      entityTypesById,
+      entityTypes,
+      entityTypesIndexMap,
       filteredPropertyTypes
     } = action.value;
 
@@ -147,7 +148,9 @@ function* getTopUtilizersWorker(action :SequenceAction) {
           const pair = List.of(assocId, neighborId);
           const propertyTypeWeights = durationTypeWeights.get(pair, Map());
 
-          entityTypesById.getIn([entityTypeId, 'properties'], List()).forEach((id) => {
+          const entityTypeIndex = entityTypesIndexMap.get(entityTypeId);
+          const entityType = entityTypes.get(entityTypeIndex, Map());
+          entityType.get('properties', List()).forEach((id) => {
             if (propertyTypeWeights.has(id)) {
               const weight = propertyTypeWeights.get(id) * selectedType[TOP_UTILIZERS_FILTER.WEIGHT];
               if (weight !== 0) {
