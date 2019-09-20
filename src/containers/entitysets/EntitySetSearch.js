@@ -16,6 +16,7 @@ import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { RequestStates } from 'redux-reqseq';
+import type { Location } from 'react-router';
 import type { RequestSequence, RequestState } from 'redux-reqseq';
 
 import EntitySetCard from '../../components/cards/EntitySetCard';
@@ -85,6 +86,7 @@ type Props = {
     setShowAuditEntitySets :RequestSequence;
   };
   entitySetSearchResults :List<*>;
+  location :Location;
   page :number;
   requestStates :{
     SEARCH_ENTITY_SETS :RequestState;
@@ -131,20 +133,16 @@ class EntitySetSearch extends React.Component<Props, State> {
     this.setState({ valueOfSearchQuery });
   }
 
-  // handleSelect = (entitySetObj) => {
-  //   const { actions, history, path } = this.props;
-  //   const entitySet = entitySetObj.get('entitySet', Map());
-  //   const id = entitySet.get('id');
-  //   actions.selectEntitySet(entitySet);
-  //   actions.getNeighborTypes(id);
-  //   history.push(`${path}/${id}`);
-  // }
-
   goToEntitySet = (entitySetId :UUID) => {
 
-    const { actions } = this.props;
-    actions.getNeighborTypes(entitySetId); // TODO: remove
-    actions.goToRoute(Routes.EXPLORE_ES.replace(Routes.ID_PATH, entitySetId));
+    const { actions, location } = this.props;
+
+    if (location.pathname.startsWith(Routes.EXPLORE)) {
+      actions.goToRoute(Routes.EXPLORE_ES.replace(Routes.ID_PATH, entitySetId));
+    }
+    else if (location.pathname.startsWith(Routes.TOP_UTILIZERS)) {
+      actions.goToRoute(Routes.TOP_UTILIZERS_ES.replace(Routes.ID_PATH, entitySetId));
+    }
   }
 
   renderSearchResults = () => {
@@ -297,4 +295,6 @@ const mapActionsToProps = (dispatch :Function) => ({
   }, dispatch)
 });
 
-export default withRouter(connect(mapStateToProps, mapActionsToProps)(EntitySetSearch));
+export default withRouter(
+  connect(mapStateToProps, mapActionsToProps)(EntitySetSearch)
+);

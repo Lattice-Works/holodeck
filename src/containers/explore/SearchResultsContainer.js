@@ -14,6 +14,7 @@ import {
   fromJS
 } from 'immutable';
 import { Models } from 'lattice';
+import { CardStack } from 'lattice-ui-kit';
 
 import PersonResultCard from '../../components/people/PersonResultCard';
 import ButtonToolbar from '../../components/buttons/ButtonToolbar';
@@ -180,14 +181,20 @@ class SearchResultsContainer extends React.Component<Props, State> {
     const { isTopUtilizers, results } = this.props;
     const { showCountDetails, start } = this.state;
 
-    return results.map((person, index) => (
-      <PersonResultCard
-          key={getEntityKeyId(person)}
-          counts={isTopUtilizers && showCountDetails ? this.getCountsForUtilizer(getEntityKeyId(person)) : null}
-          index={index + 1 + start}
-          person={person}
-          onClick={() => this.onSelect(index, person)} />
-    ));
+    return (
+      <CardStack>
+        {
+          results.map((person, index) => (
+            <PersonResultCard
+                key={getEntityKeyId(person)}
+                counts={isTopUtilizers && showCountDetails ? this.getCountsForUtilizer(getEntityKeyId(person)) : null}
+                index={index + 1 + start}
+                person={person}
+                onClick={() => this.onSelect(index, person)} />
+          ))
+        }
+      </CardStack>
+    );
   }
 
   renderTableResults = () => {

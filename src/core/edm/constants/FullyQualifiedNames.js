@@ -19,8 +19,13 @@ const PROPERTY_TYPE_FQNS = {
   PERSON_SSN_FQN: new FullyQualifiedName('nc.SSN'), // TODO: the "nc" namespace must die already!
 };
 
+const RESERVED_FQNS = {
+  AT_COUNT_FQN: new FullyQualifiedName('openlattice.@count'),
+};
+
 export {
   ASSOCIATION_ENTITY_TYPE_FQNS,
   ENTITY_TYPE_FQNS,
   PROPERTY_TYPE_FQNS,
+  RESERVED_FQNS,
 };

@@ -6,13 +6,13 @@ import React from 'react';
 import styled from 'styled-components';
 import { List, Map, Set } from 'immutable';
 import { Models } from 'lattice';
+import { Spinner } from 'lattice-ui-kit';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
 import EntitySetSearch from '../entitysets/EntitySetSearch';
 import SearchResultsContainer from '../explore/SearchResultsContainer';
-import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import TopUtilizerParameterSelection from '../../components/toputilizers/TopUtilizerParameterSelection';
 import TopUtilizerDashboard from '../../components/toputilizers/TopUtilizerDashboard';
 import TopUtilizerResources from '../../components/toputilizers/TopUtilizerResources';
@@ -30,12 +30,10 @@ import * as EntitySetActions from '../entitysets/EntitySetActions';
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 import * as TopUtilizersActionFactory from './TopUtilizersActionFactory';
 import * as Routes from '../../core/router/Routes';
+import { AppContentWrapper } from '../../components/layout';
+import { APP_CONTENT_WIDTH } from '../../core/style/Sizes';
 
 const { FullyQualifiedName } = Models;
-
-const ResultsWrapper = styled.div`
-  margin: 30px 0;
-`;
 
 type Props = {
   actions :{
@@ -212,7 +210,7 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
     } = this.props;
 
     if (isLoadingResults) {
-      return <LoadingSpinner />;
+      return <Spinner size="2x" />;
     }
 
     if (results.size && selectedEntitySet) {
@@ -329,9 +327,9 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
                   }} />
             ) : <EntitySetSearch actionText="find to utilizers in" path={Routes.TOP_UTILIZERS} />
         }
-        <ResultsWrapper>
+        <AppContentWrapper contentWidth={APP_CONTENT_WIDTH}>
           {this.renderResults()}
-        </ResultsWrapper>
+        </AppContentWrapper>
       </div>
     );
   }

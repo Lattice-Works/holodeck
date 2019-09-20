@@ -4,12 +4,11 @@
 
 const ID_PATH :':id' = ':id';
 
-export const ROOT :string = '/';
-export const LOGIN :string = '/login';
-
-export const TOP_UTILIZERS :string = '/toputilizers';
-export const REPORTS :string = '/reports';
-export const MANAGE :string = '/manage';
+/*
+ * App
+ */
+const ROOT :string = '/';
+const LOGIN :string = '/login';
 
 /*
  * Data Explorer
@@ -17,8 +16,18 @@ export const MANAGE :string = '/manage';
 const EXPLORE :string = '/explore';
 const EXPLORE_ES :string = `${EXPLORE}/${ID_PATH}`;
 
+/*
+ * Top Utilizers
+ */
+const TOP_UTILIZERS :string = '/toputilizers';
+const TOP_UTILIZERS_ES :string = `${TOP_UTILIZERS}/${ID_PATH}`;
+
 export {
   EXPLORE,
   EXPLORE_ES,
   ID_PATH,
+  LOGIN,
+  ROOT,
+  TOP_UTILIZERS,
+  TOP_UTILIZERS_ES,
 };

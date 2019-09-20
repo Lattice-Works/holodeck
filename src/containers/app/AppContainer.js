@@ -20,7 +20,7 @@ import type { RequestSequence, RequestState } from 'redux-reqseq';
 
 import AppHeaderContainer from './AppHeaderContainer';
 import ExploreRouter from '../explore/ExploreRouter';
-import TopUtilizersContainer from '../toputilizers/TopUtilizersContainer';
+import TopUtilizersRouter from '../toputilizers/TopUtilizersRouter';
 import * as AppActions from './AppActions';
 import * as Routes from '../../core/router/Routes';
 import { AppContentWrapper } from '../../components/layout';
@@ -66,7 +66,7 @@ class AppContainer extends Component<Props> {
       return (
         <Switch>
           <Route path={Routes.EXPLORE} component={ExploreRouter} />
-          <Route path={Routes.TOP_UTILIZERS} component={TopUtilizersContainer} />
+          <Route path={Routes.TOP_UTILIZERS} component={TopUtilizersRouter} />
           <Redirect to={Routes.EXPLORE} />
         </Switch>
       );
@@ -112,7 +112,6 @@ const mapActionsToProps = (dispatch :Function) => ({
   }, dispatch)
 });
 
-// $FlowFixMe
 export default withRouter(
   connect(mapStateToProps, mapActionsToProps)(AppContainer)
 );
