@@ -33,10 +33,12 @@ function* initializeApplicationWorker(action :SequenceAction) :Generator<*, *, *
 
   try {
     yield put(initializeApplication.request(action.id));
-    yield all([
+    const responses :Object[] = yield all([
       call(getEntityDataModelTypesWorker, getEntityDataModelTypes()),
       call(getEntitySetsWithMetaDataWorker, getEntitySetsWithMetaData()),
     ]);
+    if (responses[0].error) throw responses[0].error;
+    if (responses[1].error) throw responses[1].error;
     yield put(initializeApplication.success(action.id));
   }
   catch (error) {
