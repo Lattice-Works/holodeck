@@ -95,51 +95,40 @@ type Props = {
 };
 
 type State = {
-  searchTerm :string;
+  valueOfSearchQuery :string;
 };
 
 class EntitySetSearch extends React.Component<Props, State> {
 
-  searchTimeout :?TimeoutID;
-
   constructor(props :Props) {
     super(props);
     this.state = {
-      searchTerm: ''
+      valueOfSearchQuery: '',
     };
-
-    this.searchTimeout = null;
   }
 
   componentDidMount() {
 
-    this.executeSearch();
-  }
-
-  executeSearch = (searchTermInit :?string) => {
     const { actions } = this.props;
-
     actions.searchEntitySets({
-      searchTerm: searchTermInit || '*',
+      searchTerm: '*',
       start: 0,
       maxHits: 10000
     });
   }
 
-  handleInputChange = (e :any) => {
+  handleOnChangeSearch = (event :SyntheticInputEvent<HTMLInputElement>) => {
+
     const { actions } = this.props;
-    this.setState({ searchTerm: e.target.value });
+    const valueOfSearchQuery = event.target.value || '';
 
-    clearTimeout(this.searchTimeout);
-
-    this.searchTimeout = setTimeout(() => {
-      const { searchTerm } = this.state;
-
-      const newPage = 1;
-
-      this.executeSearch(searchTerm);
-      actions.selectEntitySetPage(newPage);
-    }, 500);
+    actions.searchEntitySets({
+      searchTerm: valueOfSearchQuery,
+      start: 0,
+      maxHits: 10000
+    });
+    actions.selectEntitySetPage(1);
+    this.setState({ valueOfSearchQuery });
   }
 
   // handleSelect = (entitySetObj) => {
@@ -234,14 +223,14 @@ class EntitySetSearch extends React.Component<Props, State> {
 
   render() {
 
-    const { searchTerm } = this.state;
+    const { valueOfSearchQuery } = this.state;
 
     return (
       <>
         <AppContentWrapper bgColor="#fff">
           <SearchSection>
             <h1>Select a dataset to search</h1>
-            <Input onChange={this.handleInputChange} placeholder="Search" value={searchTerm} />
+            <Input onChange={this.handleOnChangeSearch} placeholder="Search" value={valueOfSearchQuery} />
           </SearchSection>
         </AppContentWrapper>
         <AppContentWrapper contentWidth={APP_CONTENT_WIDTH}>

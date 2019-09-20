@@ -53,6 +53,8 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
       const seqAction :SequenceAction = action;
       return searchEntitySets.reducer(state, action, {
         REQUEST: () => state
+          .set(ENTITY_SET_SEARCH_RESULTS, List())
+          .set(TOTAL_HITS, 0)
           .setIn([SEARCH_ENTITY_SETS, 'requestState'], RequestStates.PENDING)
           .setIn([SEARCH_ENTITY_SETS, seqAction.id], seqAction),
         SUCCESS: () => {
