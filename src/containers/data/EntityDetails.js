@@ -6,6 +6,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { List, Map, fromJS } from 'immutable';
 import { Models } from 'lattice';
+import { CardStack } from 'lattice-ui-kit';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -18,7 +19,7 @@ import NeighborTables from '../../components/data/NeighborTables';
 import NeighborTimeline from '../../components/data/NeighborTimeline';
 import StyledCheckbox from '../../components/controls/StyledCheckbox';
 import SelectedPersonResultCard from '../../components/people/SelectedPersonResultCard';
-import PersonCountsCard from '../../components/people/PersonCountsCard';
+import PersonScoreCard from '../../components/people/PersonScoreCard';
 import Breadcrumbs from '../../components/nav/Breadcrumbs';
 import {
   STATE,
@@ -155,7 +156,13 @@ class EntityDetails extends React.Component<Props, State> {
     const entity = this.getSelectedEntity();
     const total = entity.getIn([COUNT_FQN, 0]);
 
-    return total === undefined ? null : <PersonCountsCard total={total} counts={this.getCounts()} />;
+    if (typeof total !== 'number') {
+      return null;
+    }
+
+    return (
+      <PersonScoreCard total={total} counts={this.getCounts()} />
+    );
   }
 
   renderEntityTable = () => {
@@ -386,15 +393,17 @@ class EntityDetails extends React.Component<Props, State> {
       <div>
         {this.renderBreadcrumbs()}
         {this.renderLayoutOptions()}
-        {this.isCurrentPersonType()
-          ? (
-            <SelectedPersonResultCard
-                person={this.getSelectedEntity()}
-                index={rankingsById.get(this.getSelectedEntityKeyId())} />
-          )
-          : null}
-        {this.renderCountsCard()}
-        {this.renderEntityTable()}
+        <CardStack>
+          {
+            this.isCurrentPersonType() && (
+              <SelectedPersonResultCard
+                  person={this.getSelectedEntity()}
+                  index={rankingsById.get(this.getSelectedEntityKeyId())} />
+            )
+          }
+          {this.renderCountsCard()}
+          {this.renderEntityTable()}
+        </CardStack>
         {this.renderNeighbors()}
       </div>
     );

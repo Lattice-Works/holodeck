@@ -11,12 +11,10 @@ import {
   Card,
   CardSegment,
   DataGrid,
-  Label,
 } from 'lattice-ui-kit';
 
+import PersonScoreCard from './PersonScoreCard';
 import { FullyQualifiedNames } from '../../core/edm/constants';
-import { TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
-import { BLUE } from '../../utils/constants/Colors';
 
 const {
   PERSON_BIRTH_DATE_FQN,
@@ -46,33 +44,6 @@ const UserIconWrapper = styled.div`
   justify-content: center;
   margin: 0 30px 0 0;
   width: 45px;
-`;
-
-const ScoreItemCardSegment = styled(CardSegment)`
-  justify-content: space-between;
-  margin-left: 185px; /* = 30px left padding + 50px index width + 30px margin + 45px picture width + 30px margin */
-`;
-
-const ScoreHeaderCardSegment = styled(ScoreItemCardSegment)`
-  border-bottom: none;
-  padding-bottom: 0;
-`;
-
-const ScoreItemGrid = styled.div`
-  align-items: center;
-  display: grid;
-  flex: 1;
-  grid-template-columns: 1fr 100px;
-  grid-column-gap: 30px;
-
-  > span:first-child {
-    color: ${BLUE.BLUE_2};
-    font-weight: 600;
-  }
-
-  > span {
-    font-size: 13px;
-  }
 `;
 
 const labelMap = Map({
@@ -117,26 +88,7 @@ const PersonResultCard = ({
       </CardSegment>
       {
         counts && !counts.isEmpty() && (
-          counts.map((countItem, countIndex) => (
-            <>
-              {
-                countIndex === 0 && (
-                  <ScoreHeaderCardSegment noBleed padding="sm">
-                    <ScoreItemGrid>
-                      <Label subtle>SCORE DETAILS</Label>
-                      <Label subtle>SCORE</Label>
-                    </ScoreItemGrid>
-                  </ScoreHeaderCardSegment>
-                )
-              }
-              <ScoreItemCardSegment noBleed padding="sm">
-                <ScoreItemGrid>
-                  <span>{countItem.get(TOP_UTILIZERS_FILTER.LABEL)}</span>
-                  <span>{countItem.get(AT_COUNT_FQN)}</span>
-                </ScoreItemGrid>
-              </ScoreItemCardSegment>
-            </>
-          ))
+          <PersonScoreCard asCardSegment counts={counts} />
         )
       }
     </Card>

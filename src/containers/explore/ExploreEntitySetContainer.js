@@ -13,12 +13,10 @@ import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import SearchParameterSelection from '../../components/explore/SearchParameterSelection';
 import {
   STATE,
-  // ENTITY_SETS,
   EXPLORE,
   TOP_UTILIZERS
 } from '../../utils/constants/StateConstants';
 import * as ExploreActions from './ExploreActionFactory';
-import * as TopUtilizersActions from '../toputilizers/TopUtilizersActionFactory';
 import * as Routes from '../../core/router/Routes';
 import * as RoutingActions from '../../core/router/RoutingActions';
 import { AppContentWrapper } from '../../components/layout';
@@ -29,7 +27,6 @@ import type { GoToRoot, GoToRoute } from '../../core/router/RoutingActions';
 type Props = {
   actions :{
     clearExploreSearchResults :RequestSequence;
-    getNeighborTypes :RequestSequence;
     goToRoot :GoToRoot;
     goToRoute :GoToRoute;
     searchEntitySetData :RequestSequence;
@@ -213,7 +210,6 @@ function mapStateToProps(state :Map<*, *>, props :Object) :Object {
 const mapActionsToProps = (dispatch :Function) => ({
   actions: bindActionCreators({
     clearExploreSearchResults: ExploreActions.clearExploreSearchResults,
-    getNeighborTypes: TopUtilizersActions.getNeighborTypes,
     goToRoot: RoutingActions.goToRoot,
     goToRoute: RoutingActions.goToRoute,
     searchEntitySetData: ExploreActions.searchEntitySetData,

@@ -22,11 +22,10 @@ import type { RequestSequence, RequestState } from 'redux-reqseq';
 import EntitySetCard from '../../components/cards/EntitySetCard';
 import Pagination from '../../components/explore/Pagination';
 import { ENTITY_SETS, STATE } from '../../utils/constants/StateConstants';
+import * as EntitySetActions from './EntitySetActions';
 import * as ReduxActions from '../../core/redux/ReduxActions';
 import * as Routes from '../../core/router/Routes';
 import * as RoutingActions from '../../core/router/RoutingActions';
-import * as EntitySetActions from './EntitySetActions';
-import * as TopUtilizersActions from '../toputilizers/TopUtilizersActionFactory';
 import { AppContentWrapper } from '../../components/layout';
 import { APP_CONTENT_WIDTH } from '../../core/style/Sizes';
 import type { GoToRoute } from '../../core/router/RoutingActions';
@@ -76,7 +75,6 @@ const PAGE_SIZE = 24;
 
 type Props = {
   actions :{
-    getNeighborTypes :RequestSequence;
     goToRoute :GoToRoute;
     resetRequestState :(actionType :string) => void;
     searchEntitySets :RequestSequence;
@@ -284,7 +282,6 @@ function mapStateToProps(state :Map<*, *>) :Object {
 
 const mapActionsToProps = (dispatch :Function) => ({
   actions: bindActionCreators({
-    getNeighborTypes: TopUtilizersActions.getNeighborTypes,
     goToRoute: RoutingActions.goToRoute,
     resetRequestState: ReduxActions.resetRequestState,
     searchEntitySets: EntitySetActions.searchEntitySets,
