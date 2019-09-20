@@ -32,25 +32,16 @@ import * as TopUtilizersActionFactory from '../toputilizers/TopUtilizersActionFa
 
 const { FullyQualifiedName } = Models;
 
-const ToolbarWrapper = styled.div`
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-`;
-
 const SubtleButtonsWrapper = styled.div`
-  display: flex;
-  flex-direction: row;
   align-items: center;
-  width: fit-content;
+  display: flex;
 
   ${SubtleButton}:not(:first-child) {
     margin-left: 10px;
   }
-
+  > button {
+    margin-right: 10px;
+  }
 `;
 
 const NumResults = styled.div`
@@ -296,28 +287,34 @@ class SearchResultsContainer extends React.Component<Props, State> {
     const showToolbar = isPersonType(this.props);
 
     return (
-      <ToolbarWrapper>
+      <>
         <SubtleButtonsWrapper>
-          { showToolbar ? <ButtonToolbar options={options} value={layout} noPadding /> : null }
+          {
+            showToolbar && (
+              <ButtonToolbar options={options} value={layout} noPadding />
+            )
+          }
           <NumResults withMargin={showToolbar}>
             {isTopUtilizers ? `Showing top ${numStr} utilizer${plural}` : `${numStr} result${plural}`}
           </NumResults>
         </SubtleButtonsWrapper>
         <SubtleButtonsWrapper>
-          { showToolbar && isTopUtilizers && layout === LAYOUTS.PERSON ? (
-            <SubtleButton onClick={() => this.setState({ showCountDetails: !showCountDetails })}>
-              {`${showCountDetails ? 'Hide' : 'Show'} Score Details`}
-            </SubtleButton>
-          ) : null}
           {
-            isTopUtilizers ? (
+            showToolbar && isTopUtilizers && layout === LAYOUTS.PERSON && (
+              <SubtleButton onClick={() => this.setState({ showCountDetails: !showCountDetails })}>
+                {`${showCountDetails ? 'Hide' : 'Show'} Score Details`}
+              </SubtleButton>
+            )
+          }
+          {
+            isTopUtilizers && (
               <SubtleButton onClick={this.downloadTopUtilizers} disabled={isDownloadingTopUtilizers}>
                 Download CSV
               </SubtleButton>
-            ) : null
+            )
           }
         </SubtleButtonsWrapper>
-      </ToolbarWrapper>
+      </>
     );
   }
 
@@ -376,14 +373,14 @@ class SearchResultsContainer extends React.Component<Props, State> {
     const currPage = (start / MAX_RESULTS) + 1;
 
     return (
-      <>
+      <CardStack>
         {!isExploring && this.renderLayoutToolbar()}
         {resultContent}
         <Pagination
             numPages={numPages}
             activePage={currPage}
             onChangePage={(page) => this.updatePage(((page - 1) * MAX_RESULTS), layout)} />
-      </>
+      </CardStack>
     );
   }
 }
