@@ -437,7 +437,7 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
               {this.canRenderLocations() ? this.renderNavButton(RESULT_DISPLAYS.MAP) : null}
             </TabButtonRow>
           )
-      }
+        }
       </>
     );
   }

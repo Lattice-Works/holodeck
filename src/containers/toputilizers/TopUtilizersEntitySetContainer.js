@@ -3,7 +3,6 @@
  */
 
 import React from 'react';
-import styled from 'styled-components';
 import { List, Map, Set } from 'immutable';
 import { Models } from 'lattice';
 import { Spinner } from 'lattice-ui-kit';
