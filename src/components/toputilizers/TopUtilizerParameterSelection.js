@@ -3,15 +3,19 @@
  */
 
 import React from 'react';
+
 import styled from 'styled-components';
+import { faChevronLeft } from '@fortawesome/pro-regular-svg-icons';
 import { faDatabase } from '@fortawesome/pro-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Map, List, Set } from 'immutable';
 import { Models } from 'lattice';
+import {
+  Button,
+  IconButton,
+} from 'lattice-ui-kit';
 
-import BackNavButton from '../buttons/BackNavButton';
 import TabNavButton from '../buttons/TabNavButton';
-import InfoButton from '../buttons/InfoButton';
 import DropdownButtonWrapper from '../buttons/DropdownButtonWrapper';
 import Banner from '../cards/Banner';
 import TopUtilizersSelect from './TopUtilizersSelect';
@@ -22,19 +26,26 @@ import PropertyTypeFilterOptions from './searchoptions/PropertyTypeFilterOptions
 import { DURATION_TYPES, PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { COUNT_TYPES, RESULT_DISPLAYS, TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
 
-import {
-  FixedWidthWrapper,
-  HeaderComponentWrapper,
-  InputGroup,
-  InputLabel
-} from '../layout/Layout';
-
 const { FullyQualifiedName } = Models;
 
-const CenteredHeaderWrapper = styled(HeaderComponentWrapper)`
-  display: flex;
-  justify-content: center;
-  padding: 30px 0;
+const BackIcon = (
+  <FontAwesomeIcon icon={faChevronLeft} />
+);
+
+const Wrapper = styled.div`
+  > div {
+    margin: 0 0 30px 0;
+  }
+
+  > div:first-child {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  > div:last-child {
+    margin: 0;
+  }
 `;
 
 const Title = styled.div`
@@ -55,15 +66,14 @@ const Title = styled.div`
   }
 `;
 
-const InputRow = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  margin-top: 30px;
+const FilterControls = styled.div`
+  display: grid;
+  grid-gap: 30px;
+  grid-template-columns: repeat(5, 1fr);
 `;
 
 const TabButtonRow = styled.div`
-  margin: 20px 0 -30px 0;
+  margin: 30px 0 -30px 0;
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
@@ -378,9 +388,11 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
 
     const entitySetTitle = selectedEntitySet.get('title');
     return (
-      <CenteredHeaderWrapper>
-        <FixedWidthWrapper>
-          <BackNavButton onClick={deselectEntitySet}>Back to dataset selection</BackNavButton>
+      <>
+        <Wrapper>
+          <div>
+            <IconButton icon={BackIcon} mode="subtle" onClick={deselectEntitySet}>Back to dataset selection</IconButton>
+          </div>
           <Title>
             <div>Search</div>
             <span><FontAwesomeIcon icon={faDatabase} /></span>
@@ -393,54 +405,40 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
               )
             }
           </Title>
-          <InputRow>
-            <InputGroup fullSize>
-              <InputLabel>Search Parameter</InputLabel>
-              <TopUtilizersSelect
-                  selectedEntitySet={selectedEntitySet}
-                  isLoadingNeighborTypes={isLoadingNeighborTypes}
-                  neighborTypes={neighborTypes}
-                  selectedNeighborTypes={selectedNeighborTypes}
-                  onChange={this.onSelectedNeighborPairChange} />
-            </InputGroup>
-          </InputRow>
-          <InputRow>
-            <InputGroup>
-              <DropdownButtonWrapper title="Search Option" width={550} short fullSize>
-                {this.renderSearchOption()}
-              </DropdownButtonWrapper>
-            </InputGroup>
-            <InputGroup>
-              <DropdownButtonWrapper title="Date Range" width={800} short fullSize>
-                {this.renderDateRangePicker()}
-              </DropdownButtonWrapper>
-            </InputGroup>
-            <InputGroup>
-              <DropdownButtonWrapper title="Weights" width={600} short fullSize>
-                {this.renderWeightsPicker()}
-              </DropdownButtonWrapper>
-            </InputGroup>
-            <InputGroup>
-              <DropdownButtonWrapper title="Properties" width={800} short fullSize>
-                {this.renderPropertyTypeFilterOptions()}
-              </DropdownButtonWrapper>
-            </InputGroup>
-            <InputGroup>
-              <InfoButton onClick={this.searchTopUtilizers} fullSize>Find Top Utilizers</InfoButton>
-            </InputGroup>
-          </InputRow>
-          {
-            searchHasRun ? (
-              <TabButtonRow>
-                {this.renderNavButton(RESULT_DISPLAYS.SEARCH_RESULTS)}
-                {this.renderNavButton(RESULT_DISPLAYS.DASHBOARD)}
-                {this.renderNavButton(RESULT_DISPLAYS.RESOURCES)}
-                {this.canRenderLocations() ? this.renderNavButton(RESULT_DISPLAYS.MAP) : null}
-              </TabButtonRow>
-            ) : null
-          }
-        </FixedWidthWrapper>
-      </CenteredHeaderWrapper>
+          <TopUtilizersSelect
+              selectedEntitySet={selectedEntitySet}
+              isLoadingNeighborTypes={isLoadingNeighborTypes}
+              neighborTypes={neighborTypes}
+              selectedNeighborTypes={selectedNeighborTypes}
+              onChange={this.onSelectedNeighborPairChange} />
+          <FilterControls>
+            <DropdownButtonWrapper title="Search Option" width={550} short fullSize>
+              {this.renderSearchOption()}
+            </DropdownButtonWrapper>
+            <DropdownButtonWrapper title="Date Range" width={800} short fullSize>
+              {this.renderDateRangePicker()}
+            </DropdownButtonWrapper>
+            <DropdownButtonWrapper title="Weights" width={600} short fullSize>
+              {this.renderWeightsPicker()}
+            </DropdownButtonWrapper>
+            <DropdownButtonWrapper title="Properties" width={800} short fullSize>
+              {this.renderPropertyTypeFilterOptions()}
+            </DropdownButtonWrapper>
+            <Button mode="primary" onClick={this.searchTopUtilizers}>Find Top Utilizers</Button>
+          </FilterControls>
+
+        </Wrapper>
+        {
+          !searchHasRun && (
+            <TabButtonRow>
+              {this.renderNavButton(RESULT_DISPLAYS.SEARCH_RESULTS)}
+              {this.renderNavButton(RESULT_DISPLAYS.DASHBOARD)}
+              {this.renderNavButton(RESULT_DISPLAYS.RESOURCES)}
+              {this.canRenderLocations() ? this.renderNavButton(RESULT_DISPLAYS.MAP) : null}
+            </TabButtonRow>
+          )
+      }
+      </>
     );
   }
 }

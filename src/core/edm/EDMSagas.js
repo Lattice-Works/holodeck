@@ -40,6 +40,8 @@ const { getAllEntitySetsWorker, getPropertyTypeMetaDataForEntitySetsWorker } = E
 
 function* getEntityDataModelTypesWorker(action :SequenceAction) :Generator<*, *, *> {
 
+  const workerResponse :Object = {};
+
   try {
     yield put(getEntityDataModelTypes.request(action.id));
 
@@ -62,11 +64,14 @@ function* getEntityDataModelTypesWorker(action :SequenceAction) :Generator<*, *,
   }
   catch (error) {
     LOG.error(action.type, error);
+    workerResponse.error = error;
     yield put(getEntityDataModelTypes.failure(action.id, error));
   }
   finally {
     yield put(getEntityDataModelTypes.finally(action.id));
   }
+
+  return workerResponse;
 }
 
 function* getEntityDataModelTypesWatcher() :Generator<*, *, *> {
@@ -81,6 +86,8 @@ function* getEntityDataModelTypesWatcher() :Generator<*, *, *> {
  */
 
 function* getEntitySetsWithMetaDataWorker(action :SequenceAction) :Generator<*, *, *> {
+
+  const workerResponse :Object = {};
 
   try {
     yield put(getEntitySetsWithMetaData.request(action.id));
@@ -105,11 +112,14 @@ function* getEntitySetsWithMetaDataWorker(action :SequenceAction) :Generator<*, 
   }
   catch (error) {
     LOG.error(action.type, error);
+    workerResponse.error = error;
     yield put(getEntitySetsWithMetaData.failure(action.id, error));
   }
   finally {
     yield put(getEntitySetsWithMetaData.finally(action.id));
   }
+
+  return workerResponse;
 }
 
 function* getEntitySetsWithMetaDataWatcher() :Generator<*, *, *> {

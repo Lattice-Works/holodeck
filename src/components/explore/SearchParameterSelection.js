@@ -3,7 +3,12 @@
  */
 
 import React from 'react';
+
 import styled from 'styled-components';
+import { faCloudDownload } from '@fortawesome/pro-light-svg-icons';
+import { faChevronLeft } from '@fortawesome/pro-regular-svg-icons';
+import { faDatabase } from '@fortawesome/pro-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Map } from 'immutable';
 import { DataApi } from 'lattice';
 import {
@@ -11,10 +16,6 @@ import {
   IconButton,
   SearchInput,
 } from 'lattice-ui-kit';
-import { faCloudDownload } from '@fortawesome/pro-light-svg-icons';
-import { faChevronLeft } from '@fortawesome/pro-regular-svg-icons';
-import { faDatabase } from '@fortawesome/pro-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import Banner from '../cards/Banner';
 

@@ -30,7 +30,7 @@ const AppContentOuterWrapper = styled.div`
   display: flex;
   flex: 0 0 auto;
   justify-content: center;
-  overflow: hidden;
+  /*overflow: hidden;*/ /* TODO: make it work with overflow hidden */
   position: relative;
   ${getOuterComputedStyles}
 `;

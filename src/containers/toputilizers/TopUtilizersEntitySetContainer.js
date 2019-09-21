@@ -298,39 +298,44 @@ class TopUtilizersEntitySetContainer extends React.Component<Props> {
     } = this.props;
 
     return (
-      <div>
+      <>
         {
           selectedEntitySet
             ? (
-              <TopUtilizerParameterSelection
-                  display={display}
-                  searchHasRun={!!results.size}
-                  selectedEntitySet={selectedEntitySet}
-                  selectedEntitySetSize={selectedEntitySetSize}
-                  selectedEntitySetPropertyTypes={getEntitySetPropertyTypes(this.props)}
-                  filteredPropertyTypes={filteredPropertyTypes}
-                  isLoadingNeighborTypes={isLoadingNeighborTypes}
-                  numberOfUtilizers={numberOfUtilizers}
-                  neighborTypes={neighborTypes}
-                  entityTypes={entityTypes}
-                  entityTypesIndexMap={entityTypesIndexMap}
-                  propertyTypes={propertyTypes}
-                  propertyTypesIndexMap={propertyTypesIndexMap}
-                  getTopUtilizers={actions.getTopUtilizers}
-                  onPropertyTypeChange={this.onPropertyTypeChange}
-                  changeTopUtilizersDisplay={actions.changeTopUtilizersDisplay}
-                  changeNumUtilizers={actions.changeNumUtilizers}
-                  deselectEntitySet={() => {
-                    actions.clearTopUtilizersResults();
-                    actions.selectEntitySet();
-                    history.push(Routes.TOP_UTILIZERS);
-                  }} />
-            ) : <EntitySetSearch actionText="find to utilizers in" path={Routes.TOP_UTILIZERS} />
+              <AppContentWrapper bgColor="#fff" contentWidth={APP_CONTENT_WIDTH}>
+                <TopUtilizerParameterSelection
+                    display={display}
+                    searchHasRun={!!results.size}
+                    selectedEntitySet={selectedEntitySet}
+                    selectedEntitySetSize={selectedEntitySetSize}
+                    selectedEntitySetPropertyTypes={getEntitySetPropertyTypes(this.props)}
+                    filteredPropertyTypes={filteredPropertyTypes}
+                    isLoadingNeighborTypes={isLoadingNeighborTypes}
+                    numberOfUtilizers={numberOfUtilizers}
+                    neighborTypes={neighborTypes}
+                    entityTypes={entityTypes}
+                    entityTypesIndexMap={entityTypesIndexMap}
+                    propertyTypes={propertyTypes}
+                    propertyTypesIndexMap={propertyTypesIndexMap}
+                    getTopUtilizers={actions.getTopUtilizers}
+                    onPropertyTypeChange={this.onPropertyTypeChange}
+                    changeTopUtilizersDisplay={actions.changeTopUtilizersDisplay}
+                    changeNumUtilizers={actions.changeNumUtilizers}
+                    deselectEntitySet={() => {
+                      actions.clearTopUtilizersResults();
+                      actions.selectEntitySet();
+                      history.push(Routes.TOP_UTILIZERS);
+                    }} />
+              </AppContentWrapper>
+            )
+            : (
+              <EntitySetSearch actionText="find to utilizers in" path={Routes.TOP_UTILIZERS} />
+            )
         }
         <AppContentWrapper contentWidth={APP_CONTENT_WIDTH}>
           {this.renderResults()}
         </AppContentWrapper>
-      </div>
+      </>
     );
   }
 }
