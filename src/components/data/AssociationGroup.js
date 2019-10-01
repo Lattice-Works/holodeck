@@ -5,6 +5,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { List, Map, fromJS } from 'immutable';
+import { Models } from 'lattice';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronUp } from '@fortawesome/pro-regular-svg-icons';
 
@@ -12,7 +13,8 @@ import DataTable from './DataTable';
 import Banner from '../cards/Banner';
 import { IMAGE_PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { TableWrapper } from '../layout/Layout';
-import { getFqnString } from '../../utils/DataUtils';
+
+const { FullyQualifiedName } = Models;
 
 const AssociationGroupWrapper = styled.div`
   width: 100%;
@@ -83,10 +85,12 @@ const UpIcon = styled(FontAwesomeIcon).attrs({
 `;
 
 type Props = {
-  entityTypesById :Map<string, *>;
+  entityTypes :List;
+  entityTypesIndexMap :Map;
   neighborsById :Map<string, Map<*, *>>;
   onSelectEntity :({ entitySetId :string, entity :Map<*, *> }) => void;
-  propertyTypesById :Map<string, *>;
+  propertyTypes :List;
+  propertyTypesIndexMap :Map;
 }
 
 type State = {
@@ -108,13 +112,24 @@ export default class AssociationGroup extends React.Component<Props, State> {
   }
 
   getPropertyHeaders = (entityTypeId :UUID) => {
-    const { entityTypesById, propertyTypesById } = this.props;
-    return entityTypesById.getIn([entityTypeId, 'properties'], List()).map((propertyTypeId) => {
-      const propertyType = propertyTypesById.get(propertyTypeId, Map());
-      const id = getFqnString(propertyType.get('type', Map()));
-      const isImg = IMAGE_PROPERTY_TYPES.includes(id);
+
+    const {
+      entityTypes,
+      entityTypesIndexMap,
+      propertyTypes,
+      propertyTypesIndexMap,
+    } = this.props;
+
+    const entityTypeIndex :number = entityTypesIndexMap.get(entityTypeId);
+    const entityType :Map = entityTypes.get(entityTypeIndex, Map());
+
+    return entityType.get('properties', List()).map((propertyTypeId :UUID) => {
+      const propertyTypeIndex = propertyTypesIndexMap.get(propertyTypeId);
+      const propertyType = propertyTypes.get(propertyTypeIndex, Map());
+      const propertyTypeFQN = FullyQualifiedName.toString(propertyType.get('type', Map()));
+      const isImg = IMAGE_PROPERTY_TYPES.includes(propertyTypeFQN);
       const value = propertyType.get('title', '');
-      return fromJS({ id, value, isImg });
+      return fromJS({ id: propertyTypeFQN, value, isImg });
     });
   }
 

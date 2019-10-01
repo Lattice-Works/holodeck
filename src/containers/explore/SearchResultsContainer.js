@@ -13,6 +13,8 @@ import {
   Set,
   fromJS
 } from 'immutable';
+import { Models } from 'lattice';
+import { CardStack } from 'lattice-ui-kit';
 
 import PersonResultCard from '../../components/people/PersonResultCard';
 import ButtonToolbar from '../../components/buttons/ButtonToolbar';
@@ -23,37 +25,23 @@ import Pagination from '../../components/explore/Pagination';
 import { COUNT_FQN } from '../../utils/constants/DataConstants';
 import { IMAGE_PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
-import {
-  STATE,
-  EDM,
-  ENTITY_SETS,
-  EXPLORE,
-  TOP_UTILIZERS
-} from '../../utils/constants/StateConstants';
-import { CenteredColumnContainer, FixedWidthWrapper, TableWrapper } from '../../components/layout/Layout';
-import { getEntityKeyId, getFqnString, isPersonType } from '../../utils/DataUtils';
+import { STATE, EXPLORE, TOP_UTILIZERS } from '../../utils/constants/StateConstants';
+import { getEntityKeyId, isPersonType } from '../../utils/DataUtils';
 import * as ExploreActionFactory from './ExploreActionFactory';
 import * as TopUtilizersActionFactory from '../toputilizers/TopUtilizersActionFactory';
 
-const ToolbarWrapper = styled.div`
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-`;
+const { FullyQualifiedName } = Models;
 
 const SubtleButtonsWrapper = styled.div`
-  display: flex;
-  flex-direction: row;
   align-items: center;
-  width: fit-content;
+  display: flex;
 
   ${SubtleButton}:not(:first-child) {
     margin-left: 10px;
   }
-
+  > button {
+    margin-right: 10px;
+  }
 `;
 
 const NumResults = styled.div`
@@ -79,17 +67,19 @@ type Props = {
   breadcrumbs :List<string>;
   countBreakdown :Map<*, *>;
   currLayout ?:string;
-  entityTypesById :Map<string, *>;
+  entityTypes :List;
+  entityTypesIndexMap :Map;
   executeSearch :Function;
   filteredPropertyTypes ?:Set<string>;
   isDownloadingTopUtilizers :boolean;
   isTopUtilizers :boolean;
   neighborsById :Map<string, *>;
-  propertyTypesById :Map<string, *>;
+  propertyTypes :List;
+  propertyTypesIndexMap :Map;
   renderLayout :Function;
   results :List<*>;
   searchStart ?:number;
-  selectedEntitySet :Map<*, *>;
+  selectedEntitySet :Map;
   totalHits :number;
 };
 
@@ -121,21 +111,26 @@ class SearchResultsContainer extends React.Component<Props, State> {
   onSelect = (index, entity) => {
     const {
       actions,
-      entityTypesById,
+      entityTypes,
+      entityTypesIndexMap,
       neighborsById,
+      propertyTypes,
+      propertyTypesIndexMap,
       selectedEntitySet,
-      propertyTypesById
     } = this.props;
 
     const entityKeyId = getEntityKeyId(entity);
     const entitySetId = selectedEntitySet.get('id');
     const selectedEntitySetId = entitySetId;
-    const entityType = entityTypesById.get(selectedEntitySet.get('entityTypeId'), Map());
+    const entityTypeId :UUID = selectedEntitySet.get('entityTypeId');
+    const entityTypeIndex :number = entityTypesIndexMap.get(entityTypeId);
+    const entityType = entityTypes.get(entityTypeIndex, Map());
     actions.selectEntity({
       entityKeyId,
       entitySetId,
       entityType,
-      propertyTypesById
+      propertyTypes,
+      propertyTypesIndexMap,
     });
     if (!neighborsById.has(entityKeyId)) {
       actions.loadEntityNeighbors({ entitySetId, entity, selectedEntitySetId });
@@ -143,18 +138,31 @@ class SearchResultsContainer extends React.Component<Props, State> {
   };
 
   getCountsForUtilizer = (entityKeyId) => {
-    const { countBreakdown, entityTypesById, propertyTypesById } = this.props;
 
-    const getEntityTypeTitle = (id) => entityTypesById.getIn([id, 'title'], '');
+    const {
+      countBreakdown,
+      entityTypes,
+      entityTypesIndexMap,
+      propertyTypes,
+      propertyTypesIndexMap,
+    } = this.props;
+
+    const getEntityTypeTitle = (id) => {
+      const entityTypeIndex :number = entityTypesIndexMap.get(id);
+      return entityTypes.getIn([entityTypeIndex, 'title'], '');
+    };
 
     return countBreakdown.get(entityKeyId, Map()).entrySeq()
       .filter(([pair]) => pair !== 'score')
       .flatMap(([pair, pairMap]) => {
         const pairTitle = `${getEntityTypeTitle(pair.get(0))} ${getEntityTypeTitle(pair.get(1))}`;
         return pairMap.entrySeq().map(([key, count]) => {
+          const propertyTypeIndex = propertyTypesIndexMap.get(key);
+          const propertyType = propertyTypes.get(propertyTypeIndex, Map());
+          const propertyTypeTitle = propertyType.get('title');
           const title = key === COUNT_FQN
             ? pairTitle
-            : `${pairTitle} -- ${propertyTypesById.getIn([key, 'title'], '')}`;
+            : `${pairTitle} -- ${propertyTypeTitle}`;
           return Map().set(TOP_UTILIZERS_FILTER.LABEL, title).set(COUNT_FQN, count);
         });
       });
@@ -164,22 +172,30 @@ class SearchResultsContainer extends React.Component<Props, State> {
     const { isTopUtilizers, results } = this.props;
     const { showCountDetails, start } = this.state;
 
-    return results.map((person, index) => (
-      <PersonResultCard
-          key={getEntityKeyId(person)}
-          counts={isTopUtilizers && showCountDetails ? this.getCountsForUtilizer(getEntityKeyId(person)) : null}
-          index={index + 1 + start}
-          person={person}
-          onClick={() => this.onSelect(index, person)} />
-    ));
+    return (
+      <CardStack>
+        {
+          results.map((person, index) => (
+            <PersonResultCard
+                key={getEntityKeyId(person)}
+                counts={isTopUtilizers && showCountDetails ? this.getCountsForUtilizer(getEntityKeyId(person)) : null}
+                index={index + 1 + start}
+                person={person}
+                onClick={() => this.onSelect(index, person)} />
+          ))
+        }
+      </CardStack>
+    );
   }
 
   renderTableResults = () => {
     const {
-      entityTypesById,
+      entityTypes,
+      entityTypesIndexMap,
       filteredPropertyTypes,
       isTopUtilizers,
-      propertyTypesById,
+      propertyTypes,
+      propertyTypesIndexMap,
       results,
       selectedEntitySet
     } = this.props;
@@ -193,39 +209,52 @@ class SearchResultsContainer extends React.Component<Props, State> {
       }));
     }
 
-    const propertyTypes = entityTypesById
-      .getIn([selectedEntitySet.get('entityTypeId'), 'properties'], List())
-      .map((id) => propertyTypesById.get(id));
+    const entityTypeId :UUID = selectedEntitySet.get('entityTypeId');
+    const entityTypeIndex :number = entityTypesIndexMap.get(entityTypeId);
+    const entityType :Map = entityTypes.get(entityTypeIndex, Map());
+    const targetPropertyTypes = entityType
+      .get('properties', List())
+      .map((propertyTypeId :UUID) => {
+        const propertyTypeIndex = propertyTypesIndexMap.get(propertyTypeId);
+        return propertyTypes.get(propertyTypeIndex, Map());
+      });
 
-    propertyTypes.forEach((propertyType) => {
-      const id = getFqnString(propertyType.get('type'));
+    targetPropertyTypes.forEach((propertyType :Map) => {
+      const propertyTypeFQN = FullyQualifiedName.toString(propertyType.get('type', Map()));
       const value = propertyType.get('title');
-      if (filteredPropertyTypes && !filteredPropertyTypes.has(id)) {
-        const isImg = IMAGE_PROPERTY_TYPES.includes(id);
-        propertyTypeHeaders = propertyTypeHeaders.push(fromJS({ id, value, isImg }));
+      if (filteredPropertyTypes && !filteredPropertyTypes.has(propertyTypeFQN)) {
+        const isImg = IMAGE_PROPERTY_TYPES.includes(propertyTypeFQN);
+        propertyTypeHeaders = propertyTypeHeaders.push(fromJS({ id: propertyTypeFQN, value, isImg }));
       }
     });
 
     return (
-      <TableWrapper>
-        <DataTable headers={propertyTypeHeaders} data={results} onRowClick={this.onSelect} />
-      </TableWrapper>
+      <DataTable headers={propertyTypeHeaders} data={results} onRowClick={this.onSelect} />
     );
   };
 
   downloadTopUtilizers = () => {
     const {
       actions,
-      entityTypesById,
-      propertyTypesById,
+      entityTypes,
+      entityTypesIndexMap,
+      propertyTypes,
+      propertyTypesIndexMap,
       selectedEntitySet,
       results
     } = this.props;
     if (selectedEntitySet && results.size) {
       const name = `${selectedEntitySet.get('title')} - Top Utilizers`;
-      const fields = entityTypesById
-        .getIn([selectedEntitySet.get('entityTypeId'), 'properties'], List())
-        .map((id) => getFqnString(propertyTypesById.getIn([id, 'type'])));
+      const entityTypeId :UUID = selectedEntitySet.get('entityTypeId');
+      const entityTypeIndex :number = entityTypesIndexMap.get(entityTypeId);
+      const entityType = entityTypes.get(entityTypeIndex, Map());
+      const fields = entityType
+        .get('properties', List())
+        .map((propertyTypeId :UUID) => {
+          const propertyTypeIndex = propertyTypesIndexMap.get(propertyTypeId);
+          const propertyType = propertyTypes.get(propertyTypeIndex, Map());
+          return FullyQualifiedName.toString(propertyType.get('type', Map()));
+        });
       actions.downloadTopUtilizers({ name, fields, results });
     }
   }
@@ -258,28 +287,34 @@ class SearchResultsContainer extends React.Component<Props, State> {
     const showToolbar = isPersonType(this.props);
 
     return (
-      <ToolbarWrapper>
+      <>
         <SubtleButtonsWrapper>
-          { showToolbar ? <ButtonToolbar options={options} value={layout} noPadding /> : null }
+          {
+            showToolbar && (
+              <ButtonToolbar options={options} value={layout} noPadding />
+            )
+          }
           <NumResults withMargin={showToolbar}>
             {isTopUtilizers ? `Showing top ${numStr} utilizer${plural}` : `${numStr} result${plural}`}
           </NumResults>
         </SubtleButtonsWrapper>
         <SubtleButtonsWrapper>
-          { showToolbar && isTopUtilizers && layout === LAYOUTS.PERSON ? (
-            <SubtleButton onClick={() => this.setState({ showCountDetails: !showCountDetails })}>
-              {`${showCountDetails ? 'Hide' : 'Show'} Score Details`}
-            </SubtleButton>
-          ) : null}
           {
-            isTopUtilizers ? (
+            showToolbar && isTopUtilizers && layout === LAYOUTS.PERSON && (
+              <SubtleButton onClick={() => this.setState({ showCountDetails: !showCountDetails })}>
+                {`${showCountDetails ? 'Hide' : 'Show'} Score Details`}
+              </SubtleButton>
+            )
+          }
+          {
+            isTopUtilizers && (
               <SubtleButton onClick={this.downloadTopUtilizers} disabled={isDownloadingTopUtilizers}>
                 Download CSV
               </SubtleButton>
-            ) : null
+            )
           }
         </SubtleButtonsWrapper>
-      </ToolbarWrapper>
+      </>
     );
   }
 
@@ -338,33 +373,30 @@ class SearchResultsContainer extends React.Component<Props, State> {
     const currPage = (start / MAX_RESULTS) + 1;
 
     return (
-      <CenteredColumnContainer>
-        <FixedWidthWrapper>
-          {!isExploring ? this.renderLayoutToolbar() : null}
-          {resultContent}
-          <Pagination
-              numPages={numPages}
-              activePage={currPage}
-              onChangePage={(page) => this.updatePage(((page - 1) * MAX_RESULTS), layout)} />
-        </FixedWidthWrapper>
-      </CenteredColumnContainer>
+      <CardStack>
+        {!isExploring && this.renderLayoutToolbar()}
+        {resultContent}
+        <Pagination
+            numPages={numPages}
+            activePage={currPage}
+            onChangePage={(page) => this.updatePage(((page - 1) * MAX_RESULTS), layout)} />
+      </CardStack>
     );
   }
 }
 
 function mapStateToProps(state :Map<*, *>) :Object {
-  const edm = state.get(STATE.EDM);
-  const entitySets = state.get(STATE.ENTITY_SETS);
   const explore = state.get(STATE.EXPLORE);
   const topUtilizers = state.get(STATE.TOP_UTILIZERS);
   return {
-    entityTypesById: edm.get(EDM.ENTITY_TYPES_BY_ID),
-    propertyTypesById: edm.get(EDM.PROPERTY_TYPES_BY_ID),
-    selectedEntitySet: entitySets.get(ENTITY_SETS.SELECTED_ENTITY_SET),
     breadcrumbs: explore.get(EXPLORE.BREADCRUMBS),
-    neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
     countBreakdown: topUtilizers.get(TOP_UTILIZERS.COUNT_BREAKDOWN),
-    isDownloading: topUtilizers.get(TOP_UTILIZERS.IS_DOWNLOADING_TOP_UTILIZERS)
+    entityTypes: state.getIn(['edm', 'entityTypes'], List()),
+    entityTypesIndexMap: state.getIn(['edm', 'entityTypesIndexMap'], Map()),
+    isDownloading: topUtilizers.get(TOP_UTILIZERS.IS_DOWNLOADING_TOP_UTILIZERS),
+    neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
+    propertyTypes: state.getIn(['edm', 'propertyTypes'], List()),
+    propertyTypesIndexMap: state.getIn(['edm', 'propertyTypesIndexMap'], Map()),
   };
 }
 

@@ -4,11 +4,13 @@
 
 import React from 'react';
 
-import { List } from 'immutable';
+import { List, Map } from 'immutable';
+import { Models } from 'lattice';
 
 import StyledCheckbox from '../../controls/StyledCheckbox';
 import { PropertyTypeCheckboxWrapper } from '../../layout/Layout';
-import { getFqnString } from '../../../utils/DataUtils';
+
+const { FullyQualifiedName } = Models;
 
 type Props = {
   selectedEntitySetPropertyTypes :List<*>,
@@ -23,13 +25,13 @@ const PropertyTypeFilterOptions = ({
 } :Props) => (
   <PropertyTypeCheckboxWrapper>
     {selectedEntitySetPropertyTypes.map((propertyType) => {
-      const fqn = getFqnString(propertyType.get('type'));
+      const propertyTypeFQN = FullyQualifiedName.toString(propertyType.get('type', Map()));
       const title = propertyType.get('title');
       return (
-        <div key={fqn}>
+        <div key={propertyTypeFQN}>
           <StyledCheckbox
-              checked={!filteredPropertyTypes.has(fqn)}
-              value={fqn}
+              checked={!filteredPropertyTypes.has(propertyTypeFQN)}
+              value={propertyTypeFQN}
               label={title}
               onChange={onPropertyTypeChange} />
         </div>

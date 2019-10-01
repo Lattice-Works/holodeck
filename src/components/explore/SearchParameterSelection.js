@@ -3,24 +3,44 @@
  */
 
 import React from 'react';
+
 import styled from 'styled-components';
+import { faCloudDownload } from '@fortawesome/pro-light-svg-icons';
+import { faChevronLeft } from '@fortawesome/pro-regular-svg-icons';
+import { faDatabase } from '@fortawesome/pro-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Map } from 'immutable';
 import { DataApi } from 'lattice';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faDatabase } from '@fortawesome/pro-solid-svg-icons';
-import { faCloudDownload } from '@fortawesome/pro-light-svg-icons';
+import {
+  Button,
+  IconButton,
+  SearchInput,
+} from 'lattice-ui-kit';
 
-import BackNavButton from '../buttons/BackNavButton';
-import InfoButton from '../buttons/InfoButton';
 import Banner from '../cards/Banner';
-import StyledInput from '../controls/StyledInput';
-import { SecondaryLink } from '../buttons/SecondaryButton';
-import { FixedWidthWrapper, HeaderComponentWrapper } from '../layout/Layout';
 
-const CenteredHeaderWrapper = styled(HeaderComponentWrapper)`
-  display: flex;
-  justify-content: center;
-  padding: 30px 0;
+const BackIcon = (
+  <FontAwesomeIcon icon={faChevronLeft} />
+);
+
+const DownloadIcon = (
+  <FontAwesomeIcon icon={faCloudDownload} />
+);
+
+const Wrapper = styled.div`
+  > div {
+    margin: 0 0 30px 0;
+  }
+
+  > div:first-child {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  > div:last-child {
+    margin: 0;
+  }
 `;
 
 const Title = styled.div`
@@ -41,46 +61,8 @@ const Title = styled.div`
   }
 `;
 
-const InputRow = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  margin-top: 30px;
-`;
-
-const InputGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-end;
-  width: ${(props) => (props.fullSize ? '100%' : '19%')};
-`;
-
-const InputLabel = styled.span`
-  color: #8e929b;
-  margin-bottom: 10px;
-  font-size: 14px;
-`;
-
 const StyledBanner = styled(Banner)`
   color: #ffffff !important;
-`;
-
-const Row = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const DownloadButton = styled(SecondaryLink)`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-
-  span {
-    margin-left: 7px;
-  }
 `;
 
 type Props = {
@@ -114,40 +96,26 @@ const SearchParameterSelection = ({
   const downloadUrl = DataApi.getEntitySetDataFileUrl(entitySetId, 'csv');
 
   return (
-    <CenteredHeaderWrapper>
-      <FixedWidthWrapper>
-        <Row>
-          <BackNavButton onClick={deselectEntitySet}>Back to dataset selection</BackNavButton>
-          <DownloadButton href={downloadUrl}>
-            <FontAwesomeIcon icon={faCloudDownload} />
-            <span>Download</span>
-          </DownloadButton>
-        </Row>
-        <Title>
-          <div>Search</div>
-          <span><FontAwesomeIcon icon={faDatabase} /></span>
-          <span>{entitySetTitle}</span>
-          {
-            typeof selectedEntitySetSize === 'number' && (
-              <StyledBanner>
-                {`${selectedEntitySetSize.toLocaleString()} ${selectedEntitySetSize === 1 ? 'entity' : 'entities'}`}
-              </StyledBanner>
-            )
-          }
-        </Title>
-        <InputRow>
-          <InputGroup fullSize>
-            <InputLabel>Search Parameter</InputLabel>
-            <StyledInput value={searchTerm} onChange={onChange} onKeyPress={onKeyPress} />
-          </InputGroup>
-        </InputRow>
-        <InputRow>
-          <InputGroup>
-            <InfoButton onClick={executeSearch} fullSize>Search</InfoButton>
-          </InputGroup>
-        </InputRow>
-      </FixedWidthWrapper>
-    </CenteredHeaderWrapper>
+    <Wrapper>
+      <div>
+        <IconButton icon={BackIcon} mode="subtle" onClick={deselectEntitySet}>Back to dataset selection</IconButton>
+        <IconButton href={downloadUrl} icon={DownloadIcon} mode="secondary">Download</IconButton>
+      </div>
+      <Title>
+        <div>Search</div>
+        <span><FontAwesomeIcon icon={faDatabase} /></span>
+        <span>{entitySetTitle}</span>
+        {
+          typeof selectedEntitySetSize === 'number' && (
+            <StyledBanner>
+              {`${selectedEntitySetSize.toLocaleString()} ${selectedEntitySetSize === 1 ? 'entity' : 'entities'}`}
+            </StyledBanner>
+          )
+        }
+      </Title>
+      <SearchInput id="search-entity-set" value={searchTerm} onChange={onChange} onKeyPress={onKeyPress} />
+      <Button mode="primary" onClick={executeSearch}>Search</Button>
+    </Wrapper>
   );
 };
 

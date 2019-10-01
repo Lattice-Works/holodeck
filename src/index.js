@@ -35,11 +35,16 @@ const NormalizeCSS = createGlobalStyle`
 const GlobalStyle = createGlobalStyle`
   html,
   body {
-    background-color: #f9fcff;
+    background-color: #f8f8fb;
     color: #135;
     font-family: 'Open Sans', sans-serif;
     height: 100%;
+    line-height: 1.5;
     width: 100%;
+  }
+
+  input {
+    line-height: 1.5;
   }
 
   * {

@@ -3,9 +3,12 @@
  */
 
 import { List, Map, fromJS } from 'immutable';
+import { RequestStates } from 'redux-reqseq';
+import type { SequenceAction } from 'redux-reqseq';
 
 import { ENTITY_SETS } from '../../utils/constants/StateConstants';
 import {
+  SEARCH_ENTITY_SETS,
   SELECT_ENTITY_SET,
   SELECT_ENTITY_SET_PAGE,
   SET_SHOW_ASSOCIATION_ENTITY_SETS,
@@ -13,7 +16,7 @@ import {
   loadEntitySetSizes,
   searchEntitySets,
   selectEntitySetById
-} from './EntitySetActionFactory';
+} from './EntitySetActions';
 
 import { UNMOUNT_EXPLORE } from '../explore/ExploreActionFactory';
 import { UNMOUNT_TOP_UTILIZERS } from '../toputilizers/TopUtilizersActionFactory';
@@ -29,7 +32,10 @@ const {
   TOTAL_HITS
 } = ENTITY_SETS;
 
-const INITIAL_STATE :Map<> = fromJS({
+const INITIAL_STATE :Map = fromJS({
+  [SEARCH_ENTITY_SETS]: {
+    requestState: RequestStates.STANDBY,
+  },
   [IS_LOADING_ENTITY_SETS]: false,
   [ENTITY_SET_SEARCH_RESULTS]: List(),
   [ENTITY_SET_SIZES]: Map(),
@@ -37,22 +43,35 @@ const INITIAL_STATE :Map<> = fromJS({
   [SHOW_ASSOCIATION_ENTITY_SETS]: false,
   [SHOW_AUDIT_ENTITY_SETS]: false,
   [PAGE]: 1,
-  [TOTAL_HITS]: 0
+  [TOTAL_HITS]: 0,
 });
 
 function reducer(state :Map<> = INITIAL_STATE, action :Object) {
   switch (action.type) {
 
     case searchEntitySets.case(action.type): {
+      const seqAction :SequenceAction = action;
       return searchEntitySets.reducer(state, action, {
-        REQUEST: () => state.set(IS_LOADING_ENTITY_SETS, true).set(ENTITY_SET_SEARCH_RESULTS, List()),
-        SUCCESS: () => state
-          .set(ENTITY_SET_SEARCH_RESULTS, fromJS(action.value.hits))
-          .set(TOTAL_HITS, action.value.numHits),
+        REQUEST: () => state
+          .set(ENTITY_SET_SEARCH_RESULTS, List())
+          .set(TOTAL_HITS, 0)
+          .setIn([SEARCH_ENTITY_SETS, 'requestState'], RequestStates.PENDING)
+          .setIn([SEARCH_ENTITY_SETS, seqAction.id], seqAction),
+        SUCCESS: () => {
+          const storedSeqAction :SequenceAction = state.getIn([SEARCH_ENTITY_SETS, seqAction.id]);
+          if (storedSeqAction) {
+            return state
+              .set(ENTITY_SET_SEARCH_RESULTS, seqAction.value.get('hits', List()))
+              .set(TOTAL_HITS, seqAction.value.get('numHits', 0))
+              .setIn([SEARCH_ENTITY_SETS, 'requestState'], RequestStates.SUCCESS);
+          }
+          return state;
+        },
         FAILURE: () => state
           .set(ENTITY_SET_SEARCH_RESULTS, List())
-          .set(TOTAL_HITS, 0),
-        FINALLY: () => state.set(IS_LOADING_ENTITY_SETS, false)
+          .set(TOTAL_HITS, 0)
+          .setIn([SEARCH_ENTITY_SETS, 'requestState'], RequestStates.FAILURE),
+        FINALLY: () => state.deleteIn([SEARCH_ENTITY_SETS, seqAction.id]),
       });
     }
 

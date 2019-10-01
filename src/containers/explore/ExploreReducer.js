@@ -245,7 +245,8 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
         entityKeyId,
         entitySetId,
         entityType,
-        propertyTypesById
+        propertyTypes,
+        propertyTypesIndexMap,
       } = action.value;
       const crumb = {
         [BREADCRUMB.ENTITY_SET_ID]: entitySetId,
@@ -253,7 +254,8 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
         [BREADCRUMB.ON_CLICK]: () => selectEntity(state.get(BREADCRUMBS).size),
         [BREADCRUMB.TITLE]: getEntityTitle(
           entityType,
-          propertyTypesById,
+          propertyTypes,
+          propertyTypesIndexMap,
           state.getIn([ENTITIES_BY_ID, entityKeyId], Map())
         )
       };

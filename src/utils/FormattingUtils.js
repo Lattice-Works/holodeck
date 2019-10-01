@@ -15,9 +15,6 @@ export const formatDate = (dateStr :string) :string => {
   return '';
 };
 
-export const formatDateList = (dateList :List<string>) :string => dateList
-  .map((dateStr) => formatDate(dateStr)).filter((str) => str.length).join(', ');
-
 export const formatDateTime = (dateTimeStr :string) :string => {
   const dtMoment = moment(dateTimeStr);
   if (dtMoment.isValid()) {

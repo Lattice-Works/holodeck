@@ -4,7 +4,7 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import { Map } from 'immutable';
+import { List, Map } from 'immutable';
 
 import StyledCheckbox from '../../controls/StyledCheckbox';
 import StyledRadio from '../../controls/StyledRadio';
@@ -43,29 +43,33 @@ const Subtitle = styled.div`
 `;
 
 type Props = {
-  entityTypesById :Map<string, *>,
-  propertyTypesById :Map<string, *>,
-  countType :string,
-  durationTypeWeights :Map<*, *>,
-  selectedNeighborTypes :Object[],
-  availableDurationProperties :Map<*, *>,
-  numberOfUtilizers :number,
-  onChange :(e :Object) => void,
-  onDurationWeightChange :(newWeights :Map<*, *>) => void,
-  onNumUtilizersChange :(numUtilizers :number) => void
+  availableDurationProperties :Map<*, *>;
+  countType :string;
+  durationTypeWeights :Map<*, *>;
+  entityTypes :List;
+  entityTypesIndexMap :Map;
+  numberOfUtilizers :number;
+  onChange :(e :Object) => void;
+  onDurationWeightChange :(newWeights :Map<*, *>) => void;
+  onNumUtilizersChange :(numUtilizers :number) => void;
+  propertyTypes :List;
+  propertyTypesIndexMap :Map;
+  selectedNeighborTypes :Object[];
 }
 
 const CountTypeOptions = ({
-  entityTypesById,
-  propertyTypesById,
+  availableDurationProperties,
   countType,
   durationTypeWeights,
-  selectedNeighborTypes,
-  availableDurationProperties,
+  entityTypes,
+  entityTypesIndexMap,
   numberOfUtilizers,
   onChange,
   onDurationWeightChange,
-  onNumUtilizersChange
+  onNumUtilizersChange,
+  propertyTypes,
+  propertyTypesIndexMap,
+  selectedNeighborTypes,
 } :Props) => {
 
   const isDisabled = !availableDurationProperties.size
@@ -95,12 +99,19 @@ const CountTypeOptions = ({
             </TopBorderRowWrapper>
             <PropertyTypeCheckboxWrapper twoCols>
               {availableDurationProperties.entrySeq().flatMap(([pair, propertyTypeIds]) => {
-                const assocTitle = entityTypesById.getIn([pair.get(0), 'title'], '');
-                const neighborTitle = entityTypesById.getIn([pair.get(1), 'title'], '');
+
+                const index1 = entityTypesIndexMap.get(pair.get(0));
+                const index2 = entityTypesIndexMap.get(pair.get(1));
+                const entityType1 = entityTypes.get(index1, Map());
+                const entityType2 = entityTypes.get(index2, Map());
+                const assocTitle = entityType1.get('title');
+                const neighborTitle = entityType2.get('title');
 
                 return propertyTypeIds.map((propertyTypeId) => {
                   const weight = durationTypeWeights.getIn([pair, propertyTypeId], 0);
-                  const propertyTypeTitle = propertyTypesById.getIn([propertyTypeId, 'title'], '');
+                  const propertyTypeIndex = propertyTypesIndexMap.get(propertyTypeId);
+                  const propertyType = propertyTypes.get(propertyTypeIndex, Map());
+                  const propertyTypeTitle = propertyType.get('title', '');
                   const label = `${assocTitle} ${neighborTitle} -- ${propertyTypeTitle}`;
                   const onDurationChange = (e) => {
                     const { checked } = e.target;
