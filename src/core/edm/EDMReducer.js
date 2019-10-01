@@ -144,12 +144,15 @@ export default function edmReducer(state :Map<*, *> = INITIAL_STATE, action :Obj
           rawEntitySets.forEach((es :EntitySetObject, index :number) => {
             try {
               const entitySet = new EntitySetBuilder()
-                .setId(es.id)
-                .setEntityTypeId(es.entityTypeId)
-                .setName(es.name)
-                .setTitle(es.title)
-                .setDescription(es.description)
                 .setContacts(es.contacts)
+                .setDescription(es.description)
+                .setEntityTypeId(es.entityTypeId)
+                .setFlags(es.flags)
+                .setId(es.id)
+                .setLinkedEntitySets(es.linkedEntitySets)
+                .setName(es.name)
+                .setOrganizationId(es.organizationId)
+                .setTitle(es.title)
                 .build();
               entitySets.push(entitySet.toImmutable());
               entitySetsIndexMap.set(entitySet.id, index);
