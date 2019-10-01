@@ -4,6 +4,7 @@
 
 import React from 'react';
 import { List, Map } from 'immutable';
+import { AppContentWrapper, Sizes } from 'lattice-ui-kit';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -19,10 +20,10 @@ import {
 import * as ExploreActions from './ExploreActionFactory';
 import * as Routes from '../../core/router/Routes';
 import * as RoutingActions from '../../core/router/RoutingActions';
-import { AppContentWrapper } from '../../components/layout';
-import { APP_CONTENT_WIDTH } from '../../core/style/Sizes';
 import { isValidUUID } from '../../utils/ValidationUtils';
 import type { GoToRoot, GoToRoute } from '../../core/router/RoutingActions';
+
+const { APP_CONTENT_WIDTH } = Sizes;
 
 type Props = {
   actions :{
@@ -164,12 +165,12 @@ class ExploreEntitySetContainer extends React.Component<Props, State> {
       <>
         <AppContentWrapper bgColor="#fff" contentWidth={APP_CONTENT_WIDTH}>
           <SearchParameterSelection
-              selectedEntitySet={selectedEntitySet}
-              selectedEntitySetSize={selectedEntitySetSize}
               deselectEntitySet={this.deselectEntitySet}
-              onChange={this.onSearchTermChange}
               executeSearch={this.executeSearch}
-              searchTerm={searchTerm} />
+              onChange={this.onSearchTermChange}
+              searchTerm={searchTerm}
+              selectedEntitySet={selectedEntitySet}
+              selectedEntitySetSize={selectedEntitySetSize} />
         </AppContentWrapper>
         <AppContentWrapper contentWidth={APP_CONTENT_WIDTH}>
           {this.renderResults()}

@@ -5,7 +5,7 @@
 import React from 'react';
 import { List, Map, Set } from 'immutable';
 import { Models } from 'lattice';
-import { Spinner } from 'lattice-ui-kit';
+import { AppContentWrapper, Sizes, Spinner } from 'lattice-ui-kit';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -29,9 +29,8 @@ import * as EntitySetActions from '../entitysets/EntitySetActions';
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 import * as TopUtilizersActionFactory from './TopUtilizersActionFactory';
 import * as Routes from '../../core/router/Routes';
-import { AppContentWrapper } from '../../components/layout';
-import { APP_CONTENT_WIDTH } from '../../core/style/Sizes';
 
+const { APP_CONTENT_WIDTH } = Sizes;
 const { FullyQualifiedName } = Models;
 
 type Props = {

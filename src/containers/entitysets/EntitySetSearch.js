@@ -7,9 +7,11 @@ import React from 'react';
 import styled from 'styled-components';
 import { List, Map } from 'immutable';
 import {
+  AppContentWrapper,
   Card,
   Checkbox,
   Input,
+  Sizes,
   Spinner,
 } from 'lattice-ui-kit';
 import { withRouter } from 'react-router-dom';
@@ -26,10 +28,9 @@ import * as EntitySetActions from './EntitySetActions';
 import * as ReduxActions from '../../core/redux/ReduxActions';
 import * as Routes from '../../core/router/Routes';
 import * as RoutingActions from '../../core/router/RoutingActions';
-import { AppContentWrapper } from '../../components/layout';
-import { APP_CONTENT_WIDTH } from '../../core/style/Sizes';
 import type { GoToRoute } from '../../core/router/RoutingActions';
 
+const { APP_CONTENT_WIDTH } = Sizes;
 const { SEARCH_ENTITY_SETS } = EntitySetActions;
 
 const SearchSection = styled.section`
