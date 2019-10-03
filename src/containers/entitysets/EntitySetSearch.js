@@ -10,7 +10,7 @@ import {
   AppContentWrapper,
   Card,
   Checkbox,
-  Input,
+  SearchInput,
   Sizes,
   Spinner,
 } from 'lattice-ui-kit';
@@ -47,8 +47,9 @@ const SearchSection = styled.section`
     margin: 0;
   }
 
-  > input {
+  > div {
     margin-top: 50px;
+    width: 100%;
   }
 `;
 
@@ -120,16 +121,30 @@ class EntitySetSearch extends React.Component<Props, State> {
 
   handleOnChangeSearch = (event :SyntheticInputEvent<HTMLInputElement>) => {
 
-    const { actions } = this.props;
     const valueOfSearchQuery = event.target.value || '';
+    this.setState({ valueOfSearchQuery });
+  }
 
+  handleOnKeyPressSearch = (event :SyntheticKeyboardEvent<HTMLInputElement>) => {
+
+    const { key } = event;
+    if (key === 'Enter') {
+      this.search();
+    }
+  }
+
+  search = () => {
+
+    const { actions } = this.props;
+    const { valueOfSearchQuery } = this.state;
+
+    // TODO: refactor maxHits
     actions.searchEntitySets({
       searchTerm: valueOfSearchQuery,
       start: 0,
       maxHits: 10000
     });
     actions.selectEntitySetPage(1);
-    this.setState({ valueOfSearchQuery });
   }
 
   goToEntitySet = (entitySetId :UUID) => {
@@ -137,10 +152,10 @@ class EntitySetSearch extends React.Component<Props, State> {
     const { actions, location } = this.props;
 
     if (location.pathname.startsWith(Routes.EXPLORE)) {
-      actions.goToRoute(Routes.EXPLORE_ES.replace(Routes.ID_PATH, entitySetId));
+      actions.goToRoute(Routes.EXPLORE_ES.replace(Routes.ID_PARAM, entitySetId));
     }
     else if (location.pathname.startsWith(Routes.TOP_UTILIZERS)) {
-      actions.goToRoute(Routes.TOP_UTILIZERS_ES.replace(Routes.ID_PATH, entitySetId));
+      actions.goToRoute(Routes.TOP_UTILIZERS_ES.replace(Routes.ID_PARAM, entitySetId));
     }
   }
 
@@ -227,7 +242,11 @@ class EntitySetSearch extends React.Component<Props, State> {
         <AppContentWrapper bgColor="#fff">
           <SearchSection>
             <h1>Select a dataset to search</h1>
-            <Input onChange={this.handleOnChangeSearch} placeholder="Search" value={valueOfSearchQuery} />
+            <SearchInput
+                onChange={this.handleOnChangeSearch}
+                onKeyPress={this.handleOnKeyPressSearch}
+                placeholder="Search"
+                value={valueOfSearchQuery} />
           </SearchSection>
         </AppContentWrapper>
         <AppContentWrapper contentWidth={APP_CONTENT_WIDTH}>

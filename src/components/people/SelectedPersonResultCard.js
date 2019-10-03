@@ -4,19 +4,16 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import { faUser } from '@fortawesome/pro-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Map } from 'immutable';
 import { Card, CardSegment, DataGrid } from 'lattice-ui-kit';
 
+import PersonPicture from './PersonPicture';
 import { FullyQualifiedNames } from '../../core/edm/constants';
 
 const {
   PERSON_BIRTH_DATE_FQN,
   PERSON_FIRST_NAME_FQN,
   PERSON_LAST_NAME_FQN,
-  PERSON_MUGSHOT_FQN,
-  PERSON_PICTURE_FQN,
   PERSON_SEX_FQN,
   PERSON_SSN_FQN,
 } = FullyQualifiedNames.PROPERTY_TYPE_FQNS;
@@ -30,57 +27,31 @@ const DataGridWrapper = styled.div`
   padding: 30px;
 `;
 
-const PictureWrapper = styled.div`
+const UtilizerTagWrapper = styled.div`
+  align-items: flex-end;
   display: flex;
-  height: 242px;
-  position: relative;
-  width: 242px;
-`;
-
-const UserIconWrapper = styled.div`
-  align-items: center;
-  background-color: #e9ecef;
-  color: white;
-  display: flex;
-  flex: 1;
+  height: 200px; /* expected to be size of picture */
   justify-content: center;
+  position: absolute;
+  width: 200px; /* expected to be size of picture */
 `;
 
 const UtilizerTag = styled.div`
-  position: absolute;
-  bottom: 10px;
-  left: 0;
-  right: 0;
-  margin: 0 auto;
-  width: fit-content;
-  padding: 7px 10px;
-  border-radius: 15px;
   background-color: #ffffff;
+  border-radius: 15px;
+  bottom: 10px;
   box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.1);
-  font-family: 'Open Sans', sans-serif;
+  color: #2e2e34;
   font-size: 12px;
   font-weight: bold;
-  color: #2e2e34;
+  padding: 7px 10px;
+  position: relative;
   text-transform: uppercase;
 `;
 
 type Props = {
   index :number;
   person :Map;
-};
-
-const renderPersonPicture = (person) => {
-  const image = person.getIn([PERSON_MUGSHOT_FQN, 0], person.getIn([PERSON_PICTURE_FQN, 0]));
-  if (!image) {
-    return (
-      <UserIconWrapper>
-        <FontAwesomeIcon icon={faUser} size="7x" />
-      </UserIconWrapper>
-    );
-  }
-  return (
-    <img alt="" src={image} />
-  );
 };
 
 const labelMap = Map({
@@ -94,14 +65,14 @@ const labelMap = Map({
 const SelectedPersonResultCard = ({ index, person } :Props) => (
   <Card>
     <NoPaddingCardSegment>
-      <PictureWrapper>
-        {renderPersonPicture(person)}
-        {
-          index !== undefined && (
+      <PersonPicture person={person} size="xl" />
+      {
+        index !== undefined && (
+          <UtilizerTagWrapper>
             <UtilizerTag>{`#${index} Utilizer`}</UtilizerTag>
-          )
-        }
-      </PictureWrapper>
+          </UtilizerTagWrapper>
+        )
+      }
       <DataGridWrapper>
         <DataGrid columns={3} data={person} labelMap={labelMap} />
       </DataGridWrapper>
