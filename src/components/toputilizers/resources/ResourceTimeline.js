@@ -18,12 +18,6 @@ import ChartWrapper from '../../charts/ChartWrapper';
 import { RESOURCE_COLORS } from '../../../utils/constants/Colors';
 import { CHART_EXPLANATIONS } from '../../../utils/constants/TopUtilizerConstants';
 
-type Props = {
-  countsByYearAndMonth :Map<*, *>,
-  durationByYearAndMonth :Map<*, *>,
-  timeUnit :string
-};
-
 const TimelineTooltipLabel = styled.span`
   font-family: 'Open Sans', sans-serif;
   font-size: 14px;
@@ -43,7 +37,7 @@ const TimelineLineDescriptor = styled.div`
     width: 30px;
     height: 2px;
     margin-left: 40px;
-    background-color: ${props => props.color};
+    background-color: ${(props) => props.color};
   }
 
   div:last-child {
@@ -65,7 +59,7 @@ const TimelineTooltip = styled.div`
   visibility: visible;
 `;
 
-const renderTimelineTooltip = ({ label, payload, timeUnit }) => {
+const renderTimelineTooltip = ({ label, payload, timeUnit } :Object) => {
   if (!payload || !payload.length) {
     return null;
   }
@@ -109,6 +103,12 @@ const renderTimelineTooltip = ({ label, payload, timeUnit }) => {
       {durationDescriptor}
     </TimelineTooltip>
   );
+};
+
+type Props = {
+  countsByYearAndMonth :Map<*, *>;
+  durationByYearAndMonth :Map<*, *>;
+  timeUnit :string;
 };
 
 const ResourceTimeline = ({

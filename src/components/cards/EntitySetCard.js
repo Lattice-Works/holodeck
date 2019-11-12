@@ -3,130 +3,86 @@
  */
 
 import React from 'react';
-import Immutable from 'immutable';
-import styled, { css } from 'styled-components';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faChevronUp } from '@fortawesome/pro-regular-svg-icons';
+
+import styled from 'styled-components';
+import { Map } from 'immutable';
+import {
+  Card,
+  CardHeader,
+  CardSegment,
+  Colors,
+} from 'lattice-ui-kit';
+
+import { isNonEmptyString } from '../../utils/LangUtils';
+
+const { NEUTRALS } = Colors;
+
+const EntitySetName = styled.h2`
+  font-size: 18px;
+  font-weight: normal;
+  margin: 0;
+  padding: 0;
+`;
+
+const EntitySetDetails = styled.p`
+  color: ${NEUTRALS[1]};
+  font-size: 14px;
+  font-weight: normal;
+  margin: 0;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  padding: 0;
+  text-overflow: ellipsis;
+
+  &:first-child {
+    margin-bottom: 10px;
+  }
+`;
 
 type Props = {
-  entitySet :Immutable.Map<*, *>,
-  size :?number,
-  onClick :(entitySet :Immutable.Map<*, *>) => void
+  entitySet :Map<*, *>;
+  onClick :(entitySet :Map<*, *>) => void;
+  size :?number;
 }
 
-type State = {
-  expanded :boolean
-}
+export default class EntitySetCard extends React.Component<Props> {
 
-const RightJustifyWrapper = styled.div`
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
-`;
-
-const DetailsButton = styled.button`
-  border-radius: 2px;
-  background-color: #ffffff;
-  border: 1px solid #dcdce7;
-  padding: 4px 10px;
-  font-family: 'Open Sans', sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  color: #8e929b;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-
-  &:hover {
-    cursor: pointer;
-    box-shadow: 0 5px 15px 0 rgba(0, 0, 0, 0.07);
-  }
-
-  &:focus {
-    outline: none;
-  }
-`;
-
-const Card = styled.div`
-  width: 470px;
-  height: fit-content;
-  margin: 10px;
-  padding: 25px;
-  border-radius: 5px;
-  background-color: #ffffff;
-  border: solid 1px #dcdce7;
-
-  &:hover {
-    cursor: pointer;
-    box-shadow: 0 5px 15px 0 rgba(0, 0, 0, 0.07);
-  }
-
-  h1 {
-    font-family: 'Open Sans', sans-serif;
-    font-size: 18px;
-    font-weight: 600;
-    color: #2e2e34;
-    margin: 0 0 15px 0;
-    overflow: ${props => (props.expanded ? 'visible' : 'hidden')};
-    text-overflow: ellipsis;
-    white-space: ${props => (props.expanded ? 'normal' : 'nowrap')};
-  }
-
-  span {
-    margin: 10px 0;
-    min-height: 13px;
-    font-family: 'Open Sans', sans-serif;
-    font-size: 12px;
-    color: #8e929b;
-    overflow: ${props => (props.expanded ? 'visible' : 'hidden')};
-    text-overflow: ellipsis;
-    white-space: ${props => (props.expanded ? 'normal' : 'nowrap')};
-    display: block;
-  }
-`;
-
-const DownIcon = styled(FontAwesomeIcon).attrs({
-  icon: faChevronDown
-})`
-  margin-left: 5px;
-`;
-
-const UpIcon = styled(FontAwesomeIcon).attrs({
-  icon: faChevronUp
-})`
-  margin-left: 5px;
-`;
-
-export default class EntitySetCard extends React.Component<Props, State> {
-
-  constructor(props :Props) {
-    super(props);
-    this.state = {
-      expanded: false
-    };
-  }
-
-  toggleExpand = (e) => {
-    e.stopPropagation();
-    this.setState({ expanded: !this.state.expanded });
-  }
+  goToEntitySet = () => {}
 
   render() {
+
     const { entitySet, size, onClick } = this.props;
-    const { expanded } = this.state;
+
+    // TODO: refactor as a utility function
+    let description :string = entitySet.get('description', '');
+    if (description.length > 100) {
+      let spaceIndex = description.indexOf(' ', 98);
+      if (spaceIndex === -1) spaceIndex = 100;
+      description = `${description.substr(0, spaceIndex)}...`;
+    }
+
+    let entitySetSize = '';
+    if (typeof size === 'number') {
+      entitySetSize = `${size.toLocaleString()} ${size === 1 ? 'entity' : 'entities'}`;
+    }
 
     return (
-      <Card onClick={onClick} expanded={expanded}>
-        <h1>{entitySet.get('title', '')}</h1>
-        <span>{size === undefined ? '' : `${size.toLocaleString()} ${size === 1 ? 'entity' : 'entities'}`}</span>
-        <span>{entitySet.get('description', '')}</span>
-        <RightJustifyWrapper>
-          <DetailsButton onClick={this.toggleExpand}>
-            Details
-            {expanded ? <UpIcon /> : <DownIcon />}
-          </DetailsButton>
-        </RightJustifyWrapper>
+      <Card key={entitySet.get('id')} onClick={onClick}>
+        <CardHeader padding="md">
+          <EntitySetName>{entitySet.get('title', '')}</EntitySetName>
+        </CardHeader>
+        <CardSegment vertical>
+          {
+            isNonEmptyString(entitySetSize) && (
+              <EntitySetDetails>{entitySetSize}</EntitySetDetails>
+            )
+          }
+          {
+            isNonEmptyString(description) && (
+              <EntitySetDetails>{description}</EntitySetDetails>
+            )
+          }
+        </CardSegment>
       </Card>
     );
   }

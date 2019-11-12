@@ -4,48 +4,28 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import { Map, Seq } from 'immutable';
+import { List, Map, Seq } from 'immutable';
 import {
   LineChart,
   Line,
-  Bar,
   XAxis,
   YAxis,
-  ComposedChart,
   Tooltip
 } from 'recharts';
 
-import LoadingSpinner from '../loading/LoadingSpinner';
 import ChartWrapper from '../charts/ChartWrapper';
 import ChartTooltip from '../charts/ChartTooltip';
 import TopUtilizerPieCharts from './resources/TopUtilizerPieCharts';
 import TopUtilizerParetoChart from './resources/TopUtilizerParetoChart';
-import { CHART_EXPLANATIONS, PARETO_LABELS } from '../../utils/constants/TopUtilizerConstants';
+import { CHART_EXPLANATIONS } from '../../utils/constants/TopUtilizerConstants';
 import { COUNT_FQN } from '../../utils/constants/DataConstants';
 import { CHART_COLORS } from '../../utils/constants/Colors';
-import { CenteredColumnContainer, FixedWidthWrapper, LoadingText } from '../layout/Layout';
-
-type Props = {
-  selectedEntitySet :Map<*, *>,
-  selectedEntityType :Map<*, *>,
-  entityTypesById :Map<string, *>,
-  propertyTypesById :Map<string, *>,
-  propertyTypesByFqn :Map<string, *>,
-  countBreakdown :Map<string, *>,
-  neighborsById :Map<string, *>,
-  results :List<*>,
-};
-
-type State = {
-  eventCounts :Map<*, number>,
-  eventColors :Map<*, string>
-}
+import { CenteredColumnContainer, FixedWidthWrapper } from '../layout/Layout';
 
 const CountCardRow = styled.div`
   display: flex;
   flex-direction: row;
   width: 100%;
-
 `;
 
 const CountCard = styled.div`
@@ -100,7 +80,7 @@ const TooltipRow = styled.div`
 `;
 
 const Dot = styled.div`
-  background-color: ${props => props.color};
+  background-color: ${(props) => props.color};
   height: 5px;
   width: 5px;
   border-radius: 50%;
@@ -127,7 +107,7 @@ const LegendRow = styled.div`
   span {
     width: 30px;
     height: 2px;
-    background-color: ${props => props.color};
+    background-color: ${(props) => props.color};
     margin-right: 10px;
   }
 
@@ -141,9 +121,26 @@ const LegendRow = styled.div`
 
 const SCORE = 'score';
 
+type Props = {
+  countBreakdown :Map<string, *>;
+  entityTypes :List;
+  entityTypesIndexMap :Map;
+  neighborsById :Map<string, *>;
+  propertyTypes :List;
+  propertyTypesIndexMap :Map;
+  results :List<*>;
+  selectedEntitySet :Map<*, *>;
+  selectedEntityType :Map<*, *>;
+};
+
+type State = {
+  eventColors :Map<*, string>;
+  eventCounts :Map<*, number>;
+};
+
 export default class TopUtilizerDashboard extends React.Component<Props, State> {
 
-  constructor(props) {
+  constructor(props :Props) {
     super(props);
     this.state = {
       eventCounts: this.getEventCounts(props),
@@ -151,7 +148,7 @@ export default class TopUtilizerDashboard extends React.Component<Props, State> 
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps(nextProps :Props) {
     const { countBreakdown } = this.props;
     if (nextProps.countBreakdown !== countBreakdown) {
       this.setState({
@@ -164,7 +161,7 @@ export default class TopUtilizerDashboard extends React.Component<Props, State> 
   getAllPairs = () => {
     const { countBreakdown } = this.props;
     return countBreakdown.size
-      ? countBreakdown.valueSeq().first().keySeq().filter(key => key !== SCORE)
+      ? countBreakdown.valueSeq().first().keySeq().filter((key) => key !== SCORE)
       : Seq();
   }
 
@@ -193,7 +190,7 @@ export default class TopUtilizerDashboard extends React.Component<Props, State> 
     let eventColors = Map();
 
     if (countBreakdown.size) {
-      const allPairs = this.getAllPairs()
+      const allPairs = this.getAllPairs();
       allPairs.forEach((pair, index) => {
         eventColors = eventColors.set(pair, CHART_COLORS[index % CHART_COLORS.length]);
       });
@@ -203,7 +200,13 @@ export default class TopUtilizerDashboard extends React.Component<Props, State> 
   }
 
   renderCountCards = () => {
-    const { entityTypesById, selectedEntityType, countBreakdown } = this.props;
+
+    const {
+      entityTypes,
+      entityTypesIndexMap,
+      selectedEntityType,
+      countBreakdown,
+    } = this.props;
     const { eventCounts } = this.state;
     if (!countBreakdown.size) return null;
 
@@ -214,12 +217,30 @@ export default class TopUtilizerDashboard extends React.Component<Props, State> 
 
     const numWithAll = countBreakdown
       .valueSeq()
-      .filter(pairCountMap => pairCountMap.entrySeq().filter(([key, countMap]) => {
+      .filter((pairCountMap) => pairCountMap.entrySeq().filter(([key, countMap]) => {
         if (key === SCORE) return false;
         return !countMap.get(COUNT_FQN, 0);
       }).cacheResult().size === 0)
       .cacheResult()
       .size;
+
+    const countCards = countBreakdown
+      .valueSeq()
+      .first()
+      .keySeq()
+      .filter((key) => key !== SCORE)
+      .map((pair) => {
+        const entityTypeId :UUID = pair.get(1);
+        const entityTypeIndex :number = entityTypesIndexMap.get(entityTypeId);
+        const entityType :Map = entityTypes.get(entityTypeIndex, Map());
+        return (
+          <CountCard key={pair}>
+            <h1>{eventCounts.get(pair)}</h1>
+            <span>{entityTypeTitle}</span>
+            <span>{`with any ${entityType.get('title')}`}</span>
+          </CountCard>
+        );
+      });
 
     return (
       <CountCardRow>
@@ -228,18 +249,12 @@ export default class TopUtilizerDashboard extends React.Component<Props, State> 
           <span>{entityTypeTitle}</span>
           <span>with all event types</span>
         </CountCard>
-        {countBreakdown.valueSeq().first().keySeq().filter(key => key !== SCORE).map(pair => (
-          <CountCard key={pair}>
-            <h1>{eventCounts.get(pair)}</h1>
-            <span>{entityTypeTitle}</span>
-            <span>{`with any ${entityTypesById.getIn([pair.get(1), 'title'])}`}</span>
-          </CountCard>
-        ))}
+        {countCards}
       </CountCardRow>
     );
   }
 
-  renderEventBreakdownTooltip = ({ label, payload }) => {
+  renderEventBreakdownTooltip = ({ label, payload } :Object) => {
     const { selectedEntityType } = this.props;
     let title = selectedEntityType.get('title', '').toLowerCase();
     if (title === 'person') {
@@ -252,7 +267,7 @@ export default class TopUtilizerDashboard extends React.Component<Props, State> 
           <Dot color="#8e929b" />
           <div>{`Num events: ${label}`}</div>
         </TooltipRow>
-        {(payload && payload.length) ? payload.map(point => (
+        {(payload && payload.length) ? payload.map((point) => (
           <TooltipRow key={point.name}>
             <Dot color={point.stroke} />
             <div>{`Num. of ${title}: ${point.value}`}</div>
@@ -263,13 +278,16 @@ export default class TopUtilizerDashboard extends React.Component<Props, State> 
   }
 
   renderLegend = () => {
-    const { entityTypesById } = this.props;
+    const { entityTypes, entityTypesIndexMap } = this.props;
     const { eventColors } = this.state;
 
     return (
       <LegendWrapper>
         {eventColors.entrySeq().map(([pair, color]) => {
-          const title = entityTypesById.getIn([pair.get(1), 'title']);
+          const entityTypeId :UUID = pair.get(1);
+          const entityTypeIndex :number = entityTypesIndexMap.get(entityTypeId);
+          const entityType :Map = entityTypes.get(entityTypeIndex, Map());
+          const title = entityType.get('title');
           return (
             <LegendRow color={color} key={pair}>
               <span color={color} />
@@ -282,7 +300,13 @@ export default class TopUtilizerDashboard extends React.Component<Props, State> 
   }
 
   renderEventsPerPerson = () => {
-    const { countBreakdown, selectedEntityType, entityTypesById } = this.props;
+
+    const {
+      countBreakdown,
+      entityTypes,
+      entityTypesIndexMap,
+      selectedEntityType,
+    } = this.props;
     const { eventColors } = this.state;
 
     if (!countBreakdown.size) {
@@ -300,7 +324,10 @@ export default class TopUtilizerDashboard extends React.Component<Props, State> 
 
     let eventTypeNames = Map();
     this.getAllPairs().forEach((pair) => {
-      eventTypeNames = eventTypeNames.set(pair, `Num. of ${entityTypesById.getIn([pair.get(1), 'title'])}`);
+      const entityTypeId :UUID = pair.get(1);
+      const entityTypeIndex :number = entityTypesIndexMap.get(entityTypeId);
+      const entityType :Map = entityTypes.get(entityTypeIndex, Map());
+      eventTypeNames = eventTypeNames.set(pair, `Num. of ${entityType.get('title')}`);
     });
 
     const data = allCountsMap.keySeq().sort().map((numEvents) => {
@@ -341,9 +368,13 @@ export default class TopUtilizerDashboard extends React.Component<Props, State> 
 
   }
 
-  renderParetoChart = (pair, color) => {
-    const { entityTypesById, countBreakdown } = this.props;
-    const entityTypeTitle = entityTypesById.getIn([pair.get(1), 'title']);
+  renderParetoChart = (pair :List<string>, color :string) => {
+
+    const { countBreakdown, entityTypes, entityTypesIndexMap } = this.props;
+    const entityTypeId :UUID = pair.get(1);
+    const entityTypeIndex :number = entityTypesIndexMap.get(entityTypeId);
+    const entityType :Map = entityTypes.get(entityTypeIndex, Map());
+    const entityTypeTitle = entityType.get('title');
 
     return (
       <TopUtilizerParetoChart
@@ -361,6 +392,7 @@ export default class TopUtilizerDashboard extends React.Component<Props, State> 
   }
 
   render() {
+    /* eslint-disable react/jsx-props-no-spreading */
     return (
       <CenteredColumnContainer>
         <FixedWidthWrapper>
@@ -373,5 +405,6 @@ export default class TopUtilizerDashboard extends React.Component<Props, State> 
         </FixedWidthWrapper>
       </CenteredColumnContainer>
     );
+    /* eslint-enable */
   }
 }

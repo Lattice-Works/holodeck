@@ -10,15 +10,12 @@ import EntitySetSearch from '../entitysets/EntitySetSearch';
 import TopUtilizersEntitySetContainer from './TopUtilizersEntitySetContainer';
 import * as Routes from '../../core/router/Routes';
 
-const TopUtilizersContainer = () => (
+const TopUtilizersRouter = () => (
   <Switch>
-    <Route
-        exact
-        path={Routes.TOP_UTILIZERS}
-        render={() => <EntitySetSearch actionText="search" path={Routes.TOP_UTILIZERS} />} />
-    <Route path={`${Routes.TOP_UTILIZERS}${Routes.ID}`} component={TopUtilizersEntitySetContainer} />
+    <Route exact path={Routes.TOP_UTILIZERS} component={EntitySetSearch} />
+    <Route path={Routes.TOP_UTILIZERS_ES} component={TopUtilizersEntitySetContainer} />
     <Redirect to={Routes.TOP_UTILIZERS} />
   </Switch>
 );
 
-export default withRouter(TopUtilizersContainer);
+export default withRouter(TopUtilizersRouter);

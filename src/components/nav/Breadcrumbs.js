@@ -32,7 +32,7 @@ const ArrowIcon = styled(FontAwesomeIcon).attrs({
 
 const isLast = (index, breadcrumbs) => index === breadcrumbs.size - 1;
 
-const Breadcrumbs = ({ breadcrumbs }) => (
+const Breadcrumbs = ({ breadcrumbs } :Object) => (
   <BreadcrumbsWrapper>
     {
       breadcrumbs.map((crumb :Crumb, index :number) => (

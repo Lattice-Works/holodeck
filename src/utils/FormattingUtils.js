@@ -15,9 +15,6 @@ export const formatDate = (dateStr :string) :string => {
   return '';
 };
 
-export const formatDateList = (dateList :List<string>) :string => dateList
-  .map(dateStr => formatDate(dateStr)).filter(str => str.length).join(', ');
-
 export const formatDateTime = (dateTimeStr :string) :string => {
   const dtMoment = moment(dateTimeStr);
   if (dtMoment.isValid()) {
@@ -27,9 +24,9 @@ export const formatDateTime = (dateTimeStr :string) :string => {
 };
 
 export const formatDateTimeList = (dateTimeList :List<string>) :string => dateTimeList
-  .map(dateTimeStr => formatDateTime(dateTimeStr)).filter(str => str.length).join(', ');
+  .map((dateTimeStr) => formatDateTime(dateTimeStr)).filter((str) => str.length).join(', ');
 
-export function toISODateTime(momentObj) {
+export function toISODateTime(momentObj :any) {
   let momentStr;
   if (momentObj && momentObj.isValid && momentObj.isValid()) {
     momentStr = momentObj.format('YYYY-MM-DDTHH:mm:ss.SSSZ');
@@ -37,7 +34,7 @@ export function toISODateTime(momentObj) {
   return momentStr;
 }
 
-export function toISODate(momentObj) {
+export function toISODate(momentObj :any) {
   let momentStr;
   if (momentObj && momentObj.isValid && momentObj.isValid()) {
     momentStr = momentObj.format('YYYY-MM-DD');

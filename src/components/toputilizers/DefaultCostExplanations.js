@@ -32,6 +32,8 @@ const Wrapper = styled.div`
   }
 `;
 
+/* eslint-disable max-len */
+
 const JAIL_STAY = (
   <Wrapper key="JAIL_STAY">
     <span>Jail Stay </span>
@@ -45,26 +47,28 @@ const JAIL_STAY = (
 const EMS = (
   <Wrapper key="EMS">
     <span>CFS -- EMS</span>
-    <span> CFS — EMS We conservatively price ambulance base rates at $500 each, given that county and municipality estimates range widely from $400 to > $2000 for a base rate.</span>
+    <span> CFS — EMS We conservatively price ambulance base rates at $500 each, given that county and municipality estimates range widely from $400 to &gt; $2000 for a base rate.</span>
   </Wrapper>
 );
 
-const ER_OUTPATIENT = (
-  <Wrapper key="ER_OUTPATIENT">
-    <span>ER Outpatient</span>
-    <span> ER OUTPATIENT The average price of an ER outpatient visit in 2016, according to claims data from four major insurance companies — HCCI 2018 </span>
-    <a href="https://www.healthcostinstitute.org/research/annual-reports/entry/2016-health-care-cost-and-utilization-report">HCCI 2018</a>
-  </Wrapper>
-);
+// const ER_OUTPATIENT = (
+//   <Wrapper key="ER_OUTPATIENT">
+//     <span>ER Outpatient</span>
+//     <span> ER OUTPATIENT The average price of an ER outpatient visit in 2016, according to claims data from four major insurance companies — HCCI 2018 </span>
+//     <a href="https://www.healthcostinstitute.org/research/annual-reports/entry/2016-health-care-cost-and-utilization-report">HCCI 2018</a>
+//   </Wrapper>
+// );
+//
+// const ER_INPATIENT = (
+//   <Wrapper key="ER_INPATIENT">
+//     <span>ER Intpatient</span>
+//     <span> ER INPATIENT The average cost of one day in a state/local government hospital (2013) added to the average price of an ER outpatient visit in 2016, to conservatively estimate the low end of an ER inpatient visit —-, </span>
+//     <a href="https://www.beckershospitalreview.com/finance/average-cost-per-inpatient-day-across-50-states.html">Becker’s Hospital Review 2015, </a>
+//     <a href="https://www.healthcostinstitute.org/research/annual-reports/entry/2016-health-care-cost-and-utilization-report">HCCI 2018</a>
+//   </Wrapper>
+// );
 
-const ER_INPATIENT = (
-  <Wrapper key="ER_INPATIENT">
-    <span>ER Intpatient</span>
-    <span> ER INPATIENT The average cost of one day in a state/local government hospital (2013) added to the average price of an ER outpatient visit in 2016, to conservatively estimate the low end of an ER inpatient visit —-, </span>
-    <a href="https://www.beckershospitalreview.com/finance/average-cost-per-inpatient-day-across-50-states.html">Becker’s Hospital Review 2015, </a>
-    <a href="https://www.healthcostinstitute.org/research/annual-reports/entry/2016-health-care-cost-and-utilization-report">HCCI 2018</a>
-  </Wrapper>
-);
+/* eslint-enable */
 
 export default {
   [PROPERTY_TYPES.DURATION_DAYS]: JAIL_STAY,

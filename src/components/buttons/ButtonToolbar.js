@@ -8,8 +8,18 @@ import styled, { css } from 'styled-components';
 const ToolbarWrapper = styled.div`
   display: flex;
   flex-direction: row;
-  margin-bottom: ${props => (props.noPadding ? 0 : '20px')};
+  margin-bottom: ${(props) => (props.noPadding ? 0 : '20px')};
 `;
+
+const getHoverStyles = ({ selected }) => {
+  if (!selected) {
+    return css`
+      color: #6124e2;
+      background-color: #e4d8ff;
+    `;
+  }
+  return null;
+};
 
 const StyledButton = styled.button`
   display: flex;
@@ -23,21 +33,12 @@ const StyledButton = styled.button`
   font-family: 'Open Sans', sans-serif;
   font-size: 12px;
   font-weight: 600;
-  background-color: ${props => (props.selected ? '#6124e2' : 'transparent')};
-  color: ${props => (props.selected ? '#ffffff' : '#8e929b')};
+  background-color: ${(props) => (props.selected ? '#6124e2' : 'transparent')};
+  color: ${(props) => (props.selected ? '#ffffff' : '#8e929b')};
 
   &:hover {
     cursor: pointer;
-
-    ${(props) => {
-      if (!props.selected) {
-        return css`
-          color: #6124e2;
-          background-color: #e4d8ff;
-        `;
-      }
-      return '';
-    }}
+    ${getHoverStyles}
   }
 
   &:focus {
@@ -55,27 +56,29 @@ const StyledButton = styled.button`
 `;
 
 type SearchOption = {
-  onClick :() => void,
-  value :string,
-  label :string
+  label :string;
+  onClick :() => void;
+  value :string;
 };
 
 type Props = {
-  options :SearchOption[],
-  value :string,
-  noPadding? :boolean
-}
+  noPadding :boolean;
+  options :SearchOption[];
+  value :string;
+};
 
 const ButtonToolbar = ({ options, value, noPadding } :Props) => (
   <ToolbarWrapper noPadding={noPadding}>
-    { options.map(option => (
-      <StyledButton
-          key={option.value}
-          onClick={option.onClick}
-          selected={option.value === value}>
-        {option.label}
-      </StyledButton>
-    )) }
+    {
+      options.map((option) => (
+        <StyledButton
+            key={option.value}
+            onClick={option.onClick}
+            selected={option.value === value}>
+          {option.label}
+        </StyledButton>
+      ))
+    }
   </ToolbarWrapper>
 );
 

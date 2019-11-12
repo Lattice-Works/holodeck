@@ -3,7 +3,7 @@ import styled from 'styled-components';
 export default styled.button`
   border: none;
   font-family: 'Open Sans', sans-serif;
-  color: ${props => (props.disabled ? '#8e929b' : '#6124e2')};
+  color: ${(props) => (props.disabled ? '#8e929b' : '#6124e2')};
   font-size: 14px;
   font-weight: 600;
   padding: 0;
@@ -18,7 +18,7 @@ export default styled.button`
   }
 
   &:hover {
-    cursor: ${props => (props.disabled ? 'default' : 'pointer')};
-    color: ${props => (props.disabled ? '#8e929b' : '#361876')};
+    cursor: ${(props) => (props.disabled ? 'default' : 'pointer')};
+    color: ${(props) => (props.disabled ? '#8e929b' : '#361876')};
   }
 `;

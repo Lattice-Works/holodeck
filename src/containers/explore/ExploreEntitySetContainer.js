@@ -3,8 +3,8 @@
  */
 
 import React from 'react';
-import styled from 'styled-components';
 import { List, Map } from 'immutable';
+import { AppContentWrapper, Sizes } from 'lattice-ui-kit';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -14,40 +14,37 @@ import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import SearchParameterSelection from '../../components/explore/SearchParameterSelection';
 import {
   STATE,
-  ENTITY_SETS,
   EXPLORE,
   TOP_UTILIZERS
 } from '../../utils/constants/StateConstants';
-import * as EntitySetActionFactory from '../entitysets/EntitySetActionFactory';
-import * as ExploreActionFactory from './ExploreActionFactory';
-import * as TopUtilizersActionFactory from '../toputilizers/TopUtilizersActionFactory';
+import * as ExploreActions from './ExploreActionFactory';
 import * as Routes from '../../core/router/Routes';
+import * as RoutingActions from '../../core/router/RoutingActions';
+import { isValidUUID } from '../../utils/ValidationUtils';
+import type { GoToRoot, GoToRoute } from '../../core/router/RoutingActions';
+
+const { APP_CONTENT_WIDTH } = Sizes;
 
 type Props = {
-  selectedEntitySetId :string,
-  isLoadingResults :boolean,
-  selectedEntitySet :Map<*, *>,
-  results :List<*>,
-  selectedEntitySetSize :?number,
-  history :string[],
   actions :{
-    searchEntitySetData :({ searchTerm :string, start :number, entitySetId :string }) => void,
-    selectEntitySet :(entitySet? :Map<*, *>) => void,
-    selectEntity :(entityKeyId :string) => void,
-    unmountExplore :() => void,
-    clearExploreSearchResults :() => void
-  }
+    clearExploreSearchResults :RequestSequence;
+    goToRoot :GoToRoot;
+    goToRoute :GoToRoute;
+    searchEntitySetData :RequestSequence;
+    unmountExplore :RequestSequence;
+  };
+  isLoadingResults :boolean;
+  results :List<*>;
+  selectedEntitySet :Map<*, *>;
+  selectedEntitySetId :string;
+  selectedEntitySetSize :?number;
 };
 
 type State = {
-  searchTerm :string,
-  searchStart :number,
-  currLayout :string
+  currLayout :string;
+  searchStart :number;
+  searchTerm :string;
 };
-
-const ResultsWrapper = styled.div`
-  margin: 30px 0;
-`;
 
 class ExploreEntitySetContainer extends React.Component<Props, State> {
 
@@ -61,19 +58,31 @@ class ExploreEntitySetContainer extends React.Component<Props, State> {
   }
 
   componentDidMount() {
-    const { actions, selectedEntitySet, selectedEntitySetId } = this.props;
-    if (selectedEntitySetId && !selectedEntitySet) {
-      actions.selectEntitySetById(selectedEntitySetId);
+
+    const { actions, selectedEntitySetId } = this.props;
+
+    if (!isValidUUID(selectedEntitySetId)) {
+      actions.goToRoot();
+    }
+  }
+
+  componentDidUpdate() {
+
+    const { actions, selectedEntitySetId } = this.props;
+    if (!isValidUUID(selectedEntitySetId)) {
+      actions.goToRoot();
     }
   }
 
   componentWillUnmount() {
+
     const { actions } = this.props;
     actions.unmountExplore();
   }
 
   renderResults = () => {
-    const { isLoadingResults, results } = this.props;
+
+    const { isLoadingResults, results, selectedEntitySet } = this.props;
     const { searchStart, currLayout } = this.state;
 
     if (isLoadingResults) {
@@ -83,6 +92,7 @@ class ExploreEntitySetContainer extends React.Component<Props, State> {
     if (results.size) {
       return (
         <SearchResultsContainer
+            selectedEntitySet={selectedEntitySet}
             searchStart={searchStart}
             currLayout={currLayout}
             results={results.get('hits', List())}
@@ -95,7 +105,7 @@ class ExploreEntitySetContainer extends React.Component<Props, State> {
     return null;
   }
 
-  onSearchTermChange = (e) => {
+  onSearchTermChange = (e :any) => {
     const { value } = e.target;
     this.setState({ searchTerm: value });
   }
@@ -132,81 +142,80 @@ class ExploreEntitySetContainer extends React.Component<Props, State> {
     });
   }
 
+  deselectEntitySet = () => {
+
+    const { actions } = this.props;
+    actions.goToRoute(Routes.EXPLORE);
+  }
+
   render() {
     const {
-      actions,
-      history,
       selectedEntitySet,
       selectedEntitySetSize
     } = this.props;
     const { searchTerm } = this.state;
 
+    if (!selectedEntitySet) {
+      return (
+        <LoadingSpinner />
+      );
+    }
+
     return (
-      <div>
-        {
-          selectedEntitySet
-            ? (
-              <SearchParameterSelection
-                  selectedEntitySet={selectedEntitySet}
-                  selectedEntitySetSize={selectedEntitySetSize}
-                  deselectEntitySet={() => {
-                    actions.clearExploreSearchResults();
-                    actions.selectEntitySet();
-                    history.push(Routes.EXPLORE);
-                  }}
-                  onChange={this.onSearchTermChange}
-                  executeSearch={this.executeSearch}
-                  searchTerm={searchTerm} />
-            )
-            : <LoadingSpinner />
-        }
-        <ResultsWrapper>
+      <>
+        <AppContentWrapper bgColor="#fff" contentWidth={APP_CONTENT_WIDTH}>
+          <SearchParameterSelection
+              deselectEntitySet={this.deselectEntitySet}
+              executeSearch={this.executeSearch}
+              onChange={this.onSearchTermChange}
+              searchTerm={searchTerm}
+              selectedEntitySet={selectedEntitySet}
+              selectedEntitySetSize={selectedEntitySetSize} />
+        </AppContentWrapper>
+        <AppContentWrapper contentWidth={APP_CONTENT_WIDTH}>
           {this.renderResults()}
-        </ResultsWrapper>
-      </div>
+        </AppContentWrapper>
+      </>
     );
   }
 }
 
+function mapStateToProps(state :Map<*, *>, props :Object) :Object {
 
-function mapStateToProps(state :Map<*, *>, ownProps :Object) :Object {
-  const selectedEntitySetId = ownProps.match.params.id;
+  const {
+    params: {
+      id: selectedEntitySetId = null,
+    } = {},
+  } = props.match;
 
-  const entitySets = state.get(STATE.ENTITY_SETS);
   const explore = state.get(STATE.EXPLORE);
   const topUtilizers = state.get(STATE.TOP_UTILIZERS);
+
+  const entitySets = state.getIn(['edm', 'entitySets'], List());
+  const entitySetsIndexMap = state.getIn(['edm', 'entitySetsIndexMap'], List());
+  const selectedEntitySetIndex = entitySetsIndexMap.get(selectedEntitySetId);
+  const selectedEntitySet = entitySets.get(selectedEntitySetIndex);
+
   return {
+    selectedEntitySet,
     selectedEntitySetId,
-    selectedEntitySet: entitySets.get(ENTITY_SETS.SELECTED_ENTITY_SET),
-    selectedEntitySetSize: entitySets.getIn([
-      ENTITY_SETS.ENTITY_SET_SIZES,
-      entitySets.getIn([ENTITY_SETS.SELECTED_ENTITY_SET, 'id'])
-    ]),
+    // selectedEntitySetSize: entitySets.getIn([
+    //   ENTITY_SETS.ENTITY_SET_SIZES,
+    //   entitySets.getIn([ENTITY_SETS.SELECTED_ENTITY_SET, 'id'])
+    // ]),
     results: explore.get(EXPLORE.SEARCH_RESULTS),
     isLoadingResults: topUtilizers.get(TOP_UTILIZERS.IS_LOADING_TOP_UTILIZERS)
   };
 }
 
-function mapDispatchToProps(dispatch :Function) :Object {
-  const actions :{ [string] :Function } = {};
+const mapActionsToProps = (dispatch :Function) => ({
+  actions: bindActionCreators({
+    clearExploreSearchResults: ExploreActions.clearExploreSearchResults,
+    goToRoot: RoutingActions.goToRoot,
+    goToRoute: RoutingActions.goToRoute,
+    searchEntitySetData: ExploreActions.searchEntitySetData,
+    unmountExplore: ExploreActions.unmountExplore,
+  }, dispatch)
+});
 
-  Object.keys(EntitySetActionFactory).forEach((action :string) => {
-    actions[action] = EntitySetActionFactory[action];
-  });
-
-  Object.keys(ExploreActionFactory).forEach((action :string) => {
-    actions[action] = ExploreActionFactory[action];
-  });
-
-  Object.keys(TopUtilizersActionFactory).forEach((action :string) => {
-    actions[action] = TopUtilizersActionFactory[action];
-  });
-
-  return {
-    actions: {
-      ...bindActionCreators(actions, dispatch)
-    }
-  };
-}
-
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(ExploreEntitySetContainer));
+export default withRouter(connect(mapStateToProps, mapActionsToProps)(ExploreEntitySetContainer));

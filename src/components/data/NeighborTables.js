@@ -4,6 +4,7 @@
 
 import React from 'react';
 import styled from 'styled-components';
+import { List, Map } from 'immutable';
 
 import AssociationGroup from './AssociationGroup';
 
@@ -14,24 +15,30 @@ const AssociationGroupContainer = styled.div`
 `;
 
 type Props = {
-  neighbors :Map<string, Map<string, Map<*, *>>>,
-  propertyTypesById :Map<string, *>,
-  entityTypesById :Map<string, *>,
-  onSelectEntity :({ entitySetId :string, entity :Map<*, *> }) => void
+  entityTypes :List;
+  entityTypesIndexMap :Map;
+  neighbors :Map<string, Map<string, Map<*, *>>>;
+  onSelectEntity :({ entitySetId :string, entity :Map<*, *> }) => void;
+  propertyTypes :List;
+  propertyTypesIndexMap :Map;
 };
 
 const NeighborTables = ({
-  entityTypesById,
+  entityTypes,
+  entityTypesIndexMap,
   neighbors,
-  propertyTypesById,
-  onSelectEntity
+  onSelectEntity,
+  propertyTypes,
+  propertyTypesIndexMap,
 } :Props) => neighbors.entrySeq().map(([assocId, neighborsById]) => (
   <AssociationGroupContainer key={assocId}>
     <AssociationGroup
+        entityTypes={entityTypes}
+        entityTypesIndexMap={entityTypesIndexMap}
         neighborsById={neighborsById}
-        entityTypesById={entityTypesById}
-        propertyTypesById={propertyTypesById}
-        onSelectEntity={onSelectEntity} />
+        onSelectEntity={onSelectEntity}
+        propertyTypes={propertyTypes}
+        propertyTypesIndexMap={propertyTypesIndexMap} />
   </AssociationGroupContainer>
 ));
 

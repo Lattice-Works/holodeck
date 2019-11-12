@@ -27,7 +27,7 @@ const Item = styled.div`
   div:first-child {
     width: 30px;
     height: 2px;
-    background-color: ${props => props.color};
+    background-color: ${(props) => props.color};
   }
 `;
 
