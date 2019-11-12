@@ -3,11 +3,11 @@
  */
 
 import React from 'react';
-import Immutable from 'immutable';
 import Select, { components } from 'react-select';
 import styled, { css } from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/pro-light-svg-icons';
+import { List, Map } from 'immutable';
 
 
 import LoadingDots from '../loading/LoadingDots';
@@ -25,21 +25,13 @@ const {
   WEIGHT
 } = TOP_UTILIZERS_FILTER;
 
-type Props = {
-  selectedEntitySet :Immutable.Map<*, *>,
-  isLoadingNeighborTypes :boolean,
-  neighborTypes :Immutable.List<*>,
-  selectedNeighborTypes :[],
-  onChange :(neighborTypes :[]) => void
-}
-
 const SelectWrapper = styled.div`
   width: 100%;
 `;
 
 const BackgroundWrapper = styled.div`
   background-color: transparent;
-  padding: ${props => (props.removeButton ? '4px 4px 4px 0' : '4px 0 4px 4px')};
+  padding: ${(props) => (props.removeButton ? '4px 4px 4px 0' : '4px 0 4px 4px')};
 `;
 
 const OptionRow = styled.div`
@@ -56,7 +48,7 @@ const OptionRow = styled.div`
 `;
 
 const OptionEntitySetBox = styled.div`
-  background-color: ${props => (props.selected ? BLUE.BLUE_1 : '#f0f0f7')};
+  background-color: ${(props) => (props.selected ? BLUE.BLUE_1 : '#f0f0f7')};
   padding: 4px 10px;
   margin: 0 1px;
   font-family: 'Open Sans', sans-serif;
@@ -113,12 +105,21 @@ const LoadingInputPlaceholder = styled.div`
   }
 `;
 
+type Props = {
+  isLoadingNeighborTypes :boolean;
+  neighborTypes :List<*>;
+  onChange :(neighborTypes :Object[]) => void;
+  selectedEntitySet :Map<*, *>;
+  selectedNeighborTypes :Object[];
+};
+
+/* eslint-disable react/jsx-props-no-spreading */
 export default class TopUtilizersSelect extends React.Component<Props> {
 
-  getEdgeValue = (associationTypeId, neighborTypeId, src) => (src
+  getEdgeValue = (associationTypeId :UUID, neighborTypeId :UUID, src :any) => (src
     ? [associationTypeId, neighborTypeId] : [associationTypeId, neighborTypeId]).join('|');
 
-  getNeighborTypeOptions = neighborTypes => neighborTypes.map((neighborType) => {
+  getNeighborTypeOptions = (neighborTypes :any) => neighborTypes.map((neighborType) => {
     const assocId = neighborType.getIn(['associationEntityType', 'id']);
     const assocTitle = neighborType.getIn(['associationEntityType', 'title']);
     const neighborId = neighborType.getIn(['neighborEntityType', 'id']);
@@ -137,7 +138,7 @@ export default class TopUtilizersSelect extends React.Component<Props> {
     };
   }).toJS();
 
-  selectedNeighborOption = ({ data, innerProps, selectProps }) => {
+  selectedNeighborOption = ({ data, innerProps, selectProps } :any) => {
     const { assocTitle, neighborTitle, src } = data;
     const assoc = <OptionEntitySetBox selected>{assocTitle}</OptionEntitySetBox>;
     const neighbor = <OptionEntitySetBox selected>{neighborTitle}</OptionEntitySetBox>;
@@ -152,7 +153,7 @@ export default class TopUtilizersSelect extends React.Component<Props> {
     );
   }
 
-  removeButton = props => (
+  removeButton = (props :any) => (
     <components.MultiValueRemove {...props}>
       <BackgroundWrapper removeButton>
         <OptionEntitySetBox {...props} removeButton>
@@ -162,7 +163,7 @@ export default class TopUtilizersSelect extends React.Component<Props> {
     </components.MultiValueRemove>
   )
 
-  neighborOption = ({ data, innerProps }) => {
+  neighborOption = ({ data, innerProps } :any) => {
     const { selectedEntitySet } = this.props;
     const { assocTitle, neighborTitle, src } = data;
     const entitySetTitle = selectedEntitySet.get('title', '');
@@ -204,18 +205,18 @@ export default class TopUtilizersSelect extends React.Component<Props> {
                 closeMenuOnSelect={false}
                 placeholder="Search"
                 styles={{
-                  multiValueRemove: base => ({
+                  multiValueRemove: (base) => ({
                     ...base,
                     padding: '0',
                     backgroundColor: 'transparent',
                     height: '0'
                   }),
-                  multiValueLabel: base => ({
+                  multiValueLabel: (base) => ({
                     ...base,
                     backgroundColor: 'transparent',
                     paddingRight: '0'
                   }),
-                  multiValue: base => ({
+                  multiValue: (base) => ({
                     ...base,
                     backgroundColor: 'transparent',
                     display: 'flex',
@@ -236,3 +237,4 @@ export default class TopUtilizersSelect extends React.Component<Props> {
     );
   }
 }
+/* eslint-enable */

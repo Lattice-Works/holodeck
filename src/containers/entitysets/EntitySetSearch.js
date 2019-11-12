@@ -3,245 +3,244 @@
  */
 
 import React from 'react';
-import { List, Map } from 'immutable';
+
 import styled from 'styled-components';
+import { List, Map } from 'immutable';
+import {
+  AppContentWrapper,
+  Card,
+  Checkbox,
+  Input,
+  Sizes,
+  Spinner,
+} from 'lattice-ui-kit';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { faDatabase } from '@fortawesome/pro-solid-svg-icons';
+import { RequestStates } from 'redux-reqseq';
+import type { Location } from 'react-router';
+import type { RequestSequence, RequestState } from 'redux-reqseq';
 
-import StyledInput from '../../components/controls/StyledInput';
-import StyledLink from '../../components/controls/StyledLink';
-import StyledCheckbox from '../../components/controls/StyledCheckbox';
 import EntitySetCard from '../../components/cards/EntitySetCard';
-import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import Pagination from '../../components/explore/Pagination';
-import { EDM, ENTITY_SETS, STATE } from '../../utils/constants/StateConstants';
-import { ComponentWrapper, HeaderComponentWrapper } from '../../components/layout/Layout';
+import { ENTITY_SETS, STATE } from '../../utils/constants/StateConstants';
+import * as EntitySetActions from './EntitySetActions';
+import * as ReduxActions from '../../core/redux/ReduxActions';
 import * as Routes from '../../core/router/Routes';
-import * as EntitySetActionFactory from './EntitySetActionFactory';
-import * as TopUtilizersActionFactory from '../toputilizers/TopUtilizersActionFactory';
+import * as RoutingActions from '../../core/router/RoutingActions';
+import type { GoToRoute } from '../../core/router/RoutingActions';
 
-type Props = {
-  actionText :string,
-  path :string,
-  page :number,
-  totalHits :number,
-  history :string[],
-  isLoadingEdm :boolean,
-  isLoadingEntitySets :boolean,
-  entitySetSearchResults :List<*>,
-  entitySetSizes :Map<*, *>,
-  showAssociationEntitySets :boolean,
-  showAuditEntitySets :boolean,
-  actions :{
-    searchEntitySets :({
-      searchTerm :string,
-      start :number,
-      maxHits :number
-    }) => void,
-    selectEntitySet :(entitySet? :Map<*, *>) => void,
-    selectEntitySetPage :(page :number) => void,
-    setShowAssociationEntitySets :(show :boolean) => void,
-    setShowAuditEntitySets :(show :boolean) => void,
-    getNeighborTypes :(id :string) => void
-  }
-};
+const { APP_CONTENT_WIDTH } = Sizes;
+const { SEARCH_ENTITY_SETS } = EntitySetActions;
 
-type State = {
-  temp :boolean
-};
-
-const HeaderContainer = styled(HeaderComponentWrapper)`
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-`;
-
-const HeaderContent = styled.div`
-  width: 560px;
+const SearchSection = styled.section`
+  align-items: center;
+  align-self: center;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 50px 0;
-`;
+  padding: 30px 0;
+  width: 600px;
 
-const Title = styled.div`
-  font-size: 20px;
-  font-weight: 600;
-  display: flex;
-  flex-direction: row;
+  > h1 {
+    font-size: 28px;
+    font-weight: normal;
+    margin: 0;
+  }
 
-  span {
-    margin-left: 20px;
-    color: #b6bbc7;
-
-    &:last-child {
-      margin-left: 10px;
-    }
+  > input {
+    margin-top: 50px;
   }
 `;
 
-const Subtitle = styled.div`
-  font-family: 'Open Sans', sans-serif;
-  font-size: 14px;
-  text-align: center;
-  color: #8e929b;
-  margin: 15px 0 50px 0;
+const CheckboxRow = styled.div`
+  align-self: flex-end;
+  display: flex;
+  margin-bottom: 30px;
+
+  > label:last-child {
+    margin-left: 10px;
+  }
 `;
 
-const ResultsContainer = styled(ComponentWrapper)`
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: center;
-`;
+const EntitySetCardGrid = styled.div`
+  display: grid;
+  grid-gap: 30px;
+  grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
 
-const CheckboxRow = styled(ComponentWrapper)`
-  width: 100%;
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
-  align-items: center;
+  ${Card} {
+    min-width: 0; /* setting min-width ensures cards do not overflow the grid column */
+  }
 `;
 
 const PAGE_SIZE = 24;
+
+type Props = {
+  actions :{
+    goToRoute :GoToRoute;
+    resetRequestState :(actionType :string) => void;
+    searchEntitySets :RequestSequence;
+    selectEntitySet :RequestSequence;
+    selectEntitySetPage :RequestSequence;
+    setShowAssociationEntitySets :RequestSequence;
+    setShowAuditEntitySets :RequestSequence;
+  };
+  entitySetSearchResults :List<*>;
+  location :Location;
+  page :number;
+  requestStates :{
+    SEARCH_ENTITY_SETS :RequestState;
+  };
+  showAssociationEntitySets :boolean;
+  showAuditEntitySets :boolean;
+  totalHits :number;
+};
+
+type State = {
+  valueOfSearchQuery :string;
+};
 
 class EntitySetSearch extends React.Component<Props, State> {
 
   constructor(props :Props) {
     super(props);
     this.state = {
-      searchTerm: ''
+      valueOfSearchQuery: '',
     };
-
-    this.searchTimeout = null;
   }
 
   componentDidMount() {
-    const { actions } = this.props;
-    this.executeSearch(1, '*');
-  }
 
-  executeSearch = (page, searchTermInit) => {
     const { actions } = this.props;
-
     actions.searchEntitySets({
-      searchTerm: searchTermInit.length ? searchTermInit : '*',
+      searchTerm: '*',
       start: 0,
       maxHits: 10000
     });
   }
 
-  handleInputChange = (e :SyntheticEvent) => {
+  handleOnChangeSearch = (event :SyntheticInputEvent<HTMLInputElement>) => {
+
     const { actions } = this.props;
-    this.setState({ searchTerm: e.target.value });
+    const valueOfSearchQuery = event.target.value || '';
 
-    clearTimeout(this.searchTimeout);
-
-    this.searchTimeout = setTimeout(() => {
-      const { searchTerm } = this.state;
-
-      const newPage = 1;
-
-      this.executeSearch(newPage, searchTerm);
-      actions.selectEntitySetPage(newPage);
-    }, 500);
+    actions.searchEntitySets({
+      searchTerm: valueOfSearchQuery,
+      start: 0,
+      maxHits: 10000
+    });
+    actions.selectEntitySetPage(1);
+    this.setState({ valueOfSearchQuery });
   }
 
-  handleSelect = (entitySetObj) => {
-    const { actions, history, path } = this.props;
-    const entitySet = entitySetObj.get('entitySet', Map());
-    const id = entitySet.get('id');
-    actions.selectEntitySet(entitySet);
-    actions.getNeighborTypes(id);
-    history.push(`${path}/${id}`);
-  }
+  goToEntitySet = (entitySetId :UUID) => {
 
-  renderResults = () => {
-    const {
-      isLoadingEdm,
-      isLoadingEntitySets,
-      entitySetSearchResults,
-      entitySetSizes,
-    } = this.props;
+    const { actions, location } = this.props;
 
-    if (isLoadingEntitySets || isLoadingEdm) {
-      return <LoadingSpinner />;
+    if (location.pathname.startsWith(Routes.EXPLORE)) {
+      actions.goToRoute(Routes.EXPLORE_ES.replace(Routes.ID_PATH, entitySetId));
     }
-
-    return entitySetSearchResults.map(entitySetObj => (
-      <EntitySetCard
-          key={entitySetObj.getIn(['entitySet', 'id'])}
-          entitySet={entitySetObj.get('entitySet', Map())}
-          size={entitySetSizes.get(entitySetObj.getIn(['entitySet', 'id']))}
-          onClick={() => this.handleSelect(entitySetObj)} />
-    ));
+    else if (location.pathname.startsWith(Routes.TOP_UTILIZERS)) {
+      actions.goToRoute(Routes.TOP_UTILIZERS_ES.replace(Routes.ID_PATH, entitySetId));
+    }
   }
 
-  routeToManage = () => {
-    this.props.history.push(Routes.MANAGE);
-  }
+  renderSearchResults = () => {
 
-  render() {
     const {
       actions,
-      actionText,
+      entitySetSearchResults,
       page,
+      requestStates,
       showAssociationEntitySets,
       showAuditEntitySets,
-      totalHits
+      totalHits,
     } = this.props;
-    const { searchTerm } = this.state;
+
+    if (requestStates[SEARCH_ENTITY_SETS] === RequestStates.PENDING) {
+      return (
+        <Spinner size="2x" />
+      );
+    }
+
+    if (requestStates[SEARCH_ENTITY_SETS] === RequestStates.FAILURE) {
+      return (
+        <p>
+          Sorry, something went wrong. Please try refreshing the page, or contact support.
+        </p>
+      );
+    }
+
+    if (entitySetSearchResults.isEmpty()) {
+      return (
+        <p>
+          No matching entity sets found.
+        </p>
+      );
+    }
+
+    const entitySetCards = entitySetSearchResults.map((searchResult :Map) => {
+
+      const entitySet :Map = searchResult.get('entitySet', Map());
+      const entitySetId :UUID = entitySet.get('id');
+
+      return (
+        <EntitySetCard
+            key={entitySetId}
+            entitySet={entitySet}
+            onClick={() => this.goToEntitySet(entitySetId)} />
+      );
+    });
 
     return (
-      <div>
-        <HeaderContainer>
-          <HeaderContent>
-            <Title>Select a dataset to search</Title>
-            <Subtitle>
-              {`Choose a dataset you want to ${actionText}. If you
-              don't see the dataset you're looking for,
-              check`} <StyledLink onClick={this.routeToManage}>Data Management</StyledLink>
-            </Subtitle>
-            <StyledInput
-                value={searchTerm}
-                placeholder="Search"
-                icon={faDatabase}
-                onChange={this.handleInputChange} />
-          </HeaderContent>
-        </HeaderContainer>
+      <>
         <CheckboxRow>
-          <StyledCheckbox
+          <Checkbox
               checked={showAssociationEntitySets}
               onChange={({ target }) => actions.setShowAssociationEntitySets(!!target.checked)}
               label="Show association datasets" />
-          <StyledCheckbox
+          <Checkbox
               checked={showAuditEntitySets}
               onChange={({ target }) => actions.setShowAuditEntitySets(!!target.checked)}
               label="Show audit datasets" />
         </CheckboxRow>
-        <ResultsContainer>
-          {this.renderResults()}
-        </ResultsContainer>
+        <EntitySetCardGrid>
+          {entitySetCards}
+        </EntitySetCardGrid>
         {
-          totalHits > PAGE_SIZE ? (
+          totalHits > PAGE_SIZE && (
             <Pagination
                 numPages={Math.ceil(totalHits / PAGE_SIZE)}
                 activePage={page}
                 onChangePage={actions.selectEntitySetPage} />
-          ) : null
+          )
         }
-      </div>
+      </>
+    );
+  }
+
+  render() {
+
+    const { valueOfSearchQuery } = this.state;
+
+    return (
+      <>
+        <AppContentWrapper bgColor="#fff">
+          <SearchSection>
+            <h1>Select a dataset to search</h1>
+            <Input onChange={this.handleOnChangeSearch} placeholder="Search" value={valueOfSearchQuery} />
+          </SearchSection>
+        </AppContentWrapper>
+        <AppContentWrapper contentWidth={APP_CONTENT_WIDTH}>
+          {this.renderSearchResults()}
+        </AppContentWrapper>
+      </>
     );
   }
 }
 
 function mapStateToProps(state :Map<*, *>) :Object {
-  const edm = state.get(STATE.EDM);
-  const entitySets = state.get(STATE.ENTITY_SETS);
 
+  const entitySets = state.get(STATE.ENTITY_SETS);
   const showAssociationEntitySets = entitySets.get(ENTITY_SETS.SHOW_ASSOCIATION_ENTITY_SETS);
   const showAuditEntitySets = entitySets.get(ENTITY_SETS.SHOW_AUDIT_ENTITY_SETS);
   const page = entitySets.get(ENTITY_SETS.PAGE);
@@ -256,12 +255,9 @@ function mapStateToProps(state :Map<*, *>) :Object {
       if (!showAuditEntitySets && flags.includes('AUDIT')) {
         return false;
       }
-
       return true;
     });
   }
-  const totalHits = entitySetSearchResults.size;
-
   entitySetSearchResults = entitySetSearchResults.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return {
@@ -269,29 +265,34 @@ function mapStateToProps(state :Map<*, *>) :Object {
     entitySetSearchResults,
     showAssociationEntitySets,
     showAuditEntitySets,
-    totalHits,
-    entitySetSizes: entitySets.get(ENTITY_SETS.ENTITY_SET_SIZES),
-    isLoadingEntitySets: entitySets.get(ENTITY_SETS.IS_LOADING_ENTITY_SETS),
-    isLoadingEdm: edm.get(EDM.IS_LOADING_EDM)
+    requestStates: {
+      [SEARCH_ENTITY_SETS]: state.getIn([STATE.ENTITY_SETS, SEARCH_ENTITY_SETS, 'requestState']),
+    },
+    totalHits: entitySets.get(ENTITY_SETS.TOTAL_HITS),
   };
 }
 
-function mapDispatchToProps(dispatch :Function) :Object {
-  const actions :{ [string] :Function } = {};
+// const mapStateToProps = (state :Map<*, *>) => ({
+//   isMemberOfOrgIds: state.getIn(['orgs', 'isMemberOfOrgIds'], Set()),
+//   isOwnerOfOrgIds: state.getIn(['orgs', 'isOwnerOfOrgIds'], Set()),
+//   orgs: state.getIn(['orgs', 'orgs']),
+//   requestStates: {
+//     [GET_ORGS_AND_PERMISSIONS]: state.getIn(['orgs', GET_ORGS_AND_PERMISSIONS, 'requestState']),
+//   }
+// });
 
-  Object.keys(EntitySetActionFactory).forEach((action :string) => {
-    actions[action] = EntitySetActionFactory[action];
-  });
+const mapActionsToProps = (dispatch :Function) => ({
+  actions: bindActionCreators({
+    goToRoute: RoutingActions.goToRoute,
+    resetRequestState: ReduxActions.resetRequestState,
+    searchEntitySets: EntitySetActions.searchEntitySets,
+    selectEntitySet: EntitySetActions.selectEntitySet,
+    selectEntitySetPage: EntitySetActions.selectEntitySetPage,
+    setShowAssociationEntitySets: EntitySetActions.setShowAssociationEntitySets,
+    setShowAuditEntitySets: EntitySetActions.setShowAuditEntitySets,
+  }, dispatch)
+});
 
-  Object.keys(TopUtilizersActionFactory).forEach((action :string) => {
-    actions[action] = TopUtilizersActionFactory[action];
-  });
-
-  return {
-    actions: {
-      ...bindActionCreators(actions, dispatch)
-    }
-  };
-}
-
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(EntitySetSearch));
+export default withRouter(
+  connect(mapStateToProps, mapActionsToProps)(EntitySetSearch)
+);

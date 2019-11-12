@@ -33,6 +33,7 @@ export default function handler(action :Action, prevState :Map, nextState :Map) 
       return;
     }
 
+    /* eslint-disable-next-line prefer-destructuring */
     const location :Location = window.location;
     const origin = `${location.protocol}//${location.host}`;
     const url = `${origin}${location.pathname}${location.hash}`.split('?')[0];

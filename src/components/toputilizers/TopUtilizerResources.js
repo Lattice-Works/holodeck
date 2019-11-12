@@ -6,15 +6,16 @@ import React from 'react';
 import styled from 'styled-components';
 import moment from 'moment';
 import Modal, { ModalTransition } from '@atlaskit/modal-dialog';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationCircle, faTimes } from '@fortawesome/pro-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  fromJS,
   List,
   Map,
+  OrderedSet,
   Set,
-  OrderedSet
+  fromJS,
 } from 'immutable';
+import { Models } from 'lattice';
 
 import LoadingSpinner from '../loading/LoadingSpinner';
 import ChartWrapper from '../charts/ChartWrapper';
@@ -23,7 +24,7 @@ import ResourceBarChart from './resources/ResourceBarChart';
 import ResourceTimeline from './resources/ResourceTimeline';
 import ResourceDropdownFilter from './resources/ResourceDropdownFilter';
 import { getEntityTitle } from '../../utils/TagUtils';
-import { COUNT_FQN, DATE_FILTER_CLASS } from '../../utils/constants/DataConstants';
+import { COUNT_FQN } from '../../utils/constants/DataConstants';
 import { RESOURCE_TYPES, DEFAULT_COST_RATES } from '../../utils/constants/TopUtilizerConstants';
 import {
   DURATION_TYPES,
@@ -37,29 +38,10 @@ import {
   LoadingText,
   TitleText
 } from '../layout/Layout';
-import { getEntityKeyId, getFqnString } from '../../utils/DataUtils';
+import { getEntityKeyId } from '../../utils/DataUtils';
 import { getEntityEventDates, getDateFilters, matchesFilters } from '../../utils/EntityDateUtils';
 
-type Props = {
-  results :List<*>,
-  countBreakdown :Map<string, *>,
-  entityTypesById :Map<string, *>,
-  neighborsById :Map<string, *>,
-  selectedEntityType :Map<string, *>,
-  lastQueryRun :string,
-  isLoading :boolean,
-  propertyTypesByFqn :Map<string, *>,
-  propertyTypesById :Map<string, *>
-};
-
-type State = {
-  processedDates :Map<*, *>,
-  costRates :Map<List<string>, number>,
-  isSettingCostRate :boolean,
-  displayDefaultCostBanner :boolean,
-  SELECTED_UTILIZER :{},
-  SELECTED_TYPE :{}
-};
+const { FullyQualifiedName } = Models;
 
 const PaddedTitleText = styled(TitleText)`
   margin-bottom: 30px;
@@ -142,8 +124,28 @@ const TIME_UNIT = {
   DAYS: 'Days'
 };
 
-const NEIGHBOR = 'neighborDetails';
-const ASSOCIATION = 'associationDetails';
+type Props = {
+  countBreakdown :Map<string, *>;
+  entityTypes :List;
+  entityTypesIndexMap :Map;
+  isLoading :boolean;
+  lastQueryRun :string;
+  neighborsById :Map<string, *>;
+  propertyTypes :List;
+  propertyTypesIndexMap :Map;
+  results :List<*>;
+  selectedEntityType :Map<string, *>;
+};
+
+type State = {
+  SELECTED_TYPE :Object;
+  SELECTED_UTILIZER :Object;
+  costRates :Map<List<string>, number>;
+  displayDefaultCostBanner :boolean;
+  durationTypes :Map;
+  isSettingCostRate :boolean;
+  processedDates :Map<*, *>;
+};
 
 export default class TopUtilizerResources extends React.Component<Props, State> {
 
@@ -161,17 +163,59 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
   }
 
   componentDidMount() {
-    this.preprocess(this.props);
+
+    const {
+      countBreakdown,
+      entityTypes,
+      entityTypesIndexMap,
+      lastQueryRun,
+      neighborsById,
+      propertyTypes,
+      propertyTypesIndexMap,
+      results,
+    } = this.props;
+
+    this.preprocess({
+      countBreakdown,
+      entityTypes,
+      entityTypesIndexMap,
+      lastQueryRun,
+      neighborsById,
+      propertyTypes,
+      propertyTypesIndexMap,
+      results,
+    });
   }
 
-  componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps(nextProps :Props) {
+
     const { neighborsById } = this.props;
-    if (nextProps.neighborsById.size !== neighborsById.size) {
-      this.preprocess(nextProps);
+    const {
+      countBreakdown,
+      entityTypes,
+      entityTypesIndexMap,
+      lastQueryRun,
+      propertyTypes,
+      propertyTypesIndexMap,
+      results,
+      neighborsById: nextNeighborsById,
+    } = nextProps;
+
+    if (nextNeighborsById.size !== neighborsById.size) {
+      this.preprocess({
+        countBreakdown,
+        entityTypes,
+        entityTypesIndexMap,
+        lastQueryRun,
+        propertyTypes,
+        propertyTypesIndexMap,
+        results,
+        neighborsById: nextNeighborsById,
+      });
     }
   }
 
-  getBlankMap = (pairs) => {
+  getBlankMap = (pairs :any) => {
     let map = Map();
     pairs.forEach((pair) => {
       const value = Map();
@@ -188,7 +232,7 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
       return OrderedSet();
     }
 
-    return countBreakdown.first().keySeq().filter(key => key !== 'score').toOrderedSet();
+    return countBreakdown.first().keySeq().filter((key) => key !== 'score').toOrderedSet();
   }
 
   getDurationTypes = () => {
@@ -198,7 +242,7 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
 
     if (countBreakdown) {
       countBreakdown.first().entrySeq().filter(([pair]) => pair !== 'score').forEach(([pair, propertyTypeMap]) => {
-        propertyTypeMap.keySeq().filter(ptId => ptId !== COUNT_FQN).forEach((ptId) => {
+        propertyTypeMap.keySeq().filter((ptId) => ptId !== COUNT_FQN).forEach((ptId) => {
           durationTypes = durationTypes.set(pair, durationTypes.get(pair, OrderedSet()).add(ptId));
         });
       });
@@ -208,7 +252,7 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
   }
 
   getTimeUnit = () => {
-    const { propertyTypesById } = this.props;
+    const { propertyTypes, propertyTypesIndexMap } = this.props;
 
     const durationTypes = this.getDurationTypes();
     if (!durationTypes.size) {
@@ -216,39 +260,43 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
     }
 
     const propertyTypeId = durationTypes.valueSeq().first().first();
+    const propertyTypeIndex = propertyTypesIndexMap.get(propertyTypeId);
+    const propertyType = propertyTypes.get(propertyTypeIndex, Map());
+    const propertyTypeFQN = FullyQualifiedName.toString(propertyType.get('type', Map()));
 
-    const fqn = getFqnString(propertyTypesById.getIn([propertyTypeId, 'type'], Map()));
-
-    if (DURATION_MINUTE_TYPES[fqn]) {
+    if (DURATION_MINUTE_TYPES[propertyTypeFQN]) {
       return TIME_UNIT.MINUTES;
     }
 
-    if (DURATION_HOUR_TYPES[fqn]) {
+    if (DURATION_HOUR_TYPES[propertyTypeFQN]) {
       return TIME_UNIT.HOURS;
     }
 
-    if (DURATION_DAY_TYPES[fqn]) {
+    if (DURATION_DAY_TYPES[propertyTypeFQN]) {
       return TIME_UNIT.DAYS;
     }
 
     return '';
   }
 
-  getDefaultCostRate = (propertyTypeId) => {
-    const { propertyTypesById } = this.props;
-    const fqn = getFqnString(propertyTypesById.getIn([propertyTypeId, 'type'], Map()));
-    return DEFAULT_COST_RATES[fqn] || 0;
+  getDefaultCostRate = (propertyTypeId :UUID) => {
+    const { propertyTypes, propertyTypesIndexMap } = this.props;
+    const propertyTypeIndex = propertyTypesIndexMap.get(propertyTypeId);
+    const propertyType = propertyTypes.get(propertyTypeIndex, Map());
+    const propertyTypeFQN = FullyQualifiedName.toString(propertyType.get('type', Map()));
+    return DEFAULT_COST_RATES[propertyTypeFQN] || 0;
   }
 
-  preprocess = (props :Props) => {
-    const {
-      countBreakdown,
-      entityTypesById,
-      neighborsById,
-      propertyTypesById,
-      results,
-      lastQueryRun
-    } = props;
+  preprocess = ({
+    countBreakdown,
+    entityTypes,
+    entityTypesIndexMap,
+    lastQueryRun,
+    neighborsById,
+    propertyTypes,
+    propertyTypesIndexMap,
+    results,
+  } :Object) => {
 
     if (!countBreakdown.size) {
       return;
@@ -257,7 +305,7 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
     const allPairs = this.getAllPairs();
     const blankMap = this.getBlankMap(allPairs);
     const durationTypes = this.getDurationTypes();
-    const dateFilters = getDateFilters(lastQueryRun, propertyTypesById);
+    const dateFilters = getDateFilters(lastQueryRun, propertyTypes, propertyTypesIndexMap);
 
     let costRates = Map();
     let processedDates = Map();
@@ -290,10 +338,14 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
             const associationDetails = neighbor.get('associationDetails', Map());
 
             if (matchesFilters(pair, dateFilters, associationDetails, neighborDetails)) {
-            /* Deal with dates */
+              /* Deal with dates */
+              const index1 = entityTypesIndexMap.get(assocId);
+              const index2 = entityTypesIndexMap.get(neighborId);
+              const entityType1 = entityTypes.get(index1, Map());
+              const entityType2 = entityTypes.get(index2, Map());
               [
-                ...getEntityEventDates(entityTypesById.get(assocId, Map()), propertyTypesById, associationDetails),
-                ...getEntityEventDates(entityTypesById.get(neighborId, Map()), propertyTypesById, neighborDetails),
+                ...getEntityEventDates(entityType1, propertyTypes, propertyTypesIndexMap, associationDetails),
+                ...getEntityEventDates(entityType2, propertyTypes, propertyTypesIndexMap, neighborDetails),
               ].forEach((date) => {
                 const dateStr = date.format(MONTH_FORMAT);
                 dateMap = dateMap.setIn([pair, dateStr], dateMap.getIn([pair, dateStr], 0) + 1);
@@ -301,9 +353,10 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
 
               /* Deal with durations */
               durationTypes.get(pair, Set()).forEach((propertyTypeId) => {
-                const getValue = fqn => neighborDetails.getIn([fqn, 0], associationDetails.getIn([fqn, 0]));
-
-                const durationFqn = getFqnString(propertyTypesById.getIn([propertyTypeId, 'type'], Map()));
+                const getValue = (fqn) => neighborDetails.getIn([fqn, 0], associationDetails.getIn([fqn, 0]));
+                const propertyTypeIndex = propertyTypesIndexMap.get(propertyTypeId);
+                const propertyType = propertyTypes.get(propertyTypeIndex, Map());
+                const durationFqn = FullyQualifiedName.toString(propertyType.get('type', Map()));
                 const dateFqn = DURATION_TYPES[durationFqn];
 
                 const startDateTime = moment(getValue(dateFqn));
@@ -333,14 +386,15 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
     });
   }
 
-  renderSelectDropdown = (key, label, options) => {
+  renderSelectDropdown = (key :string, label :string, options :Object) => {
     const onChange = (newValue) => {
       this.setState({ [key]: newValue });
     };
-    return <ResourceDropdownFilter value={this.state[key]} label={label} options={options} onChange={onChange} />;
+    const { [key]: value } = this.state;
+    return <ResourceDropdownFilter value={value} label={label} options={options} onChange={onChange} />;
   }
 
-  getCountsByYearAndMonth = (useCounts, withMultiplier) => {
+  getCountsByYearAndMonth = (useCounts :any, withMultiplier :boolean) => {
     const { costRates, processedDates } = this.state;
     const processedValues = useCounts ? processedDates : processedDates; // HANDLE BY DURATION
 
@@ -361,18 +415,19 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
       });
     };
 
-    const { value } = this.state[FILTERS.SELECTED_UTILIZER];
+    const { [FILTERS.SELECTED_UTILIZER]: selectedUtilizer } = this.state;
+    const { value } = selectedUtilizer;
     if (value && value.length) {
       updateCounts(processedValues.get(value));
     }
     else {
-      processedValues.valueSeq().forEach(countsMap => updateCounts(countsMap));
+      processedValues.valueSeq().forEach((countsMap) => updateCounts(countsMap));
     }
 
     return counts;
   }
 
-  getFilteredCountsForType = (useCounts, byMonth, withMultiplier) => {
+  getFilteredCountsForType = (useCounts :boolean, byMonth :boolean, withMultiplier :boolean) => {
     /* either year -> count OR year -> month -> count (depending on byMonth) */
     const pairDateCounts = this.getCountsByYearAndMonth(useCounts, withMultiplier);
     let counts = Map();
@@ -391,7 +446,8 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
       });
     };
 
-    const { value } = this.state[FILTERS.SELECTED_TYPE];
+    const { [FILTERS.SELECTED_TYPE]: selectedType } = this.state;
+    const { value } = selectedType;
     if (value && value.size) {
       const key = useCounts ? value.slice(0, 2) : value;
       updateCountsByDate(key);
@@ -399,14 +455,14 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
     else {
       pairDateCounts
         .keySeq()
-        .filter(key => (useCounts ? key.size === 2 : key.size === 3))
-        .forEach(pair => updateCountsByDate(pair));
+        .filter((key) => (useCounts ? key.size === 2 : key.size === 3))
+        .forEach((pair) => updateCountsByDate(pair));
     }
 
     return counts;
   }
 
-  renderSimpleBarChart = (resourceType, byDates, withCostMultiplier) => (
+  renderSimpleBarChart = (resourceType :string, byDates :boolean, withCostMultiplier :boolean) => (
     <ResourceBarChart
         resourceType={resourceType}
         withCostMultiplier={withCostMultiplier}
@@ -416,14 +472,21 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
   )
 
   getEventTypeOptions = () => {
-    const { entityTypesById, propertyTypesById } = this.props;
+    const {
+      entityTypes,
+      entityTypesIndexMap,
+      propertyTypes,
+      propertyTypesIndexMap,
+    } = this.props;
     const { durationTypes } = this.state;
     if (!durationTypes.size) {
       return [
         BLANK_OPTION.toJS(),
         ...this.getAllPairs().map((pair) => {
           const entityTypeId = pair.get(1);
-          const label = entityTypesById.getIn([entityTypeId, 'title']);
+          const entityTypeIndex = entityTypesIndexMap.get(entityTypeId);
+          const entityType = entityTypes.get(entityTypeIndex, Map());
+          const label = entityType.get('title');
           return {
             value: pair,
             label
@@ -435,10 +498,18 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
     return [
       BLANK_OPTION.toJS(),
       ...durationTypes.entrySeq().flatMap(([pair, properties]) => {
-        const toTitle = index => entityTypesById.getIn([pair.get(index), 'title'], '');
+        const toTitle = (index) => {
+          const entityTypeId = pair.get(index);
+          const entityTypeIndex = entityTypesIndexMap.get(entityTypeId);
+          const entityType = entityTypes.get(entityTypeIndex, Map());
+          return entityType.get('title');
+        };
         const prefix = `${toTitle(0)} ${toTitle(1)}`;
         return properties.map((propertyTypeId) => {
-          const label = `${prefix} -- ${propertyTypesById.getIn([propertyTypeId, 'title'], '')}`;
+          const propertyTypeIndex = propertyTypesIndexMap.get(propertyTypeId);
+          const propertyType = propertyTypes.get(propertyTypeIndex, Map());
+          const propertyTypeTitle = propertyType.get('title', '');
+          const label = `${prefix} -- ${propertyTypeTitle}`;
           const value = pair.push(propertyTypeId);
           return { label, value };
         });
@@ -448,9 +519,10 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
 
   renderBasicSetup = () => {
     const {
+      propertyTypes,
+      propertyTypesIndexMap,
       results,
       selectedEntityType,
-      propertyTypesById
     } = this.props;
 
     const allPairs = this.getAllPairs();
@@ -464,7 +536,7 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
       ...results.map((utilizer, index) => {
         const value = getEntityKeyId(utilizer);
         const num = index + 1;
-        const label = getEntityTitle(selectedEntityType, propertyTypesById, utilizer);
+        const label = getEntityTitle(selectedEntityType, propertyTypes, propertyTypesIndexMap, utilizer);
         return { value, num, label };
       }).toJS()
     ];
@@ -478,7 +550,7 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
         </SimpleWrapper>
         <SimpleWrapper>
           <PaddedTitleText>Event Count</PaddedTitleText>
-          {this.renderSimpleBarChart(RESOURCE_TYPES.EVENTS, true)}
+          {this.renderSimpleBarChart(RESOURCE_TYPES.EVENTS, true, false)}
         </SimpleWrapper>
       </WideSplitCard>
     );
@@ -497,7 +569,7 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
           {`Default costs shown are based on rough estimates or national averages. See Cost
             Rate for more details, and set custom cost rates to get more accurate results.`}
         </span>
-        <button onClick={() => this.setState({ displayDefaultCostBanner: false })}>
+        <button type="button" onClick={() => this.setState({ displayDefaultCostBanner: false })}>
           <FontAwesomeIcon icon={faTimes} size="2x" />
         </button>
       </NotificationBanner>
@@ -506,8 +578,8 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
 
   renderTimeline = () => (
     <ResourceTimeline
-        countsByYearAndMonth={this.getFilteredCountsForType(true, true)}
-        durationByYearAndMonth={this.getFilteredCountsForType(false, true)}
+        countsByYearAndMonth={this.getFilteredCountsForType(true, true, false)}
+        durationByYearAndMonth={this.getFilteredCountsForType(false, true, false)}
         timeUnit={this.getTimeUnit()} />
   )
 
@@ -521,7 +593,7 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
       <RowWrapper>
         <ChartCard>
           <ChartWrapper title={this.getTimeUnit()}>
-            {this.renderSimpleBarChart(RESOURCE_TYPES.DURATION, false)}
+            {this.renderSimpleBarChart(RESOURCE_TYPES.DURATION, false, false)}
           </ChartWrapper>
         </ChartCard>
         <ChartCard>
@@ -534,11 +606,16 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
   }
 
   renderCostRateModal = () => {
-    const { entityTypesById, propertyTypesById } = this.props;
+    const {
+      entityTypes,
+      entityTypesIndexMap,
+      propertyTypes,
+      propertyTypesIndexMap,
+    } = this.props;
     const { isSettingCostRate, costRates } = this.state;
 
     const onClose = () => this.setState({ isSettingCostRate: false });
-    const onSetCostRate = newCostRates => this.setState({ costRates: newCostRates });
+    const onSetCostRate = (newCostRates) => this.setState({ costRates: newCostRates });
     return (
       <ModalTransition>
         {isSettingCostRate && (
@@ -546,8 +623,10 @@ export default class TopUtilizerResources extends React.Component<Props, State> 
             <CostRateModal
                 costRates={costRates}
                 timeUnit={this.getTimeUnit()}
-                entityTypesById={entityTypesById}
-                propertyTypesById={propertyTypesById}
+                entityTypes={entityTypes}
+                entityTypesIndexMap={entityTypesIndexMap}
+                propertyTypes={propertyTypes}
+                propertyTypesIndexMap={propertyTypesIndexMap}
                 onClose={onClose}
                 onSetCostRate={onSetCostRate} />
           </Modal>

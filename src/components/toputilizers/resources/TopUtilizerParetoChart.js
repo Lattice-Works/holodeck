@@ -4,6 +4,7 @@
 
 import React from 'react';
 import styled from 'styled-components';
+import { List, Map } from 'immutable';
 import {
   Line,
   Bar,
@@ -18,13 +19,6 @@ import ChartWrapper from '../../charts/ChartWrapper';
 import { CHART_EXPLANATIONS, PARETO_LABELS } from '../../../utils/constants/TopUtilizerConstants';
 import { COUNT_FQN } from '../../../utils/constants/DataConstants';
 
-type Props = {
-  countBreakdown :Map<*, *>,
-  color :string,
-  entityTypeTitle :string,
-  pair :List<string>
-}
-
 const TooltipRow = styled.div`
   margin: 5px 0;
   display: flex;
@@ -33,7 +27,7 @@ const TooltipRow = styled.div`
   align-items: center;
 `;
 
-const ParetoTooltip = ({ payload, eventType }) => {
+const ParetoTooltip = ({ payload, eventType } :Object) => {
   if (!payload.length) return null;
 
   const values = payload[0].payload;
@@ -50,7 +44,14 @@ const ParetoTooltip = ({ payload, eventType }) => {
       </TooltipRow>
     </ChartTooltip>
   );
-}
+};
+
+type Props = {
+  color :string;
+  countBreakdown :Map<*, *>;
+  entityTypeTitle :string;
+  pair :List<string>;
+};
 
 const TopUtilizerParetoChart = ({
   countBreakdown,

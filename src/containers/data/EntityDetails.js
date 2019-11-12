@@ -5,9 +5,12 @@
 import React from 'react';
 import styled from 'styled-components';
 import { List, Map, fromJS } from 'immutable';
+import { Models } from 'lattice';
+import { CardStack } from 'lattice-ui-kit';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import type { RequestSequence } from 'redux-reqseq';
 
 import ButtonToolbar from '../../components/buttons/ButtonToolbar';
 import DataTable from '../../components/data/DataTable';
@@ -16,11 +19,10 @@ import NeighborTables from '../../components/data/NeighborTables';
 import NeighborTimeline from '../../components/data/NeighborTimeline';
 import StyledCheckbox from '../../components/controls/StyledCheckbox';
 import SelectedPersonResultCard from '../../components/people/SelectedPersonResultCard';
-import PersonCountsCard from '../../components/people/PersonCountsCard';
+import PersonScoreCard from '../../components/people/PersonScoreCard';
 import Breadcrumbs from '../../components/nav/Breadcrumbs';
 import {
   STATE,
-  EDM,
   ENTITY_SETS,
   EXPLORE,
   TOP_UTILIZERS
@@ -30,41 +32,12 @@ import { BREADCRUMB } from '../../utils/constants/ExploreConstants';
 import { TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
 import { IMAGE_PROPERTY_TYPES, PERSON_ENTITY_TYPE_FQN } from '../../utils/constants/DataModelConstants';
 import { FixedWidthWrapper, TableWrapper } from '../../components/layout/Layout';
-import {
-  getEntityKeyId,
-  getFqnString,
-  groupNeighbors
-} from '../../utils/DataUtils';
+import { getEntityKeyId, groupNeighbors } from '../../utils/DataUtils';
 import { getDateFilters, getPairFilters, matchesFilters } from '../../utils/EntityDateUtils';
 
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 
-type Props = {
-  rankingsById? :Map<string, number>,
-  breadcrumbs :List<string>,
-  isLoadingNeighbors :boolean,
-  isTopUtilizers :boolean,
-  neighborsById :Map<string, *>,
-  entitiesById :Map<string, *>,
-  entityTypesById :Map<string, *>,
-  entitySetsById :Map<string, *>,
-  entitySetPropertyMetadata :Map<string, *>,
-  propertyTypesByFqn :Map<string, *>,
-  propertyTypesById :Map<string, *>,
-  selectedEntitySetId :string,
-  countBreakdown :Map<*, *>,
-  lastQueryRun :Object,
-  actions :{
-    selectBreadcrumb :(index :number) => void,
-    selectEntity :(entityKeyId :string) => void,
-    loadEntityNeighbors :({ entityKeyId :string, entitySetId :string, selectedEntitySetId :string }) => void
-  }
-};
-
-type State = {
-  layout :string,
-  showingAllNeighbors :boolean
-}
+const { FullyQualifiedName } = Models;
 
 const NeighborsWrapper = styled(FixedWidthWrapper)`
   display: flex;
@@ -91,6 +64,35 @@ const LAYOUTS = {
 const HEADERS = {
   PROPERTY: 'Property',
   DATA: 'Data'
+};
+
+type Props = {
+  actions :{
+    loadEntityNeighbors :RequestSequence;
+    selectBreadcrumb :RequestSequence;
+    selectEntity :RequestSequence;
+  };
+  breadcrumbs :List<string>;
+  countBreakdown :Map<*, *>;
+  entitiesById :Map<string, *>;
+  entitySets :List;
+  entitySetsIndexMap :Map;
+  entitySetsMetaData :Map;
+  entityTypes :List;
+  entityTypesIndexMap :Map;
+  isLoadingNeighbors :boolean;
+  isTopUtilizers :boolean;
+  lastQueryRun :Object;
+  neighborsById :Map<string, *>;
+  propertyTypes :List;
+  propertyTypesIndexMap :Map;
+  rankingsById :Map<string, number>;
+  selectedEntitySetId :string;
+};
+
+type State = {
+  layout :string;
+  showingAllNeighbors :boolean;
 };
 
 class EntityDetails extends React.Component<Props, State> {
@@ -121,18 +123,30 @@ class EntityDetails extends React.Component<Props, State> {
   }
 
   getCounts = () => {
-    const { countBreakdown, entityTypesById, propertyTypesById } = this.props;
+    const {
+      countBreakdown,
+      entityTypes,
+      entityTypesIndexMap,
+      propertyTypes,
+      propertyTypesIndexMap,
+    } = this.props;
 
-    const getEntityTypeTitle = id => entityTypesById.getIn([id, 'title'], '');
+    const getEntityTypeTitle = (id) => {
+      const entityTypeIndex :number = entityTypesIndexMap.get(id);
+      return entityTypes.getIn([entityTypeIndex, 'title'], '');
+    };
 
     return countBreakdown.get(this.getSelectedEntityKeyId(), Map()).entrySeq()
       .filter(([pair]) => pair !== 'score')
       .flatMap(([pair, pairMap]) => {
         const pairTitle = `${getEntityTypeTitle(pair.get(0))} ${getEntityTypeTitle(pair.get(1))}`;
         return pairMap.entrySeq().map(([key, count]) => {
+          const propertyTypeIndex = propertyTypesIndexMap.get(key);
+          const propertyType = propertyTypes.get(propertyTypeIndex, Map());
+          const propertyTypeTitle = propertyType.get('title');
           const title = key === COUNT_FQN
             ? pairTitle
-            : `${pairTitle} -- ${propertyTypesById.getIn([key, 'title'], '')}`;
+            : `${pairTitle} -- ${propertyTypeTitle}`;
           return Map().set(TOP_UTILIZERS_FILTER.LABEL, title).set(COUNT_FQN, count);
         });
       });
@@ -142,11 +156,17 @@ class EntityDetails extends React.Component<Props, State> {
     const entity = this.getSelectedEntity();
     const total = entity.getIn([COUNT_FQN, 0]);
 
-    return total === undefined ? null : <PersonCountsCard total={total} counts={this.getCounts()} />;
+    if (typeof total !== 'number') {
+      return null;
+    }
+
+    return (
+      <PersonScoreCard total={total} counts={this.getCounts()} />
+    );
   }
 
   renderEntityTable = () => {
-    const { propertyTypesByFqn } = this.props;
+    const { propertyTypes, propertyTypesIndexMap } = this.props;
     const entity = this.getSelectedEntity();
     const headers = List.of(fromJS({
       id: HEADERS.PROPERTY,
@@ -158,10 +178,12 @@ class EntityDetails extends React.Component<Props, State> {
 
     let entityTable = List();
     entity.entrySeq().forEach(([fqn, values]) => {
-      const ptTitle = propertyTypesByFqn.getIn([fqn, 'title']);
-      if (ptTitle) {
+      const propertyTypeIndex = propertyTypesIndexMap.get(fqn);
+      const propertyType = propertyTypes.get(propertyTypeIndex, Map());
+      const propertyTypeTitle = propertyType.get('title', '');
+      if (propertyTypeTitle) {
         entityTable = entityTable.push(fromJS({
-          [HEADERS.PROPERTY]: ptTitle,
+          [HEADERS.PROPERTY]: propertyTypeTitle,
           [HEADERS.DATA]: values,
           isImg: IMAGE_PROPERTY_TYPES.includes(fqn)
         }));
@@ -174,19 +196,27 @@ class EntityDetails extends React.Component<Props, State> {
   onSelectEntity = ({ entitySetId, entity }) => {
     const {
       actions,
-      entitySetsById,
-      entityTypesById,
+      entitySets,
+      entitySetsIndexMap,
+      entityTypes,
+      entityTypesIndexMap,
       neighborsById,
+      propertyTypes,
+      propertyTypesIndexMap,
       selectedEntitySetId,
-      propertyTypesById
     } = this.props;
     const entityKeyId = getEntityKeyId(entity);
-    const entityType = entityTypesById.get(entitySetsById.getIn([entitySetId, 'entityTypeId'], ''), Map());
+    const entitySetIndex :number = entitySetsIndexMap.get(entitySetId);
+    const entitySet :Map = entitySets.get(entitySetIndex, Map());
+    const entityTypeId :UUID = entitySet.get('entityTypeId', '');
+    const entityTypeIndex :number = entityTypesIndexMap.get(entityTypeId);
+    const entityType = entityTypes.get(entityTypeIndex, Map());
     actions.selectEntity({
       entityKeyId,
       entitySetId,
       entityType,
-      propertyTypesById
+      propertyTypes,
+      propertyTypesIndexMap,
     });
     if (!neighborsById.has(entityKeyId)) {
       actions.loadEntityNeighbors({ entitySetId, entity, selectedEntitySetId });
@@ -210,7 +240,8 @@ class EntityDetails extends React.Component<Props, State> {
     const {
       breadcrumbs,
       isTopUtilizers,
-      propertyTypesById,
+      propertyTypes,
+      propertyTypesIndexMap,
       neighborsById,
       lastQueryRun
     } = this.props;
@@ -223,7 +254,7 @@ class EntityDetails extends React.Component<Props, State> {
     if (!showingAllNeighbors && isTopUtilizers && breadcrumbs.size === 1) {
 
       const pairFilters = getPairFilters(lastQueryRun);
-      const dateFilters = getDateFilters(lastQueryRun, propertyTypesById);
+      const dateFilters = getDateFilters(lastQueryRun, propertyTypes, propertyTypesIndexMap);
 
       neighbors = neighbors.filter((neighborObj) => {
         const associationEntityTypeId = neighborObj.getIn(['associationEntitySet', 'entityTypeId']);
@@ -244,13 +275,15 @@ class EntityDetails extends React.Component<Props, State> {
     const {
       breadcrumbs,
       entitiesById,
-      entitySetsById,
-      entityTypesById,
-      entitySetPropertyMetadata,
+      entitySets,
+      entitySetsIndexMap,
+      entitySetsMetaData,
+      entityTypes,
+      entityTypesIndexMap,
       isLoadingNeighbors,
       isTopUtilizers,
-      propertyTypesById,
-      propertyTypesByFqn
+      propertyTypes,
+      propertyTypesIndexMap,
     } = this.props;
     const { layout } = this.state;
 
@@ -267,19 +300,23 @@ class EntityDetails extends React.Component<Props, State> {
           <NeighborTables
               onSelectEntity={this.onSelectEntity}
               neighbors={groupNeighbors(neighbors)}
-              entityTypesById={entityTypesById}
-              propertyTypesById={propertyTypesById} />
+              entityTypes={entityTypes}
+              entityTypesIndexMap={entityTypesIndexMap}
+              propertyTypes={propertyTypes}
+              propertyTypesIndexMap={propertyTypesIndexMap} />
         )
         : (
           <NeighborTimeline
-              onSelectEntity={this.onSelectEntity}
-              neighbors={neighbors}
-              entitySetsById={entitySetsById}
-              entityTypesById={entityTypesById}
               entitiesById={entitiesById}
-              entitySetPropertyMetadata={entitySetPropertyMetadata}
-              propertyTypesByFqn={propertyTypesByFqn}
-              propertyTypesById={propertyTypesById} />
+              entitySets={entitySets}
+              entitySetsIndexMap={entitySetsIndexMap}
+              entitySetsMetaData={entitySetsMetaData}
+              entityTypes={entityTypes}
+              entityTypesIndexMap={entityTypesIndexMap}
+              neighbors={neighbors}
+              onSelectEntity={this.onSelectEntity}
+              propertyTypes={propertyTypes}
+              propertyTypesIndexMap={propertyTypesIndexMap} />
         );
     }
 
@@ -315,26 +352,38 @@ class EntityDetails extends React.Component<Props, State> {
   renderBreadcrumbs = () => {
     const { actions, breadcrumbs } = this.props;
 
-    const crumbs = List.of({ [BREADCRUMB.TITLE]: 'Search Results' }).concat(breadcrumbs).map((crumb, index) => {
-      return Object.assign({}, crumb, { [BREADCRUMB.ON_CLICK]: () => actions.selectBreadcrumb(index) });
-    });
+    const crumbs = List.of({ [BREADCRUMB.TITLE]: 'Search Results' })
+      .concat(breadcrumbs)
+      .map((crumb, index) => ({ ...crumb, [BREADCRUMB.ON_CLICK]: () => actions.selectBreadcrumb(index) }));
     return <Breadcrumbs breadcrumbs={crumbs} />;
   }
 
   isCurrentPersonType = () => {
-    const { breadcrumbs, entitySetsById, entityTypesById } = this.props;
+
+    const {
+      breadcrumbs,
+      entitySets,
+      entitySetsIndexMap,
+      entityTypes,
+      entityTypesIndexMap,
+    } = this.props;
+
     if (!breadcrumbs.size) {
       return false;
     }
 
-    const entitySetId = breadcrumbs.get(-1)[BREADCRUMB.ENTITY_SET_ID];
-    const entityType = entityTypesById.get(entitySetsById.getIn([entitySetId, 'entityTypeId']));
+    const entitySetId :UUID = breadcrumbs.get(-1)[BREADCRUMB.ENTITY_SET_ID];
+    const entitySetIndex :number = entitySetsIndexMap.get(entitySetId);
+    const entitySet :Map = entitySets.get(entitySetIndex, Map());
+    const entityTypeId :UUID = entitySet.get('entityTypeId', '');
+    const entityTypeIndex :number = entityTypesIndexMap.get(entityTypeId);
+    const entityType :Map = entityTypes.get(entityTypeIndex, Map());
 
     if (!entityType) {
       return false;
     }
 
-    return getFqnString(entityType.get('type')) === PERSON_ENTITY_TYPE_FQN;
+    return FullyQualifiedName.toString(entityType.get('type')) === PERSON_ENTITY_TYPE_FQN;
   }
 
   render() {
@@ -344,15 +393,17 @@ class EntityDetails extends React.Component<Props, State> {
       <div>
         {this.renderBreadcrumbs()}
         {this.renderLayoutOptions()}
-        {this.isCurrentPersonType()
-          ? (
-            <SelectedPersonResultCard
-                person={this.getSelectedEntity()}
-                index={rankingsById.get(this.getSelectedEntityKeyId())} />
-          )
-          : null}
-        {this.renderCountsCard()}
-        {this.renderEntityTable()}
+        <CardStack>
+          {
+            this.isCurrentPersonType() && (
+              <SelectedPersonResultCard
+                  person={this.getSelectedEntity()}
+                  index={rankingsById.get(this.getSelectedEntityKeyId())} />
+            )
+          }
+          {this.renderCountsCard()}
+          {this.renderEntityTable()}
+        </CardStack>
         {this.renderNeighbors()}
       </div>
     );
@@ -361,38 +412,33 @@ class EntityDetails extends React.Component<Props, State> {
 
 function mapStateToProps(state :Map<*, *>) :Object {
   const explore = state.get(STATE.EXPLORE);
-  const edm = state.get(STATE.EDM);
   const entitySets = state.get(STATE.ENTITY_SETS);
   const topUtilizers = state.get(STATE.TOP_UTILIZERS);
 
   return {
     breadcrumbs: explore.get(EXPLORE.BREADCRUMBS),
-    isLoadingNeighbors: explore.get(EXPLORE.IS_LOADING_ENTITY_NEIGHBORS),
-    entitiesById: explore.get(EXPLORE.ENTITIES_BY_ID),
-    neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
-    entityTypesById: edm.get(EDM.ENTITY_TYPES_BY_ID),
-    entitySetsById: edm.get(EDM.ENTITY_SETS_BY_ID),
-    entitySetPropertyMetadata: edm.get(EDM.ENTITY_SET_METADATA_BY_ID),
-    propertyTypesById: edm.get(EDM.PROPERTY_TYPES_BY_ID),
-    propertyTypesByFqn: edm.get(EDM.PROPERTY_TYPES_BY_FQN),
-    selectedEntitySetId: entitySets.getIn([ENTITY_SETS.SELECTED_ENTITY_SET, 'id']),
     countBreakdown: topUtilizers.get(TOP_UTILIZERS.COUNT_BREAKDOWN),
-    lastQueryRun: topUtilizers.get(TOP_UTILIZERS.LAST_QUERY_RUN)
+    entitiesById: explore.get(EXPLORE.ENTITIES_BY_ID),
+    entitySets: state.getIn(['edm', 'entitySets'], List()),
+    entitySetsIndexMap: state.getIn(['edm', 'entitySetsIndexMap'], Map()),
+    entitySetsMetaData: state.getIn(['edm', 'entitySetsMetaData'], Map()),
+    entityTypes: state.getIn(['edm', 'entityTypes'], List()),
+    entityTypesIndexMap: state.getIn(['edm', 'entityTypesIndexMap'], Map()),
+    isLoadingNeighbors: explore.get(EXPLORE.IS_LOADING_ENTITY_NEIGHBORS),
+    lastQueryRun: topUtilizers.get(TOP_UTILIZERS.LAST_QUERY_RUN),
+    neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
+    propertyTypes: state.getIn(['edm', 'propertyTypes'], List()),
+    propertyTypesIndexMap: state.getIn(['edm', 'propertyTypesIndexMap'], Map()),
+    selectedEntitySetId: entitySets.getIn([ENTITY_SETS.SELECTED_ENTITY_SET, 'id']),
   };
 }
 
-function mapDispatchToProps(dispatch :Function) :Object {
-  const actions :{ [string] :Function } = {};
+const mapActionsToProps = (dispatch :Function) => ({
+  actions: bindActionCreators({
+    loadEntityNeighbors: ExploreActionFactory.loadEntityNeighbors,
+    selectBreadcrumb: ExploreActionFactory.selectBreadcrumb,
+    selectEntity: ExploreActionFactory.selectEntity,
+  }, dispatch)
+});
 
-  Object.keys(ExploreActionFactory).forEach((action :string) => {
-    actions[action] = ExploreActionFactory[action];
-  });
-
-  return {
-    actions: {
-      ...bindActionCreators(actions, dispatch)
-    }
-  };
-}
-
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(EntityDetails));
+export default withRouter(connect(mapStateToProps, mapActionsToProps)(EntityDetails));

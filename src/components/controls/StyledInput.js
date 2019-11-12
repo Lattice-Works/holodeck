@@ -3,7 +3,7 @@ import styled from 'styled-components';
 const StyledInput = styled.input`
   display: flex;
   flex: 0 1 auto;
-  width: ${props => props.width || '100%'};
+  width: ${(props) => props.width || '100%'};
   height: 38px;
   font-size: 14px;
   line-height: 19px;

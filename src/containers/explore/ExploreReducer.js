@@ -75,12 +75,12 @@ const updateLocationsById = (locationsById, entity) => {
     const entityKeyId = getEntityKeyId(entity);
     const locations = entity.get(PROPERTY_TYPES.LOCATION, List()).map((coordinate) => {
       const [latitude, longitude] = coordinate.split(',');
-      if (Number.isNaN(Number.parseFloat(longitude, 0), 10) || Number.isNaN(Number.parseFloat(latitude, 0), 10)) {
+      if (Number.isNaN(Number.parseFloat(longitude)) || Number.isNaN(Number.parseFloat(latitude))) {
         return undefined;
       }
 
       return [longitude, latitude];
-    }).filter(val => val !== undefined);
+    }).filter((val) => val !== undefined);
 
     if (locations && locations.size) {
       return locationsById.set(entityKeyId, locations);
@@ -91,7 +91,7 @@ const updateLocationsById = (locationsById, entity) => {
 };
 
 const filterSearchResults = (searchResults, filteredTypes) => searchResults
-  .map(entity => filterEntity(entity, filteredTypes));
+  .map((entity) => filterEntity(entity, filteredTypes));
 
 const updateEntitiesIdForNeighbors = (
   initEntitiesById,
@@ -245,7 +245,8 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
         entityKeyId,
         entitySetId,
         entityType,
-        propertyTypesById
+        propertyTypes,
+        propertyTypesIndexMap,
       } = action.value;
       const crumb = {
         [BREADCRUMB.ENTITY_SET_ID]: entitySetId,
@@ -253,7 +254,8 @@ function reducer(state :Map<> = INITIAL_STATE, action :Object) {
         [BREADCRUMB.ON_CLICK]: () => selectEntity(state.get(BREADCRUMBS).size),
         [BREADCRUMB.TITLE]: getEntityTitle(
           entityType,
-          propertyTypesById,
+          propertyTypes,
+          propertyTypesIndexMap,
           state.getIn([ENTITIES_BY_ID, entityKeyId], Map())
         )
       };

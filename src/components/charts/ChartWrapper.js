@@ -3,20 +3,11 @@
  */
 
 import React from 'react';
+import type { Node } from 'react';
+
 import styled from 'styled-components';
 
 import BasicButton from '../buttons/BasicButton';
-
-type Props = {
-  noMargin? :boolean,
-  title :string,
-  xLabel? :string,
-  yLabel? :string,
-  yLabelRight? :string,
-  downloadFn? :() => void,
-  infoText? :string,
-  children :React.Node
-};
 
 const Card = styled.div`
   position: relative;
@@ -129,7 +120,7 @@ const YLabelWrapper = styled.div`
   height: 100%;
   width: 20px;
   max-width: 20px;
-  justify-self: ${props => (props.secondary ? 'flex-end' : 'flex-start')};
+  justify-self: ${(props) => (props.secondary ? 'flex-end' : 'flex-start')};
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -149,6 +140,17 @@ const YLabel = styled(XLabel)`
   }}%;
 `;
 
+type Props = {
+  children :Node;
+  downloadFn :?() => void;
+  infoText :string;
+  noMargin :boolean;
+  title :string;
+  xLabel :string;
+  yLabel :string;
+  yLabelRight :string;
+};
+
 const ChartWrapper = ({
   downloadFn,
   infoText,
@@ -158,44 +160,60 @@ const ChartWrapper = ({
   xLabel,
   yLabel,
   yLabelRight
-} :Props) => {
-
-  return (
-    <Card>
-      <HeaderRow>
-        <h1>{title}</h1>
-        <Buttons>
-          {downloadFn ? <DownloadButton onClick={downloadFn}>Download</DownloadButton> : null}
-          {infoText ? (
+} :Props) => (
+  <Card>
+    <HeaderRow>
+      <h1>{title}</h1>
+      <Buttons>
+        {
+          downloadFn && (
+            <DownloadButton onClick={downloadFn}>Download</DownloadButton>
+          )
+        }
+        {
+          infoText && (
             <ExplainButton>
               <span>?</span>
               <ExplainTooltip>{infoText}</ExplainTooltip>
             </ExplainButton>
-          ) : null}
-        </Buttons>
-      </HeaderRow>
-      <BodyWrapper>
-        {yLabel ? (
+          )
+        }
+      </Buttons>
+    </HeaderRow>
+    <BodyWrapper>
+      {
+        yLabel && (
           <YLabelWrapper>
             <YLabel noMargin={noMargin}>{yLabel}</YLabel>
           </YLabelWrapper>
-        ) : null}
-        {children}
-        {yLabelRight ? (
+        )
+      }
+      {children}
+      {
+        yLabelRight && (
           <YLabelWrapper secondary>
             <YLabel noMargin={noMargin} secondary>{yLabelRight}</YLabel>
           </YLabelWrapper>
-        ) : null}
-      </BodyWrapper>
-      {
-        xLabel ? (
-          <FooterWrapper>
-            <XLabel>{xLabel}</XLabel>
-          </FooterWrapper>
-        ) : null
+        )
       }
-    </Card>
-  );
+    </BodyWrapper>
+    {
+      xLabel && (
+        <FooterWrapper>
+          <XLabel>{xLabel}</XLabel>
+        </FooterWrapper>
+      )
+    }
+  </Card>
+);
+
+ChartWrapper.defaultProps = {
+  downloadFn: undefined,
+  infoText: '',
+  noMargin: false,
+  xLabel: '',
+  yLabel: '',
+  yLabelRight: '',
 };
 
 export default ChartWrapper;

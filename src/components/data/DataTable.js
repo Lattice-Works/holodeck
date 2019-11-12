@@ -4,20 +4,23 @@
 
 import * as React from 'react';
 
-import Immutable from 'immutable';
+import Immutable, {
+  List,
+  Map,
+  OrderedMap,
+  Set,
+} from 'immutable';
 import styled, { css } from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSort } from '@fortawesome/pro-solid-svg-icons';
 import { Grid, ScrollSync } from 'react-virtualized';
-
-import { IMAGE_PREFIX } from '../../utils/constants/DataConstants';
 
 /*
  * constants
  */
 
 const TABLE_MAX_HEIGHT = 600;
-const TABLE_MAX_WIDTH = 980; // from page.module.css .content{}
+const TABLE_MAX_WIDTH = 980;
 
 const COLUMN_MAX_WIDTH = 400;
 const COLUMN_MIN_WIDTH = 100;
@@ -35,6 +38,7 @@ const CELL_HOV_COLOR = '#f8f8f8';
  */
 
 const TableContainer = styled.div`
+  background-color: #fff;
   border: 1px solid ${BORDER_COLOR};
   display: flex;
   flex: 1 0 auto;
@@ -51,7 +55,7 @@ const TableHeadContainer = styled.div`
   display: flex;
   font-weight: 600;
   height: ${ROW_MIN_HEIGHT}px;
-  width: ${props => props.width}px;
+  width: ${(props) => props.width}px;
 `;
 
 const TableBodyContainer = styled.div`
@@ -62,7 +66,7 @@ const TableBodyContainer = styled.div`
     // -1 to compensate for the border-bottom of each cell
     return `${height - 1}px`;
   }};
-  width: ${props => props.width}px;
+  width: ${(props) => props.width}px;
 `;
 
 const TableHeadGrid = styled(Grid)`
@@ -135,25 +139,27 @@ const TableImg = styled.img.attrs({
   }
 `;
 
+const noop = () => {};
+
 type SetMultiMap = Map<string, Set<any>>;
 type ListSetMultiMap = List<SetMultiMap>;
 
 type Props = {
-  data :ListSetMultiMap,
-  headers :List<Map<string, string>>,
-  excludeEmptyColumns :boolean,
-  onRowClick :Function,
-  width? :number
+  data :ListSetMultiMap;
+  excludeEmptyColumns :boolean;
+  headers :List<Map<string, string>>;
+  onRowClick :Function;
+  width :number;
 };
 
 type State = {
-  data :ListSetMultiMap,
-  headerIdToWidthMap :Map<string, number>,
-  hoveredColumnIndex :number,
-  hoveredRowIndex :number,
-  lastColumnOverrideMaxWidth :boolean,
-  sortedColumnIndex :number,
-  sortOrder :number // 0 = original, 1 = asc, 2 = desc
+  data :ListSetMultiMap;
+  headerIdToWidthMap :Map<string, number>;
+  hoveredColumnIndex :number;
+  hoveredRowIndex :number;
+  lastColumnOverrideMaxWidth :boolean;
+  sortOrder :number; // 0 = original, 1 = asc, 2 = desc
+  sortedColumnIndex :number;
 };
 
 // TODO: should the 'data' prop be ListSetMultiMap, or is that too specific to search results data?
@@ -179,9 +185,7 @@ class DataTable extends React.Component<Props, State> {
     let headerIdToWidthMap :Map<string, number> = this.getHeaderIdToWidthMap(props.headers, props.data);
 
     const tableWidth :number = headerIdToWidthMap.reduce(
-      (widthSum :number, columnWidth :number) :number => {
-        return widthSum + columnWidth;
-      },
+      (widthSum :number, columnWidth :number) :number => widthSum + columnWidth,
       0
     );
 
@@ -213,9 +217,7 @@ class DataTable extends React.Component<Props, State> {
       let headerIdToWidthMap :Map<string, number> = this.getHeaderIdToWidthMap(nextProps.headers, nextProps.data);
 
       const tableWidth :number = headerIdToWidthMap.reduce(
-        (widthSum :number, columnWidth :number) :number => {
-          return widthSum + columnWidth;
-        },
+        (widthSum :number, columnWidth :number) :number => widthSum + columnWidth,
         0
       );
 
@@ -247,9 +249,11 @@ class DataTable extends React.Component<Props, State> {
     const headerIdToWidthMap :boolean = !this.state.headerIdToWidthMap.equals(nextState.headerIdToWidthMap);
 
     if (!headers || !data || !headerIdToWidthMap) {
-      if (this.tableHeadGrid && this.tableBodyGrid) {
-        // https://github.com/bvaughn/react-virtualized/issues/136#issuecomment-190440226
+      // https://github.com/bvaughn/react-virtualized/issues/136#issuecomment-190440226
+      if (this.tableHeadGrid) {
         this.tableHeadGrid.recomputeGridSize();
+      }
+      if (this.tableBodyGrid) {
         this.tableBodyGrid.recomputeGridSize();
       }
     }
@@ -257,7 +261,7 @@ class DataTable extends React.Component<Props, State> {
 
   getHeaderIdToWidthMap = (headers :List<Map<string, string>>, data :ListSetMultiMap) :Map<string, number> => {
 
-    return Immutable.OrderedMap().withMutations((map :OrderedMap<string, number>) => {
+    return OrderedMap().withMutations((map :OrderedMap<string, number>) => {
 
       // iterate through the results, column by column, and compute an estimated width for each column
       headers.forEach((header :Map<string, string>) => {
@@ -320,20 +324,30 @@ class DataTable extends React.Component<Props, State> {
   }
 
   isColumnEmpty = (columnIndex :number) :boolean => {
-    const columnWidth = this.state.headerIdToWidthMap.get(
-      this.props.headers.getIn([columnIndex, 'id'], ''),
+
+    const { excludeEmptyColumns, headers } = this.props;
+    const { headerIdToWidthMap } = this.state;
+
+    const columnWidth = headerIdToWidthMap.get(
+      headers.getIn([columnIndex, 'id'], ''),
       COLUMN_MIN_WIDTH
     );
-    return this.props.excludeEmptyColumns && columnWidth === 0;
+    return excludeEmptyColumns && columnWidth === 0;
   }
 
   isLastColumn = (columnIndex :number) :boolean => {
-    return columnIndex + 1 === this.state.headerIdToWidthMap.size;
+
+    const { headerIdToWidthMap } = this.state;
+    return columnIndex + 1 === headerIdToWidthMap.size;
   }
 
   getGridColumnWidth = (params :Object) :number => {
-    return this.state.headerIdToWidthMap.get(
-      this.props.headers.getIn([params.index, 'id'], ''),
+
+    const { headers } = this.props;
+    const { headerIdToWidthMap } = this.state;
+
+    return headerIdToWidthMap.get(
+      headers.getIn([params.index, 'id'], ''),
       COLUMN_MIN_WIDTH
     );
   };
@@ -342,12 +356,14 @@ class DataTable extends React.Component<Props, State> {
     return ROW_MIN_HEIGHT; // TODO: implement more intelligently
   };
 
-  formatImg = (src) => {
-    return <TableImg src={src} key={src} />
+  formatImg = (src :string) => {
+    return (
+      <TableImg src={src} key={src} />
+    );
   }
 
-  getCellContentFromValue = (str, isImg) => {
-    let cellValue :string = str;
+  getCellContentFromValue = (str :any, isImg :boolean) => {
+    let cellValue = str;
 
     if (Immutable.isIndexed(cellValue)) {
       if (!isImg) {
@@ -358,7 +374,7 @@ class DataTable extends React.Component<Props, State> {
       }
     }
     else if (isImg) {
-      cellValue = this.formatImg(cellValue)
+      cellValue = this.formatImg(cellValue);
     }
 
     return cellValue;
@@ -387,26 +403,29 @@ class DataTable extends React.Component<Props, State> {
 
   sortDataByColumn = (columnIndex :number) => {
 
+    const { data } = this.props;
+    const { data: stateData, sortOrder: stateSortOrder, sortedColumnIndex } = this.state;
+
     const getCellValueInRow = this.getCellValueInRow.bind(this);
 
-    let sortOrder :number = this.state.sortOrder;
+    let sortOrder :number = stateSortOrder;
 
     // clicking on the same column should continue the sort order cycle
     // clicking on a different column should reset the sort order cycle
-    if (columnIndex !== this.state.sortedColumnIndex) {
+    if (columnIndex !== sortedColumnIndex) {
       sortOrder = 0;
     }
 
     // sortOrder === 0 means going 0 -> 1, which means sort ascending
     if (sortOrder === 0) {
 
-      const sortedData = this.state.data.sort((row1, row2) => {
-        const cellValue1 :string = getCellValueInRow(row1, columnIndex);
-        const cellValue2 :string = getCellValueInRow(row2, columnIndex);
+      const sortedData = stateData.sort((row1, row2) => {
+        const cellValue1 :any = getCellValueInRow(row1, columnIndex);
+        const cellValue2 :any = getCellValueInRow(row2, columnIndex);
         if (!cellValue1) {
           return 1; // move empty string to the end
         }
-        else if (!cellValue2) {
+        if (!cellValue2) {
           return -1; // keep empty string at the end
         }
         if (React.isValidElement(cellValue1)) {
@@ -425,7 +444,7 @@ class DataTable extends React.Component<Props, State> {
     else if (sortOrder === 1) {
 
       this.setState({
-        data: this.state.data.reverse(), // we've already sorted ascending, so we just need to reverse
+        data: stateData.reverse(), // we've already sorted ascending, so we just need to reverse
         sortedColumnIndex: columnIndex,
         sortOrder: 2
       });
@@ -434,7 +453,7 @@ class DataTable extends React.Component<Props, State> {
     else {
 
       this.setState({
-        data: this.props.data,
+        data,
         sortedColumnIndex: columnIndex,
         sortOrder: 0
       });
@@ -447,8 +466,11 @@ class DataTable extends React.Component<Props, State> {
       return null;
     }
 
+    const { headers } = this.props;
+    const { lastColumnOverrideMaxWidth } = this.state;
+
     const sortDataByColumn = this.sortDataByColumn.bind(this);
-    const setMaxWidth = !this.state.lastColumnOverrideMaxWidth || !this.isLastColumn(params.columnIndex);
+    const setMaxWidth = !lastColumnOverrideMaxWidth || !this.isLastColumn(params.columnIndex);
 
     return (
       <TableHeadCell
@@ -462,7 +484,7 @@ class DataTable extends React.Component<Props, State> {
           <FontAwesomeIcon icon={faSort} />
         </SortIcon>
         <HeaderText>
-          {this.props.headers.getIn([params.columnIndex, 'value'])}
+          {headers.getIn([params.columnIndex, 'value'])}
         </HeaderText>
       </TableHeadCell>
     );
@@ -474,19 +496,23 @@ class DataTable extends React.Component<Props, State> {
       return null;
     }
 
+    const { onRowClick } = this.props;
+    const { data, hoveredRowIndex, lastColumnOverrideMaxWidth } = this.state;
+
     const setState = this.setState.bind(this);
-    const setMaxWidth = !this.state.lastColumnOverrideMaxWidth || !this.isLastColumn(params.columnIndex);
-    const cellValue :string = this.getCellValue(params.rowIndex, params.columnIndex);
+    const setMaxWidth = !lastColumnOverrideMaxWidth || !this.isLastColumn(params.columnIndex);
+    const cellValue :any = this.getCellValue(params.rowIndex, params.columnIndex);
 
     return (
       <TableBodyCell
           key={params.key}
           style={params.style}
-          highlight={params.rowIndex === this.state.hoveredRowIndex}
+          highlight={params.rowIndex === hoveredRowIndex}
           setMaxWidth={setMaxWidth}
           onClick={() => {
-            this.props.onRowClick(params.rowIndex, this.state.data.get(params.rowIndex));
+            onRowClick(params.rowIndex, data.get(params.rowIndex));
           }}
+          onFocus={noop}
           onMouseLeave={() => {
             setState({
               hoveredColumnIndex: -1,

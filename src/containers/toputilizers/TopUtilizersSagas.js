@@ -9,7 +9,6 @@ import {
   fromJS,
   List,
   Map,
-  Set
 } from 'immutable';
 import {
   Constants,
@@ -17,8 +16,10 @@ import {
   DataApi,
   SearchApi
 } from 'lattice';
+import type { SequenceAction } from 'redux-reqseq';
 
 import FileSaver from '../../utils/FileSaver';
+import Logger from '../../utils/Logger';
 import {
   DOWNLOAD_TOP_UTILIZERS,
   GET_NEIGHBOR_TYPES,
@@ -34,6 +35,8 @@ import { COUNT_FQN, DATE_FILTER_CLASS } from '../../utils/constants/DataConstant
 import { getEntityKeyId } from '../../utils/DataUtils';
 import { toISODate } from '../../utils/FormattingUtils';
 
+const LOG = new Logger('OrgsSagas');
+
 const { OPENLATTICE_ID_FQN } = Constants;
 
 const getDateFiltersFromMap = (id, dateMap) => {
@@ -44,18 +47,20 @@ const getDateFiltersFromMap = (id, dateMap) => {
       const end = range[1];
       let rangeDescriptor = {};
       if (start) {
-        rangeDescriptor = Object.assign({}, rangeDescriptor, {
+        rangeDescriptor = {
+          ...rangeDescriptor,
           '@class': DATE_FILTER_CLASS,
           lowerbound: start,
-          gte: true
-        });
+          gte: true,
+        };
       }
       if (end) {
-        rangeDescriptor = Object.assign({}, rangeDescriptor, {
+        rangeDescriptor = {
+          ...rangeDescriptor,
           '@class': DATE_FILTER_CLASS,
           upperbound: end,
-          lte: true
-        });
+          lte: true,
+        };
       }
       result = result.set(propertyTypeId, result.get(propertyTypeId, List()).push(rangeDescriptor));
     });
@@ -108,7 +113,8 @@ function* getTopUtilizersWorker(action :SequenceAction) {
       dateFilters,
       countType,
       durationTypeWeights,
-      entityTypesById,
+      entityTypes,
+      entityTypesIndexMap,
       filteredPropertyTypes
     } = action.value;
 
@@ -142,16 +148,19 @@ function* getTopUtilizersWorker(action :SequenceAction) {
           const pair = List.of(assocId, neighborId);
           const propertyTypeWeights = durationTypeWeights.get(pair, Map());
 
-          entityTypesById.getIn([entityTypeId, 'properties'], List()).forEach((id) => {
+          const entityTypeIndex = entityTypesIndexMap.get(entityTypeId);
+          const entityType = entityTypes.get(entityTypeIndex, Map());
+          entityType.get('properties', List()).forEach((id) => {
             if (propertyTypeWeights.has(id)) {
               const weight = propertyTypeWeights.get(id) * selectedType[TOP_UTILIZERS_FILTER.WEIGHT];
               if (weight !== 0) {
-                agg = Object.assign({}, agg, {
+                agg = {
+                  ...agg,
                   [id]: {
                     weight,
                     aggregationType: 'SUM'
-                  }
-                });
+                  },
+                };
               }
             }
           });
@@ -170,12 +179,12 @@ function* getTopUtilizersWorker(action :SequenceAction) {
 
       const assocRangeFilters = getDateFiltersFromMap(assocId, dateFiltersAsMap);
       if (assocRangeFilters.size) {
-        descriptor = Object.assign({}, descriptor, { associationFilters: assocRangeFilters.toJS() });
+        descriptor = { ...descriptor, associationFilters: assocRangeFilters.toJS() };
       }
 
       const neighborRangeFilters = getDateFiltersFromMap(neighborId, dateFiltersAsMap);
       if (neighborRangeFilters.size) {
-        descriptor = Object.assign({}, descriptor, { neighborFilters: neighborRangeFilters.toJS() });
+        descriptor = { ...descriptor, neighborFilters: neighborRangeFilters.toJS() };
       }
 
       return descriptor;
@@ -190,19 +199,18 @@ function* getTopUtilizersWorker(action :SequenceAction) {
     // TODO delete when we have data in response v
     const ID_KEY = 'self_entity_key_id';
 
-    const utilizerData = yield call(DataApi.getEntitySetData, entitySetId, [], topUtilizers.map(u => u[ID_KEY]));
+    const utilizerData = yield call(DataApi.getEntitySetData, entitySetId, [], topUtilizers.map((u) => u[ID_KEY]));
 
     const entitiesAsMap = {};
     utilizerData.forEach((utilizer) => {
       entitiesAsMap[utilizer[OPENLATTICE_ID_FQN][0]] = utilizer;
     });
 
-    topUtilizers = topUtilizers.map(utilizer => Object.assign(
-      {},
-      utilizer,
-      entitiesAsMap[utilizer[ID_KEY]],
-      { [COUNT_FQN]: [utilizer.score] }
-    ));
+    topUtilizers = topUtilizers.map((utilizer) => ({
+      ...utilizer,
+      ...entitiesAsMap[utilizer[ID_KEY]],
+      [COUNT_FQN]: [utilizer.score],
+    }));
     // TODO delete when we have data in response ^
 
     const scoresByUtilizer = getCountBreakdown(formattedFilters, topUtilizers);
@@ -216,7 +224,7 @@ function* getTopUtilizersWorker(action :SequenceAction) {
     yield put(loadTopUtilizerNeighbors({ entitySetId, topUtilizers }));
   }
   catch (error) {
-    console.error(error);
+    LOG.error('getTopUtilizersWorker()', error);
     yield put(getTopUtilizers.failure(action.id, error));
   }
   finally {
@@ -224,7 +232,7 @@ function* getTopUtilizersWorker(action :SequenceAction) {
   }
 }
 
-export function* getTopUtilizersWatcher() {
+export function* getTopUtilizersWatcher() :Generator<*, *, *> {
   yield takeEvery(GET_TOP_UTILIZERS, getTopUtilizersWorker);
 }
 
@@ -245,7 +253,7 @@ function* downloadTopUtilizersWorker(action :SequenceAction) :Generator<*, *, *>
     yield put(downloadTopUtilizers.success(action.id));
   }
   catch (error) {
-    console.error(error)
+    LOG.error('downloadTopUtilizersWorker()', error);
     yield put(downloadTopUtilizers.failure(action.id, error));
   }
   finally {
@@ -286,7 +294,7 @@ function* loadTopUtilizerNeighborsWorker(action :SequenceAction) :Generator<*, *
     yield put(loadTopUtilizerNeighbors.success(action.id, { neighborsById }));
   }
   catch (error) {
-    console.error(error)
+    LOG.error('loadTopUtilizerNeighborsWorker()', error);
     yield put(loadTopUtilizerNeighbors.failure(action.id, error));
   }
   finally {

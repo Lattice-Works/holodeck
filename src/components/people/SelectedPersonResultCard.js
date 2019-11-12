@@ -4,81 +4,46 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import { List, Map } from 'immutable';
+import { faUser } from '@fortawesome/pro-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Map } from 'immutable';
+import { Card, CardSegment, DataGrid } from 'lattice-ui-kit';
 
-import defaultProfileIcon from '../../assets/svg/profile-placeholder-card-large.svg';
-import { PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
-import { IMAGE_PREFIX } from '../../utils/constants/DataConstants';
-import { FixedWidthWrapper } from '../layout/Layout';
-import { formatDateList } from '../../utils/FormattingUtils';
+import { FullyQualifiedNames } from '../../core/edm/constants';
 
 const {
-  FIRST_NAME,
-  LAST_NAME,
-  DOB,
-  SEX,
-  SSN,
-  MUGSHOT,
-  PICTURE
-} = PROPERTY_TYPES;
+  PERSON_BIRTH_DATE_FQN,
+  PERSON_FIRST_NAME_FQN,
+  PERSON_LAST_NAME_FQN,
+  PERSON_MUGSHOT_FQN,
+  PERSON_PICTURE_FQN,
+  PERSON_SEX_FQN,
+  PERSON_SSN_FQN,
+} = FullyQualifiedNames.PROPERTY_TYPE_FQNS;
 
-const CardWrapper = styled(FixedWidthWrapper)`
-  margin: 10px 0;
-  height: 215px;
-  width: 100%;
-  background-color: #ffffff;
-  border: 1px solid #e1e1eb;
-  border-radius: 5px;
+const NoPaddingCardSegment = styled(CardSegment)`
+  padding: 0;
+`;
+
+const DataGridWrapper = styled.div`
+  flex: 1;
+  padding: 30px;
+`;
+
+const PictureWrapper = styled.div`
   display: flex;
-  flex-direction: row;
-  align-items: center;
-`;
-
-const Label = styled.span`
-  font-family: 'Open Sans', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: #8e929b;
-  margin-bottom: 5px;
-`;
-
-const Value = styled.div`
-  font-family: 'Open Sans', sans-serif;
-  font-size: 16px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 400;
-  color: ${props => (props.na ? '#8e929b' : '#2e2e34')};
-`;
-
-const ValueWithLabel = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: ${props => (props.extraWide ? 66 : 33)}%;
-`;
-
-const PersonDetailsWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-`;
-
-const PersonDetailsRow = styled.div`
-  display: flex;
-  flex-direction: row;
-  margin: 20px 50px;
-`;
-
-const ImgWrapper = styled.div`
+  height: 242px;
   position: relative;
-  height: 100%;
-  width: fit-content;
+  width: 242px;
+`;
 
-  img {
-    max-height: 100%;
-  }
+const UserIconWrapper = styled.div`
+  align-items: center;
+  background-color: #e9ecef;
+  color: white;
+  display: flex;
+  flex: 1;
+  justify-content: center;
 `;
 
 const UtilizerTag = styled.div`
@@ -100,65 +65,52 @@ const UtilizerTag = styled.div`
 `;
 
 type Props = {
-  index? :number,
-  person :Map<*, *>
+  index :number;
+  person :Map;
 };
 
-const getProfileImgSrc = (person) => {
-  let image = person.getIn([MUGSHOT, 0], person.getIn([PICTURE, 0]));
+const renderPersonPicture = (person) => {
+  const image = person.getIn([PERSON_MUGSHOT_FQN, 0], person.getIn([PERSON_PICTURE_FQN, 0]));
   if (!image) {
-    image = defaultProfileIcon;
+    return (
+      <UserIconWrapper>
+        <FontAwesomeIcon icon={faUser} size="7x" />
+      </UserIconWrapper>
+    );
   }
-  return image;
-};
-
-const renderValueWithLabel = (person, label, field, isDate, extraWide) => {
-  const valueList = person.get(field, List());
-  const value = isDate ? formatDateList(valueList) : valueList.join(', ');
   return (
-    <ValueWithLabel extraWide={extraWide}>
-      <Label>{label}</Label>
-      {value.length ? <Value>{value}</Value> : <Value na>N/A</Value>}
-    </ValueWithLabel>
+    <img alt="" src={image} />
   );
 };
 
-
-const renderPersonDetails = (index, person) => {
-  if (!person.has(FIRST_NAME) && !person.has(LAST_NAME) && !person.has(DOB)) {
-    return null;
-  }
-
-  return (
-    <PersonDetailsWrapper>
-
-      <PersonDetailsRow>
-        {renderValueWithLabel(person, 'LAST NAME', LAST_NAME, false, true)}
-        {renderValueWithLabel(person, 'FIRST NAME', FIRST_NAME)}
-      </PersonDetailsRow>
-
-      <PersonDetailsRow>
-        {renderValueWithLabel(person, 'DATE OF BIRTH', DOB, true)}
-        {renderValueWithLabel(person, 'SEX', SEX)}
-        {renderValueWithLabel(person, 'SOCIAL SECURITY #', SSN)}
-      </PersonDetailsRow>
-
-    </PersonDetailsWrapper>
-  );
-};
+const labelMap = Map({
+  [PERSON_FIRST_NAME_FQN]: 'FIRST NAME',
+  [PERSON_LAST_NAME_FQN]: 'LAST NAME',
+  [PERSON_SEX_FQN]: 'SEX',
+  [PERSON_BIRTH_DATE_FQN]: 'DATE OF BIRTH',
+  [PERSON_SSN_FQN]: 'SSN',
+});
 
 const SelectedPersonResultCard = ({ index, person } :Props) => (
-  <CardWrapper>
-    <ImgWrapper>
-      <img src={getProfileImgSrc(person)} alt="" />
-      {index !== undefined ? <UtilizerTag>{`#${index} Utilizer`}</UtilizerTag> : null}
-    </ImgWrapper>
-    {renderPersonDetails(index, person)}
-  </CardWrapper>
+  <Card>
+    <NoPaddingCardSegment>
+      <PictureWrapper>
+        {renderPersonPicture(person)}
+        {
+          index !== undefined && (
+            <UtilizerTag>{`#${index} Utilizer`}</UtilizerTag>
+          )
+        }
+      </PictureWrapper>
+      <DataGridWrapper>
+        <DataGrid columns={3} data={person} labelMap={labelMap} />
+      </DataGridWrapper>
+    </NoPaddingCardSegment>
+  </Card>
 );
 
 SelectedPersonResultCard.defaultProps = {
-  index: -1
+  index: -1,
 };
 
 export default SelectedPersonResultCard;

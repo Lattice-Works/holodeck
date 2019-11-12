@@ -141,19 +141,20 @@ const ResourceBarChart = ({
     .sort(([year1], [year2]) => (year1 > year2 ? 1 : -1))
     .map(([year, count]) => ({ year, count }));
 
-  const total = data.map(point => point.count).reduce((t1, t2) => t1 + t2) || 0;
+  const total = data.map((point) => point.count).reduce((t1, t2) => t1 + t2) || 0;
 
   return (
     <BarChartWrapper>
       <Subtitle>Total: <span>{formatTotalText(total, timeUnit, resourceType)}</span></Subtitle>
-      {withCostMultiplier
-        ? <CostRateButton onClick={setCostRate}>Cost Rate</CostRateButton>
-        : null
+      {
+        withCostMultiplier && (
+          <CostRateButton onClick={setCostRate}>Cost Rate</CostRateButton>
+        )
       }
       <BarChart width={400} height={400} data={data.toJS()}>
         <YAxis type="number" tickLine={false} />
         <XAxis type="category" tickLine={false} dataKey="year" domain={['dataMin', 'dataMax']} allowDecimals={false} />
-        <Tooltip content={payloadData => renderBarChartTooltip(resourceType, timeUnit, payloadData)} />
+        <Tooltip content={(payloadData) => renderBarChartTooltip(resourceType, timeUnit, payloadData)} />
         <Bar dataKey="count" fill={colors[0]} />
       </BarChart>
     </BarChartWrapper>
