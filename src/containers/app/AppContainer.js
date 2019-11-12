@@ -85,7 +85,7 @@ class AppContainer extends React.Component<Props> {
           <Switch>
             <Route path={Routes.EXPLORE} component={ExploreContainer} />
             <Route path={Routes.TOP_UTILIZERS} component={TopUtilizersContainer} />
-            <Redirect to={Routes.TOP_UTILIZERS} />
+            <Redirect to={Routes.EXPLORE} />
           </Switch>
         </AppBodyWrapper>
       </AppWrapper>
