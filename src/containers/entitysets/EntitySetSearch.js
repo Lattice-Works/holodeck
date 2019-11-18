@@ -277,6 +277,7 @@ function mapStateToProps(state :Map<*, *>) :Object {
       return true;
     });
   }
+  const totalHits = entitySetSearchResults.count();
   entitySetSearchResults = entitySetSearchResults.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return {
@@ -284,21 +285,12 @@ function mapStateToProps(state :Map<*, *>) :Object {
     entitySetSearchResults,
     showAssociationEntitySets,
     showAuditEntitySets,
+    totalHits,
     requestStates: {
       [SEARCH_ENTITY_SETS]: state.getIn([STATE.ENTITY_SETS, SEARCH_ENTITY_SETS, 'requestState']),
     },
-    totalHits: entitySets.get(ENTITY_SETS.TOTAL_HITS),
   };
 }
-
-// const mapStateToProps = (state :Map<*, *>) => ({
-//   isMemberOfOrgIds: state.getIn(['orgs', 'isMemberOfOrgIds'], Set()),
-//   isOwnerOfOrgIds: state.getIn(['orgs', 'isOwnerOfOrgIds'], Set()),
-//   orgs: state.getIn(['orgs', 'orgs']),
-//   requestStates: {
-//     [GET_ORGS_AND_PERMISSIONS]: state.getIn(['orgs', GET_ORGS_AND_PERMISSIONS, 'requestState']),
-//   }
-// });
 
 const mapActionsToProps = (dispatch :Function) => ({
   actions: bindActionCreators({
