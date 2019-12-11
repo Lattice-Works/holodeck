@@ -26,7 +26,7 @@ import type { Location } from 'react-router';
 import type { RequestSequence, RequestState } from 'redux-reqseq';
 
 import * as LinkingActions from './LinkingActions';
-import { LinkedEntityCard } from './components';
+import { EntityLinkingCard } from './components';
 import { PersonPicture } from '../../components';
 import { FullyQualifiedNames } from '../../core/edm/constants';
 
@@ -167,7 +167,7 @@ class EntityLinkingContainer extends Component<Props> {
     const entitySetTitle :string = entitySets.get(entitySetIndex, Map()).get('title', '');
 
     return (
-      <LinkedEntityCard
+      <EntityLinkingCard
           entity={result}
           entitySetTitle={entitySetTitle}
           isLinked={false}

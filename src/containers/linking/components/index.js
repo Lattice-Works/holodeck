@@ -2,8 +2,8 @@
  * @flow
  */
 
-import LinkedEntityCard from './LinkedEntityCard';
+import EntityLinkingCard from './EntityLinkingCard';
 
 export {
-  LinkedEntityCard,
+  EntityLinkingCard,
 };

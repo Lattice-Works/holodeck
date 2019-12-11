@@ -3,11 +3,13 @@
  */
 
 import React from 'react';
+
 import { Redirect, Route, Switch } from 'react-router';
 import { withRouter } from 'react-router-dom';
 
-import EntityLinkingContainer from '../linking/EntityLinkingContainer';
 import ExploreEntitySetContainer from './ExploreEntitySetContainer';
+
+import EntityLinkingContainer from '../linking/EntityLinkingContainer';
 import EntitySetSearch from '../entitysets/EntitySetSearch';
 import * as Routes from '../../core/router/Routes';
 

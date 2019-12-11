@@ -8,6 +8,7 @@ import { AppContentWrapper, Sizes } from 'lattice-ui-kit';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import type { RequestSequence } from 'redux-reqseq';
 
 import SearchResultsContainer from './SearchResultsContainer';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';

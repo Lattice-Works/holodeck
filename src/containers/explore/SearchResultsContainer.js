@@ -376,10 +376,14 @@ class SearchResultsContainer extends React.Component<Props, State> {
       <CardStack>
         {!isExploring && this.renderLayoutToolbar()}
         {resultContent}
-        <Pagination
-            numPages={numPages}
-            activePage={currPage}
-            onChangePage={(page) => this.updatePage(((page - 1) * MAX_RESULTS), layout)} />
+        {
+          !isExploring && (
+            <Pagination
+                numPages={numPages}
+                activePage={currPage}
+                onChangePage={(page) => this.updatePage(((page - 1) * MAX_RESULTS), layout)} />
+          )
+        }
       </CardStack>
     );
   }

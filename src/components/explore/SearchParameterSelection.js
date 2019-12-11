@@ -65,6 +65,11 @@ const StyledBanner = styled(Banner)`
   color: #ffffff !important;
 `;
 
+const DownloadButton = styled(IconButton).attrs(() => ({
+  forwardedAs: 'a',
+  type: null
+}))``;
+
 type Props = {
   deselectEntitySet :() => void;
   executeSearch :(startVal :?number) => void;
@@ -99,7 +104,7 @@ const SearchParameterSelection = ({
     <Wrapper>
       <div>
         <IconButton icon={BackIcon} mode="subtle" onClick={deselectEntitySet}>Back to dataset selection</IconButton>
-        <IconButton href={downloadUrl} icon={DownloadIcon} mode="secondary">Download</IconButton>
+        <DownloadButton href={downloadUrl} icon={DownloadIcon} mode="secondary">Download</DownloadButton>
       </div>
       <Title>
         <div>Search</div>

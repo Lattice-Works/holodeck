@@ -61,14 +61,16 @@ type Props = {
   entity :Map;
   entitySetTitle :string;
   isLinked :boolean;
-  onClickLink :() => void;
-  onClickUnlink :() => void;
+  onClickLink ?:() => void;
+  onClickUnlink ?:() => void;
   showSources :boolean;
 };
 
-class LinkedEntityCard extends Component<Props> {
+class EntityLinkingCard extends Component<Props> {
 
   static defaultProps = {
+    onClickLink: () => {},
+    onClickUnlink: () => {},
     showSources: true,
   }
 
@@ -139,4 +141,4 @@ class LinkedEntityCard extends Component<Props> {
   }
 }
 
-export default LinkedEntityCard;
+export default EntityLinkingCard;

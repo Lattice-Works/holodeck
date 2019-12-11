@@ -3,46 +3,40 @@
  */
 
 import React from 'react';
+
 import styled from 'styled-components';
 import { List, Map, fromJS } from 'immutable';
 import { Models } from 'lattice';
-import {
-  CardStack,
-  Search,
-} from 'lattice-ui-kit';
-import { withRouter } from 'react-router-dom';
+import { CardStack } from 'lattice-ui-kit';
 import { connect } from 'react-redux';
+import { withRouter } from 'react-router-dom';
 import { bindActionCreators } from 'redux';
 import type { Location } from 'react-router';
 import type { RequestSequence } from 'redux-reqseq';
 
+import Breadcrumbs from '../../components/nav/Breadcrumbs';
 import ButtonToolbar from '../../components/buttons/ButtonToolbar';
 import DataTable from '../../components/data/DataTable';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import NeighborTables from '../../components/data/NeighborTables';
 import NeighborTimeline from '../../components/data/NeighborTimeline';
-import StyledCheckbox from '../../components/controls/StyledCheckbox';
-import SelectedPersonResultCard from '../../components/people/SelectedPersonResultCard';
 import PersonScoreCard from '../../components/people/PersonScoreCard';
-import Breadcrumbs from '../../components/nav/Breadcrumbs';
+import SelectedPersonResultCard from '../../components/people/SelectedPersonResultCard';
+import StyledCheckbox from '../../components/controls/StyledCheckbox';
+import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 import * as LinkingActions from '../linking/LinkingActions';
-import * as RoutingActions from '../../core/router/RoutingActions';
 import * as Routes from '../../core/router/Routes';
-import {
-  STATE,
-  EXPLORE,
-  TOP_UTILIZERS
-} from '../../utils/constants/StateConstants';
-import { COUNT_FQN } from '../../utils/constants/DataConstants';
-import { BREADCRUMB } from '../../utils/constants/ExploreConstants';
-import { TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
-import { IMAGE_PROPERTY_TYPES, PERSON_ENTITY_TYPE_FQN } from '../../utils/constants/DataModelConstants';
+import * as RoutingActions from '../../core/router/RoutingActions';
 import { FixedWidthWrapper, TableWrapper } from '../../components/layout/Layout';
 import { getEntityKeyId, groupNeighbors } from '../../utils/DataUtils';
 import { getDateFilters, getPairFilters, matchesFilters } from '../../utils/EntityDateUtils';
+import { COUNT_FQN } from '../../utils/constants/DataConstants';
+import { IMAGE_PROPERTY_TYPES, PERSON_ENTITY_TYPE_FQN } from '../../utils/constants/DataModelConstants';
+import { BREADCRUMB } from '../../utils/constants/ExploreConstants';
+import { EXPLORE, STATE, TOP_UTILIZERS } from '../../utils/constants/StateConstants';
+import { TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
+import { EntityLinksContainer } from '../linking';
 import type { GoToRoute } from '../../core/router/RoutingActions';
-
-import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 
 const { FullyQualifiedName } = Models;
 
@@ -64,6 +58,7 @@ const RightJustifiedRow = styled.div`
 `;
 
 const LAYOUTS = {
+  LINKING: 'LINKING',
   TABLE: 'TABLE',
   TIMELINE: 'TIMELINE'
 };
@@ -343,7 +338,10 @@ class EntityDetails extends React.Component<Props, State> {
   }
 
   renderLayoutOptions = () => {
+
+    const { entitySets, entitySetsIndexMap, selectedEntitySetId } = this.props;
     const { layout } = this.state;
+
     const options = [
       {
         label: 'Table',
@@ -355,12 +353,19 @@ class EntityDetails extends React.Component<Props, State> {
         value: LAYOUTS.TIMELINE,
         onClick: () => this.updateLayout(LAYOUTS.TIMELINE)
       },
-      {
-        label: 'Linking',
-        value: 'Linking',
-        onClick: this.goToLinking,
-      }
     ];
+
+    const entitySetIndex :number = entitySetsIndexMap.get(selectedEntitySetId);
+    const entitySet :Map = entitySets.get(entitySetIndex, Map());
+    const isLinkedEntitySet :boolean = entitySet.get('flags', List()).includes('LINKING');
+    if (isLinkedEntitySet) {
+      options.push({
+        label: 'Linking',
+        value: LAYOUTS.LINKING,
+        onClick: () => this.updateLayout(LAYOUTS.LINKING)
+      });
+    }
+
     return <ButtonToolbar options={options} value={layout} />;
   }
 
@@ -401,21 +406,12 @@ class EntityDetails extends React.Component<Props, State> {
     return FullyQualifiedName.toString(entityType.get('type')) === PERSON_ENTITY_TYPE_FQN;
   }
 
-  goToLinking = () => {
-
-    const { actions, location, selectedEntitySetId } = this.props;
-
-    if (location.pathname.startsWith(Routes.EXPLORE)) {
-      actions.goToRoute(
-        Routes.ENTITY_LINKING
-          .replace(Routes.ENTITY_SET_ID_PARAM, selectedEntitySetId)
-          .replace(Routes.ENTITY_KEY_ID_PARAM, this.getSelectedEntityKeyId())
-      );
-    }
-  }
-
   render() {
-    const { rankingsById } = this.props;
+
+    const { rankingsById, selectedEntitySetId } = this.props;
+    const { layout } = this.state;
+
+    const selectedEntityKeyId :UUID = this.getSelectedEntityKeyId();
 
     return (
       <div>
@@ -426,13 +422,18 @@ class EntityDetails extends React.Component<Props, State> {
             this.isCurrentPersonType() && (
               <SelectedPersonResultCard
                   person={this.getSelectedEntity()}
-                  index={rankingsById.get(this.getSelectedEntityKeyId())} />
+                  index={rankingsById.get(selectedEntityKeyId)} />
             )
           }
-          {this.renderCountsCard()}
-          {this.renderEntityTable()}
+          {
+            layout === LAYOUTS.LINKING && (
+              <EntityLinksContainer entitySetId={selectedEntitySetId} entityKeyId={selectedEntityKeyId} />
+            )
+          }
+          {layout !== LAYOUTS.LINKING && this.renderCountsCard()}
+          {layout !== LAYOUTS.LINKING && this.renderEntityTable()}
         </CardStack>
-        {this.renderNeighbors()}
+        {layout !== LAYOUTS.LINKING && this.renderNeighbors()}
       </div>
     );
   }

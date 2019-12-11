@@ -35,7 +35,7 @@ import { COUNT_FQN, DATE_FILTER_CLASS } from '../../utils/constants/DataConstant
 import { getEntityKeyId } from '../../utils/DataUtils';
 import { toISODate } from '../../utils/FormattingUtils';
 
-const LOG = new Logger('OrgsSagas');
+const LOG = new Logger('TopUtilizersSagas');
 
 const { OPENLATTICE_ID_FQN } = Constants;
 
@@ -294,7 +294,7 @@ function* loadTopUtilizerNeighborsWorker(action :SequenceAction) :Generator<*, *
     yield put(loadTopUtilizerNeighbors.success(action.id, { neighborsById }));
   }
   catch (error) {
-    LOG.error('loadTopUtilizerNeighborsWorker()', error);
+    LOG.error(action.type, error);
     yield put(loadTopUtilizerNeighbors.failure(action.id, error));
   }
   finally {
