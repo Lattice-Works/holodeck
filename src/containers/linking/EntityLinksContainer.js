@@ -100,19 +100,14 @@ class EntityLinksContainer extends Component<Props> {
   }
 }
 
-const mapStateToProps = (state :Map, props :OwnProps) => {
-
-  const { entityKeyId } = props;
-
-  return {
-    entitySets: state.getIn(['edm', 'entitySets'], List()),
-    entitySetsIndexMap: state.getIn(['edm', 'entitySetsIndexMap'], Map()),
-    links: state.getIn(['linking', 'links', entityKeyId], Map()),
-    requestStates: {
-      [GET_LINKED_ENTITY_SET_BREAKDOWN]: state.getIn(['linking', GET_LINKED_ENTITY_SET_BREAKDOWN, 'requestState']),
-    },
-  };
-};
+const mapStateToProps = (state :Map, props :OwnProps) => ({
+  entitySets: state.getIn(['edm', 'entitySets'], List()),
+  entitySetsIndexMap: state.getIn(['edm', 'entitySetsIndexMap'], Map()),
+  links: state.getIn(['linking', 'links', props.entityKeyId], Map()),
+  requestStates: {
+    [GET_LINKED_ENTITY_SET_BREAKDOWN]: state.getIn(['linking', GET_LINKED_ENTITY_SET_BREAKDOWN, 'requestState']),
+  },
+});
 
 const mapActionsToProps = (dispatch :Function) => ({
   actions: bindActionCreators({
