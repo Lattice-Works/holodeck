@@ -51,7 +51,7 @@ const UserIconWrapper = styled.div`
 
 type Props = {
   person :Map;
-  round :boolean;
+  round ?:boolean;
   size :string;
 };
 
@@ -72,6 +72,10 @@ const PersonPicture = (props :Props) => {
       <img alt="" src={image} />
     </PictureWrapper>
   );
+};
+
+PersonPicture.defaultProps = {
+  round: false,
 };
 
 export default PersonPicture;

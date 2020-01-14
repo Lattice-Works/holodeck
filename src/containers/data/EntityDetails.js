@@ -25,7 +25,6 @@ import SelectedPersonResultCard from '../../components/people/SelectedPersonResu
 import StyledCheckbox from '../../components/controls/StyledCheckbox';
 import * as ExploreActionFactory from '../explore/ExploreActionFactory';
 import * as LinkingActions from '../linking/LinkingActions';
-import * as Routes from '../../core/router/Routes';
 import * as RoutingActions from '../../core/router/RoutingActions';
 import { FixedWidthWrapper, TableWrapper } from '../../components/layout/Layout';
 import { getEntityKeyId, groupNeighbors } from '../../utils/DataUtils';

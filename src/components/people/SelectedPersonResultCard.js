@@ -3,11 +3,13 @@
  */
 
 import React from 'react';
+
 import styled from 'styled-components';
 import { Map } from 'immutable';
 import { Card, CardSegment, DataGrid } from 'lattice-ui-kit';
 
 import PersonPicture from './PersonPicture';
+
 import { FullyQualifiedNames } from '../../core/edm/constants';
 
 const {
@@ -81,7 +83,7 @@ const SelectedPersonResultCard = ({ index, person } :Props) => (
 );
 
 SelectedPersonResultCard.defaultProps = {
-  index: -1,
+  index: 0,
 };
 
 export default SelectedPersonResultCard;
