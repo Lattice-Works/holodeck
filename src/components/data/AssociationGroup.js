@@ -3,14 +3,16 @@
  */
 
 import React from 'react';
+
 import styled from 'styled-components';
+import { faChevronDown, faChevronUp } from '@fortawesome/pro-regular-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { List, Map, fromJS } from 'immutable';
 import { Models } from 'lattice';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faChevronUp } from '@fortawesome/pro-regular-svg-icons';
+import { Badge } from 'lattice-ui-kit';
 
 import DataTable from './DataTable';
-import Banner from '../cards/Banner';
+
 import { IMAGE_PROPERTY_TYPES } from '../../utils/constants/DataModelConstants';
 import { TableWrapper } from '../layout/Layout';
 
@@ -158,7 +160,7 @@ export default class AssociationGroup extends React.Component<Props, State> {
       <SpacedTableWrapper key={neighborEntitySetId}>
         <Row justifyLeft>
           <NeighborTitle>{neighborTitle}</NeighborTitle>
-          <Banner>{neighbors.size}</Banner>
+          <Badge mode="primary" count={neighbors.size} />
         </Row>
         <DataTable data={data} headers={headers} onRowClick={this.getOnRowClick(neighborEntitySetId)} />
       </SpacedTableWrapper>
@@ -174,7 +176,7 @@ export default class AssociationGroup extends React.Component<Props, State> {
         <Row>
           <HeaderGroup>
             <AssociationTitle>{this.getAssociationTitle()}</AssociationTitle>
-            <Banner secondary>{neighborsById.size}</Banner>
+            <Badge mode="secondary" count={neighborsById.size} />
           </HeaderGroup>
           <HideButton onClick={() => this.setState({ hidden: !hidden })}>
             {hidden ? 'Show' : 'Hide'}

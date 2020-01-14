@@ -2,17 +2,17 @@
  * @flow
  */
 
-import React from 'react';
+import React, { Component } from 'react';
+
 import Select, { components } from 'react-select';
 import styled, { css } from 'styled-components';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/pro-light-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { List, Map } from 'immutable';
 
-
 import LoadingDots from '../loading/LoadingDots';
-import { TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
 import { BLUE } from '../../utils/constants/Colors';
+import { TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
 
 const {
   ASSOC_ID,
@@ -114,7 +114,7 @@ type Props = {
 };
 
 /* eslint-disable react/jsx-props-no-spreading */
-export default class TopUtilizersSelect extends React.Component<Props> {
+export default class TopUtilizersSelect extends Component<Props> {
 
   getEdgeValue = (associationTypeId :UUID, neighborTypeId :UUID, src :any) => (src
     ? [associationTypeId, neighborTypeId] : [associationTypeId, neighborTypeId]).join('|');

@@ -41,7 +41,7 @@ const INITIAL_STATE :Map<*, *> = fromJS({
   propertyTypesIndexMap: Map(),
 });
 
-export default function edmReducer(state :Map<*, *> = INITIAL_STATE, action :Object) {
+export default function reducer(state :Map<*, *> = INITIAL_STATE, action :Object) {
 
   switch (action.type) {
 

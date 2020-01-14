@@ -17,8 +17,6 @@ import {
   SearchInput,
 } from 'lattice-ui-kit';
 
-import Banner from '../cards/Banner';
-
 const BackIcon = (
   <FontAwesomeIcon icon={faChevronLeft} />
 );
@@ -61,9 +59,10 @@ const Title = styled.div`
   }
 `;
 
-const StyledBanner = styled(Banner)`
-  color: #ffffff !important;
-`;
+const DownloadButton = styled(IconButton).attrs(() => ({
+  forwardedAs: 'a',
+  type: null
+}))``;
 
 type Props = {
   deselectEntitySet :() => void;
@@ -71,12 +70,10 @@ type Props = {
   onChange :() => void;
   searchTerm :string;
   selectedEntitySet :?Map<*, *>;
-  selectedEntitySetSize :?number;
 };
 
 const SearchParameterSelection = ({
   selectedEntitySet,
-  selectedEntitySetSize,
   deselectEntitySet,
   searchTerm,
   executeSearch,
@@ -99,19 +96,12 @@ const SearchParameterSelection = ({
     <Wrapper>
       <div>
         <IconButton icon={BackIcon} mode="subtle" onClick={deselectEntitySet}>Back to dataset selection</IconButton>
-        <IconButton href={downloadUrl} icon={DownloadIcon} mode="secondary">Download</IconButton>
+        <DownloadButton href={downloadUrl} icon={DownloadIcon} mode="secondary">Download</DownloadButton>
       </div>
       <Title>
         <div>Search</div>
         <span><FontAwesomeIcon icon={faDatabase} /></span>
         <span>{entitySetTitle}</span>
-        {
-          typeof selectedEntitySetSize === 'number' && (
-            <StyledBanner>
-              {`${selectedEntitySetSize.toLocaleString()} ${selectedEntitySetSize === 1 ? 'entity' : 'entities'}`}
-            </StyledBanner>
-          )
-        }
       </Title>
       <SearchInput id="search-entity-set" value={searchTerm} onChange={onChange} onKeyPress={onKeyPress} />
       <Button mode="primary" onClick={executeSearch}>Search</Button>

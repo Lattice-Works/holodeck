@@ -17,7 +17,6 @@ import {
 
 import TabNavButton from '../buttons/TabNavButton';
 import DropdownButtonWrapper from '../buttons/DropdownButtonWrapper';
-import Banner from '../cards/Banner';
 import TopUtilizersSelect from './TopUtilizersSelect';
 import CountTypeOptions from './searchoptions/CountTypeOptions';
 import MultiDateRangePicker from './searchoptions/MultiDateRangePicker';
@@ -79,10 +78,6 @@ const TabButtonRow = styled.div`
   justify-content: flex-start;
 `;
 
-const StyledBanner = styled(Banner)`
-  color: #ffffff !important;
-`;
-
 const newDateRange = {
   start: '',
   end: '',
@@ -107,7 +102,6 @@ type Props = {
   searchHasRun :boolean;
   selectedEntitySet :Map<*, *>;
   selectedEntitySetPropertyTypes :List<*>;
-  selectedEntitySetSize :?number;
 };
 
 type State = {
@@ -383,7 +377,6 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
       neighborTypes,
       searchHasRun,
       selectedEntitySet,
-      selectedEntitySetSize,
     } = this.props;
 
     const entitySetTitle = selectedEntitySet.get('title');
@@ -397,13 +390,6 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
             <div>Search</div>
             <span><FontAwesomeIcon icon={faDatabase} /></span>
             <span>{entitySetTitle}</span>
-            {
-              typeof selectedEntitySetSize === 'number' && (
-                <StyledBanner>
-                  {`${selectedEntitySetSize.toLocaleString()} ${selectedEntitySetSize === 1 ? 'entity' : 'entities'}`}
-                </StyledBanner>
-              )
-            }
           </Title>
           <TopUtilizersSelect
               selectedEntitySet={selectedEntitySet}

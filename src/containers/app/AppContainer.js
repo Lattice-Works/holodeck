@@ -27,10 +27,11 @@ import { bindActionCreators } from 'redux';
 import { RequestStates } from 'redux-reqseq';
 import type { RequestSequence, RequestState } from 'redux-reqseq';
 
-import OpenLatticeLogo from '../../assets/images/logo.png';
-import ExploreRouter from '../explore/ExploreRouter';
-import TopUtilizersRouter from '../toputilizers/TopUtilizersRouter';
 import * as AppActions from './AppActions';
+
+import ExploreRouter from '../explore/ExploreRouter';
+import OpenLatticeLogo from '../../assets/images/logo.png';
+import TopUtilizersRouter from '../toputilizers/TopUtilizersRouter';
 import * as Routes from '../../core/router/Routes';
 import { GOOGLE_TRACKING_ID } from '../../core/tracking/google/GoogleAnalytics';
 import { isNonEmptyString } from '../../utils/LangUtils';
@@ -141,6 +142,7 @@ const mapActionsToProps = (dispatch :Function) => ({
   }, dispatch)
 });
 
+// $FlowFixMe
 export default withRouter(
   connect(mapStateToProps, mapActionsToProps)(AppContainer)
 );

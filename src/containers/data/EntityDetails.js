@@ -3,39 +3,39 @@
  */
 
 import React from 'react';
+
 import styled from 'styled-components';
 import { List, Map, fromJS } from 'immutable';
 import { Models } from 'lattice';
 import { CardStack } from 'lattice-ui-kit';
-import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
+import { withRouter } from 'react-router-dom';
 import { bindActionCreators } from 'redux';
+import type { Location } from 'react-router';
 import type { RequestSequence } from 'redux-reqseq';
 
+import Breadcrumbs from '../../components/nav/Breadcrumbs';
 import ButtonToolbar from '../../components/buttons/ButtonToolbar';
 import DataTable from '../../components/data/DataTable';
 import LoadingSpinner from '../../components/loading/LoadingSpinner';
 import NeighborTables from '../../components/data/NeighborTables';
 import NeighborTimeline from '../../components/data/NeighborTimeline';
-import StyledCheckbox from '../../components/controls/StyledCheckbox';
-import SelectedPersonResultCard from '../../components/people/SelectedPersonResultCard';
 import PersonScoreCard from '../../components/people/PersonScoreCard';
-import Breadcrumbs from '../../components/nav/Breadcrumbs';
-import {
-  STATE,
-  ENTITY_SETS,
-  EXPLORE,
-  TOP_UTILIZERS
-} from '../../utils/constants/StateConstants';
-import { COUNT_FQN } from '../../utils/constants/DataConstants';
-import { BREADCRUMB } from '../../utils/constants/ExploreConstants';
-import { TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
-import { IMAGE_PROPERTY_TYPES, PERSON_ENTITY_TYPE_FQN } from '../../utils/constants/DataModelConstants';
+import SelectedPersonResultCard from '../../components/people/SelectedPersonResultCard';
+import StyledCheckbox from '../../components/controls/StyledCheckbox';
+import * as ExploreActionFactory from '../explore/ExploreActionFactory';
+import * as LinkingActions from '../linking/LinkingActions';
+import * as RoutingActions from '../../core/router/RoutingActions';
 import { FixedWidthWrapper, TableWrapper } from '../../components/layout/Layout';
 import { getEntityKeyId, groupNeighbors } from '../../utils/DataUtils';
 import { getDateFilters, getPairFilters, matchesFilters } from '../../utils/EntityDateUtils';
-
-import * as ExploreActionFactory from '../explore/ExploreActionFactory';
+import { COUNT_FQN } from '../../utils/constants/DataConstants';
+import { IMAGE_PROPERTY_TYPES, PERSON_ENTITY_TYPE_FQN } from '../../utils/constants/DataModelConstants';
+import { BREADCRUMB } from '../../utils/constants/ExploreConstants';
+import { EXPLORE, STATE, TOP_UTILIZERS } from '../../utils/constants/StateConstants';
+import { TOP_UTILIZERS_FILTER } from '../../utils/constants/TopUtilizerConstants';
+import { EntityLinksContainer } from '../linking';
+import type { GoToRoute } from '../../core/router/RoutingActions';
 
 const { FullyQualifiedName } = Models;
 
@@ -57,6 +57,7 @@ const RightJustifiedRow = styled.div`
 `;
 
 const LAYOUTS = {
+  LINKING: 'LINKING',
   TABLE: 'TABLE',
   TIMELINE: 'TIMELINE'
 };
@@ -68,7 +69,9 @@ const HEADERS = {
 
 type Props = {
   actions :{
+    goToRoute :GoToRoute;
     loadEntityNeighbors :RequestSequence;
+    searchLinkedEntitySets :RequestSequence;
     selectBreadcrumb :RequestSequence;
     selectEntity :RequestSequence;
   };
@@ -83,6 +86,7 @@ type Props = {
   isLoadingNeighbors :boolean;
   isTopUtilizers :boolean;
   lastQueryRun :Object;
+  location :Location;
   neighborsById :Map<string, *>;
   propertyTypes :List;
   propertyTypesIndexMap :Map;
@@ -333,7 +337,10 @@ class EntityDetails extends React.Component<Props, State> {
   }
 
   renderLayoutOptions = () => {
+
+    const { entitySets, entitySetsIndexMap, selectedEntitySetId } = this.props;
     const { layout } = this.state;
+
     const options = [
       {
         label: 'Table',
@@ -344,8 +351,20 @@ class EntityDetails extends React.Component<Props, State> {
         label: 'Timeline',
         value: LAYOUTS.TIMELINE,
         onClick: () => this.updateLayout(LAYOUTS.TIMELINE)
-      }
+      },
     ];
+
+    const entitySetIndex :number = entitySetsIndexMap.get(selectedEntitySetId);
+    const entitySet :Map = entitySets.get(entitySetIndex, Map());
+    const isLinkedEntitySet :boolean = entitySet.get('flags', List()).includes('LINKING');
+    if (isLinkedEntitySet) {
+      options.push({
+        label: 'Linking',
+        value: LAYOUTS.LINKING,
+        onClick: () => this.updateLayout(LAYOUTS.LINKING)
+      });
+    }
+
     return <ButtonToolbar options={options} value={layout} />;
   }
 
@@ -387,7 +406,11 @@ class EntityDetails extends React.Component<Props, State> {
   }
 
   render() {
-    const { rankingsById } = this.props;
+
+    const { rankingsById, selectedEntitySetId } = this.props;
+    const { layout } = this.state;
+
+    const selectedEntityKeyId :UUID = this.getSelectedEntityKeyId();
 
     return (
       <div>
@@ -398,24 +421,36 @@ class EntityDetails extends React.Component<Props, State> {
             this.isCurrentPersonType() && (
               <SelectedPersonResultCard
                   person={this.getSelectedEntity()}
-                  index={rankingsById.get(this.getSelectedEntityKeyId())} />
+                  index={rankingsById.get(selectedEntityKeyId)} />
             )
           }
-          {this.renderCountsCard()}
-          {this.renderEntityTable()}
+          {
+            layout === LAYOUTS.LINKING && (
+              <EntityLinksContainer entitySetId={selectedEntitySetId} entityKeyId={selectedEntityKeyId} />
+            )
+          }
+          {layout !== LAYOUTS.LINKING && this.renderCountsCard()}
+          {layout !== LAYOUTS.LINKING && this.renderEntityTable()}
         </CardStack>
-        {this.renderNeighbors()}
+        {layout !== LAYOUTS.LINKING && this.renderNeighbors()}
       </div>
     );
   }
 }
 
-function mapStateToProps(state :Map<*, *>) :Object {
+function mapStateToProps(state :Map<*, *>, props) :Object {
+
+  const {
+    params: {
+      id: selectedEntitySetId = null,
+    } = {},
+  } = props.match;
+
   const explore = state.get(STATE.EXPLORE);
-  const entitySets = state.get(STATE.ENTITY_SETS);
   const topUtilizers = state.get(STATE.TOP_UTILIZERS);
 
   return {
+    selectedEntitySetId,
     breadcrumbs: explore.get(EXPLORE.BREADCRUMBS),
     countBreakdown: topUtilizers.get(TOP_UTILIZERS.COUNT_BREAKDOWN),
     entitiesById: explore.get(EXPLORE.ENTITIES_BY_ID),
@@ -429,13 +464,14 @@ function mapStateToProps(state :Map<*, *>) :Object {
     neighborsById: explore.get(EXPLORE.ENTITY_NEIGHBORS_BY_ID),
     propertyTypes: state.getIn(['edm', 'propertyTypes'], List()),
     propertyTypesIndexMap: state.getIn(['edm', 'propertyTypesIndexMap'], Map()),
-    selectedEntitySetId: entitySets.getIn([ENTITY_SETS.SELECTED_ENTITY_SET, 'id']),
   };
 }
 
 const mapActionsToProps = (dispatch :Function) => ({
   actions: bindActionCreators({
+    goToRoute: RoutingActions.goToRoute,
     loadEntityNeighbors: ExploreActionFactory.loadEntityNeighbors,
+    searchLinkedEntitySets: LinkingActions.searchLinkedEntitySets,
     selectBreadcrumb: ExploreActionFactory.selectBreadcrumb,
     selectEntity: ExploreActionFactory.selectEntity,
   }, dispatch)

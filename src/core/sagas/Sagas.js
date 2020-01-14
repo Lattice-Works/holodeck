@@ -14,6 +14,7 @@ import {
 import * as AppSagas from '../../containers/app/AppSagas';
 import * as EntitySetSagas from '../../containers/entitysets/EntitySetSagas';
 import * as ExploreSagas from '../../containers/explore/ExploreSagas';
+import * as LinkingSagas from '../../containers/linking/LinkingSagas';
 import * as RoutingSagas from '../router/RoutingSagas';
 import * as TopUtilizersSagas from '../../containers/toputilizers/TopUtilizersSagas';
 
@@ -31,6 +32,7 @@ export default function* sagas() :Generator<*, *, *> {
 
     // "lattice-sagas" sagas
     fork(DataApiSagas.getEntitySetSizeWatcher),
+    fork(DataApiSagas.getLinkedEntitySetBreakdownWatcher),
     fork(EntityDataModelApiSagas.getAllEntityTypesWatcher),
     fork(EntityDataModelApiSagas.getAllPropertyTypesWatcher),
     fork(EntitySetsApiSagas.getAllEntitySetsWatcher),
@@ -45,20 +47,23 @@ export default function* sagas() :Generator<*, *, *> {
     fork(EDMSagas.getEntityDataModelTypesWatcher),
     fork(EDMSagas.getEntitySetsWithMetaDataWatcher),
 
-    /* EntitySetSagas */
+    // EntitySetSagas
     fork(EntitySetSagas.loadEntitySetSizesWatcher),
     fork(EntitySetSagas.searchEntitySetsWatcher),
     fork(EntitySetSagas.selectEntitySetByIdWatcher),
 
-    /* ExploreSagas */
+    // ExploreSagas
     fork(ExploreSagas.loadEntityNeighborsWatcher),
     fork(ExploreSagas.searchEntitySetDataWatcher),
+
+    // LinkingSagas
+    fork(LinkingSagas.searchLinkedEntitySetsWatcher),
 
     // RoutingSagas
     fork(RoutingSagas.goToRootWatcher),
     fork(RoutingSagas.goToRouteWatcher),
 
-    /* TopUtilizersSagas */
+    // TopUtilizersSagas
     fork(TopUtilizersSagas.downloadTopUtilizersWatcher),
     fork(TopUtilizersSagas.getNeighborTypesWatcher),
     fork(TopUtilizersSagas.getTopUtilizersWatcher),

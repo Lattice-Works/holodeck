@@ -42,10 +42,14 @@ const EntitySetDetails = styled.p`
 type Props = {
   entitySet :Map<*, *>;
   onClick :(entitySet :Map<*, *>) => void;
-  size :?number;
+  size ?:number;
 }
 
 export default class EntitySetCard extends React.Component<Props> {
+
+  static defaultProps = {
+    size: undefined,
+  }
 
   goToEntitySet = () => {}
 
