@@ -3,40 +3,49 @@
  */
 
 import React from 'react';
-import styled from 'styled-components';
+
+import styled, { css } from 'styled-components';
 import { faUser } from '@fortawesome/pro-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Map } from 'immutable';
+import { StyleUtils } from 'lattice-ui-kit';
 
 import { FullyQualifiedNames } from '../../core/edm/constants';
+
+const { getStyleVariation } = StyleUtils;
 
 const {
   PERSON_MUGSHOT_FQN,
   PERSON_PICTURE_FQN,
 } = FullyQualifiedNames.PROPERTY_TYPE_FQNS;
 
-const SizeMap = {
-  sm: {
-    font: '21px',
-    pixels: '45px',
-  },
-  md: {
-    font: '36px',
-    pixels: '70px',
-  },
-  xl: {
-    font: '100px',
-    pixels: '200px',
-  },
-};
+const getPictureDimensions = getStyleVariation('size', {
+  sm: css`
+    height: 45px;
+    width: 45px;
+  `,
+  md: css`
+    height: 70px;
+    width: 70px;
+  `,
+  xl: css`
+    height: 200px;
+    width: 200px;
+  `,
+});
+
+const getFontSize = getStyleVariation('size', {
+  sm: '21px',
+  md: '36px',
+  xl: '100px'
+});
 
 const PictureWrapper = styled.div`
   border-radius: ${({ round }) => (round ? '50%' : 0)};
   display: flex;
-  height: ${({ size }) => SizeMap[size].pixels};
   overflow: hidden;
   position: relative;
-  width: ${({ size }) => SizeMap[size].pixels};
+  ${getPictureDimensions}
 `;
 
 const UserIconWrapper = styled.div`
@@ -44,19 +53,19 @@ const UserIconWrapper = styled.div`
   background-color: #e9ecef;
   color: white;
   display: flex;
-  font-size: ${({ size }) => SizeMap[size].font};
   flex: 1;
+  font-size: ${getFontSize};
   justify-content: center;
 `;
 
 type Props = {
   person :Map;
   round ?:boolean;
-  size :string;
+  size ?:string;
 };
 
 const PersonPicture = (props :Props) => {
-  const { person, round, size = 'sm' } = props;
+  const { person, round, size } = props;
   const image = person.getIn([PERSON_MUGSHOT_FQN, 0], person.getIn([PERSON_PICTURE_FQN, 0]));
   if (!image) {
     return (
@@ -76,6 +85,7 @@ const PersonPicture = (props :Props) => {
 
 PersonPicture.defaultProps = {
   round: false,
+  size: 'sm',
 };
 
 export default PersonPicture;
