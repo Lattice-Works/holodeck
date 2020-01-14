@@ -17,8 +17,6 @@ import {
   SearchInput,
 } from 'lattice-ui-kit';
 
-import Banner from '../cards/Banner';
-
 const BackIcon = (
   <FontAwesomeIcon icon={faChevronLeft} />
 );
@@ -61,10 +59,6 @@ const Title = styled.div`
   }
 `;
 
-const StyledBanner = styled(Banner)`
-  color: #ffffff !important;
-`;
-
 const DownloadButton = styled(IconButton).attrs(() => ({
   forwardedAs: 'a',
   type: null
@@ -76,12 +70,10 @@ type Props = {
   onChange :() => void;
   searchTerm :string;
   selectedEntitySet :?Map<*, *>;
-  selectedEntitySetSize :?number;
 };
 
 const SearchParameterSelection = ({
   selectedEntitySet,
-  selectedEntitySetSize,
   deselectEntitySet,
   searchTerm,
   executeSearch,
@@ -110,13 +102,6 @@ const SearchParameterSelection = ({
         <div>Search</div>
         <span><FontAwesomeIcon icon={faDatabase} /></span>
         <span>{entitySetTitle}</span>
-        {
-          typeof selectedEntitySetSize === 'number' && (
-            <StyledBanner>
-              {`${selectedEntitySetSize.toLocaleString()} ${selectedEntitySetSize === 1 ? 'entity' : 'entities'}`}
-            </StyledBanner>
-          )
-        }
       </Title>
       <SearchInput id="search-entity-set" value={searchTerm} onChange={onChange} onKeyPress={onKeyPress} />
       <Button mode="primary" onClick={executeSearch}>Search</Button>

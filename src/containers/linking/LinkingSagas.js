@@ -4,14 +4,11 @@
 
 import {
   all,
-  delay,
   call,
   put,
-  select,
   takeEvery,
-  takeLatest,
 } from '@redux-saga/core/effects';
-import { List, fromJS } from 'immutable';
+import { fromJS } from 'immutable';
 import {
   SearchApiActions,
   SearchApiSagas,
