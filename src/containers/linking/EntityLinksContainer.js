@@ -2,20 +2,19 @@
  * @flow
  */
 
-import React, { Component } from 'react';
+import React, { useEffect } from 'react';
 
 import styled from 'styled-components';
 import { List, Map } from 'immutable';
 import { DataApiActions } from 'lattice-sagas';
 import { Card, Spinner } from 'lattice-ui-kit';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RequestStates } from 'redux-reqseq';
-import type { RequestSequence, RequestState } from 'redux-reqseq';
+import type { RequestState } from 'redux-reqseq';
 
 import { EntityLinkingCard } from './components';
 
-const { GET_LINKED_ENTITY_SET_BREAKDOWN } = DataApiActions;
+const { GET_LINKED_ENTITY_SET_BREAKDOWN, getLinkedEntitySetBreakdown } = DataApiActions;
 
 const CardGrid = styled.div`
   display: grid;
@@ -27,16 +26,12 @@ const CardGrid = styled.div`
   }
 `;
 
-type OwnProps = {|
+type Props = {|
   entityKeyId :UUID;
   entitySetId :UUID;
 |};
 
-type Props = {
-  ...OwnProps;
-  actions :{
-    getLinkedEntitySetBreakdown :RequestSequence;
-  };
+type StateProps = {
   entitySets :List;
   entitySetsIndexMap :Map;
   links :Map;
@@ -44,76 +39,57 @@ type Props = {
     GET_LINKED_ENTITY_SET_BREAKDOWN :RequestState;
   };
 };
+const EntityLinksContainer = (props :Props) => {
 
-class EntityLinksContainer extends Component<Props> {
+  const { entityKeyId, entitySetId } = props;
+  const dispatch = useDispatch();
 
-  componentDidMount() {
+  const {
+    entitySets,
+    entitySetsIndexMap,
+    links,
+    requestStates,
+  } :StateProps = useSelector((state :Map) => ({
+    entitySets: state.getIn(['edm', 'entitySets'], List()),
+    entitySetsIndexMap: state.getIn(['edm', 'entitySetsIndexMap'], Map()),
+    links: state.getIn(['linking', 'links', entityKeyId], Map()),
+    requestStates: {
+      [GET_LINKED_ENTITY_SET_BREAKDOWN]: state.getIn(['linking', GET_LINKED_ENTITY_SET_BREAKDOWN, 'requestState']),
+    },
+  }));
 
-    const { actions, entityKeyId, entitySetId } = this.props;
-    actions.getLinkedEntitySetBreakdown({ entitySetId, entityKeyIds: [entityKeyId] });
-  }
+  useEffect(() => {
+    dispatch(
+      getLinkedEntitySetBreakdown({ entitySetId, entityKeyIds: [entityKeyId] })
+    );
+  }, [dispatch, entityKeyId, entitySetId]);
 
-  componentDidUpdate(props :Props) {
-
-    const { actions, entityKeyId, entitySetId } = this.props;
-
-    if (props.entityKeyId !== entityKeyId || props.entitySetId !== entitySetId) {
-      actions.getLinkedEntitySetBreakdown({ entitySetId, entityKeyIds: [entityKeyId] });
-    }
-  }
-
-  render() {
-
-    const {
-      entitySets,
-      entitySetsIndexMap,
-      links,
-      requestStates,
-    } = this.props;
-
-    if (requestStates[GET_LINKED_ENTITY_SET_BREAKDOWN] === RequestStates.PENDING) {
-      return (
-        <Spinner size="2x" />
-      );
-    }
-
-    const cards = [];
-    links.forEach((linkedEntities :Map, linkedEntitySetId :UUID) => {
-      linkedEntities.forEach((linkedEntity :Map, linkedEntityKeyId :UUID) => {
-        const entitySetIndex :number = entitySetsIndexMap.get(linkedEntitySetId);
-        const entitySetTitle :string = entitySets.get(entitySetIndex, Map()).get('title', '');
-        cards.push(
-          <EntityLinkingCard
-              entity={linkedEntity}
-              entitySetTitle={entitySetTitle}
-              isLinked
-              key={linkedEntityKeyId} /> // eslint-disable-line react/no-array-index-key
-        );
-      });
-    });
-
+  if (requestStates[GET_LINKED_ENTITY_SET_BREAKDOWN] === RequestStates.PENDING) {
     return (
-      <CardGrid>
-        {cards}
-      </CardGrid>
+      <Spinner size="2x" />
     );
   }
-}
 
-const mapStateToProps = (state :Map, props :OwnProps) => ({
-  entitySets: state.getIn(['edm', 'entitySets'], List()),
-  entitySetsIndexMap: state.getIn(['edm', 'entitySetsIndexMap'], Map()),
-  links: state.getIn(['linking', 'links', props.entityKeyId], Map()),
-  requestStates: {
-    [GET_LINKED_ENTITY_SET_BREAKDOWN]: state.getIn(['linking', GET_LINKED_ENTITY_SET_BREAKDOWN, 'requestState']),
-  },
-});
+  const cards = [];
+  links.forEach((linkedEntities :Map, linkedEntitySetId :UUID) => {
+    linkedEntities.forEach((linkedEntity :Map, linkedEntityKeyId :UUID) => {
+      const entitySetIndex :number = entitySetsIndexMap.get(linkedEntitySetId);
+      const entitySetTitle :string = entitySets.get(entitySetIndex, Map()).get('title', '');
+      cards.push(
+        <EntityLinkingCard
+            entity={linkedEntity}
+            entitySetTitle={entitySetTitle}
+            isLinked
+            key={linkedEntityKeyId} /> // eslint-disable-line react/no-array-index-key
+      );
+    });
+  });
 
-const mapActionsToProps = (dispatch :Function) => ({
-  actions: bindActionCreators({
-    getLinkedEntitySetBreakdown: DataApiActions.getLinkedEntitySetBreakdown,
-  }, dispatch)
-});
+  return (
+    <CardGrid>
+      {cards}
+    </CardGrid>
+  );
+};
 
-// $FlowFixMe
-export default connect(mapStateToProps, mapActionsToProps)(EntityLinksContainer);
+export default EntityLinksContainer;
