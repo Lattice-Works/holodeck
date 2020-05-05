@@ -27,8 +27,7 @@ export default function initializeReduxStore(routerHistory :any) :Object {
   ];
 
   const stateSanitizer = (state) => state
-    .set('EDM', 'SANITIZED: remove stateSanitizer from enhancers to view.')
-    .set('ENTITY_SETS', 'SANITIZED: remove stateSanitizer from enhancers to view.');
+    .set('edm', 'SANITIZED: remove stateSanitizer from enhancers to view.');
 
   /* eslint-disable no-underscore-dangle */
   const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__

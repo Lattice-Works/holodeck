@@ -141,10 +141,11 @@
     "react/jsx-one-expression-per-line": "warn",
     "react/no-did-update-set-state": "warn",
     "react/prefer-stateless-function": "warn",
+    "react/prop-types": "warn",
     "react/require-default-props": [
       "error",
       {
-        "forbidDefaultForRequired": false,
+        "forbidDefaultForRequired": false
       }
     ],
     "react/sort-comp": "off",

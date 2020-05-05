@@ -2,6 +2,10 @@
  * @flow
  */
 
+import { isNonEmptyArray } from './LangUtils';
+
+type ValidatorFn = (value :any) => boolean;
+
 /*
  * https://github.com/mixer/uuid-validate
  * https://github.com/chriso/validator.js
@@ -12,31 +16,33 @@
  */
 const BASE_UUID_PATTERN :RegExp = /^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$/i;
 
+function validateNonEmptyArray(value :any[], validatorFn :ValidatorFn) :boolean {
+
+  if (!isNonEmptyArray(value)) {
+    return false;
+  }
+
+  for (let index = 0; index < value.length; index += 1) {
+    if (!validatorFn(value[index])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 function isValidUUID(value :any) :boolean {
 
   return BASE_UUID_PATTERN.test(value);
 }
 
-const isNotNumber = (number :string | number) :boolean => {
-  if (number === null || number === undefined) return true;
-  let formattedStr = `${number}`;
-  const suffix = formattedStr.match(/\.0*$/);
-  if (suffix) {
-    formattedStr = formattedStr.slice(0, suffix.index);
-  }
-  const floatVal = Number.parseFloat(formattedStr);
-  return Number.isNaN(floatVal) || floatVal.toString() !== formattedStr;
-};
+function isValidUUIDArray(uuids :any[]) :boolean {
 
-const isNotInteger = (number :string | number) :boolean => {
-  if (number === null || number === undefined) return true;
-  const numberStr = `${number}`;
-  const intVal = parseInt(numberStr, 10);
-  return Number.isNaN(intVal) || intVal.toString() !== numberStr;
-};
+  return validateNonEmptyArray(uuids, (id :any) => isValidUUID(id));
+}
 
 export {
-  isNotInteger,
-  isNotNumber,
   isValidUUID,
+  isValidUUIDArray,
+  validateNonEmptyArray,
 };

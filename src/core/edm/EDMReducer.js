@@ -12,13 +12,15 @@ import type {
 } from 'lattice';
 import type { SequenceAction } from 'redux-reqseq';
 
-import Logger from '../../utils/Logger';
 import {
   GET_EDM_TYPES,
   GET_ENTITY_SETS_WITH_METADATA,
   getEntityDataModelTypes,
   getEntitySetsWithMetaData,
 } from './EDMActions';
+
+import Logger from '../../utils/Logger';
+import { REQUEST_STATE } from '../redux/constants';
 
 const LOG :Logger = new Logger('EDMReducer');
 
@@ -29,9 +31,8 @@ const {
 } = Models;
 
 const INITIAL_STATE :Map<*, *> = fromJS({
-  [GET_EDM_TYPES]: {
-    requestState: RequestStates.STANDBY,
-  },
+  [GET_EDM_TYPES]: { [REQUEST_STATE]: RequestStates.STANDBY },
+  [GET_ENTITY_SETS_WITH_METADATA]: { [REQUEST_STATE]: RequestStates.STANDBY },
   entitySets: List(),
   entitySetsIndexMap: Map(),
   entitySetsMetaData: Map(),
@@ -49,7 +50,7 @@ export default function reducer(state :Map<*, *> = INITIAL_STATE, action :Object
       const seqAction :SequenceAction = action;
       return getEntityDataModelTypes.reducer(state, action, {
         REQUEST: () => state
-          .setIn([GET_EDM_TYPES, 'requestState'], RequestStates.PENDING)
+          .setIn([GET_EDM_TYPES, REQUEST_STATE], RequestStates.PENDING)
           .setIn([GET_EDM_TYPES, seqAction.id], seqAction),
         SUCCESS: () => {
 
@@ -59,20 +60,8 @@ export default function reducer(state :Map<*, *> = INITIAL_STATE, action :Object
 
           rawEntityTypes.forEach((et :EntityTypeObject, index :number) => {
             try {
-              const entityType = new EntityTypeBuilder()
-                .setBaseType(et.baseType)
-                .setCategory(et.category)
-                .setDescription(et.description)
-                .setId(et.id)
-                .setKey(et.key)
-                .setPropertyTags(et.propertyTags)
-                .setPropertyTypes(et.properties)
-                .setSchemas(et.schemas)
-                .setShards(et.shards)
-                .setTitle(et.title)
-                .setType(et.type)
-                .build();
-              entityTypes.push(entityType.toImmutable());
+              const entityType = (new EntityTypeBuilder(et)).build();
+              entityTypes.push(entityType);
               entityTypesIndexMap.set(entityType.id, index);
               entityTypesIndexMap.set(entityType.type, index);
             }
@@ -88,20 +77,8 @@ export default function reducer(state :Map<*, *> = INITIAL_STATE, action :Object
 
           rawPropertyTypes.forEach((pt :PropertyTypeObject, index :number) => {
             try {
-              const propertyType = new PropertyTypeBuilder()
-                .setAnalyzer(pt.analyzer)
-                .setDataType(pt.datatype)
-                .setDescription(pt.description)
-                .setEnumValues(pt.enumValues)
-                .setId(pt.id)
-                .setIndexType(pt.indexType)
-                .setMultiValued(pt.multiValued)
-                .setPii(pt.pii)
-                .setSchemas(pt.schemas)
-                .setTitle(pt.title)
-                .setType(pt.type)
-                .build();
-              propertyTypes.push(propertyType.toImmutable());
+              const propertyType = (new PropertyTypeBuilder(pt)).build();
+              propertyTypes.push(propertyType);
               propertyTypesIndexMap.set(propertyType.id, index);
               propertyTypesIndexMap.set(propertyType.type, index);
             }
@@ -116,14 +93,14 @@ export default function reducer(state :Map<*, *> = INITIAL_STATE, action :Object
             .set('entityTypesIndexMap', entityTypesIndexMap.asImmutable())
             .set('propertyTypes', propertyTypes.asImmutable())
             .set('propertyTypesIndexMap', propertyTypesIndexMap.asImmutable())
-            .setIn([GET_EDM_TYPES, 'requestState'], RequestStates.SUCCESS);
+            .setIn([GET_EDM_TYPES, REQUEST_STATE], RequestStates.SUCCESS);
         },
         FAILURE: () => state
           .set('entityTypes', List())
           .set('entityTypesIndexMap', Map())
           .set('propertyTypes', List())
           .set('propertyTypesIndexMap', Map())
-          .setIn([GET_EDM_TYPES, 'requestState'], RequestStates.FAILURE),
+          .setIn([GET_EDM_TYPES, REQUEST_STATE], RequestStates.FAILURE),
         FINALLY: () => state
           .deleteIn([GET_EDM_TYPES, seqAction.id]),
       });
@@ -133,7 +110,7 @@ export default function reducer(state :Map<*, *> = INITIAL_STATE, action :Object
       const seqAction :SequenceAction = action;
       return getEntitySetsWithMetaData.reducer(state, action, {
         REQUEST: () => state
-          .setIn([GET_ENTITY_SETS_WITH_METADATA, 'requestState'], RequestStates.PENDING)
+          .setIn([GET_ENTITY_SETS_WITH_METADATA, REQUEST_STATE], RequestStates.PENDING)
           .setIn([GET_ENTITY_SETS_WITH_METADATA, seqAction.id], seqAction),
         SUCCESS: () => {
 
@@ -143,18 +120,8 @@ export default function reducer(state :Map<*, *> = INITIAL_STATE, action :Object
 
           rawEntitySets.forEach((es :EntitySetObject, index :number) => {
             try {
-              const entitySet = new EntitySetBuilder()
-                .setContacts(es.contacts)
-                .setDescription(es.description)
-                .setEntityTypeId(es.entityTypeId)
-                .setFlags(es.flags)
-                .setId(es.id)
-                .setLinkedEntitySets(es.linkedEntitySets)
-                .setName(es.name)
-                .setOrganizationId(es.organizationId)
-                .setTitle(es.title)
-                .build();
-              entitySets.push(entitySet.toImmutable());
+              const entitySet = (new EntitySetBuilder(es)).build();
+              entitySets.push(entitySet);
               entitySetsIndexMap.set(entitySet.id, index);
               entitySetsIndexMap.set(entitySet.name, index);
             }
@@ -168,13 +135,13 @@ export default function reducer(state :Map<*, *> = INITIAL_STATE, action :Object
             .set('entitySets', entitySets.asImmutable())
             .set('entitySetsIndexMap', entitySetsIndexMap.asImmutable())
             .set('entitySetsMetaData', fromJS(seqAction.value.entitySetsMetaData))
-            .setIn([GET_ENTITY_SETS_WITH_METADATA, 'requestState'], RequestStates.SUCCESS);
+            .setIn([GET_ENTITY_SETS_WITH_METADATA, REQUEST_STATE], RequestStates.SUCCESS);
         },
         FAILURE: () => state
           .set('entitySets', List())
           .set('entitySetsIndexMap', Map())
           .set('entitySetsMetaData', Map())
-          .setIn([GET_ENTITY_SETS_WITH_METADATA, 'requestState'], RequestStates.FAILURE),
+          .setIn([GET_ENTITY_SETS_WITH_METADATA, REQUEST_STATE], RequestStates.FAILURE),
         FINALLY: () => state
           .deleteIn([GET_ENTITY_SETS_WITH_METADATA, seqAction.id]),
       });

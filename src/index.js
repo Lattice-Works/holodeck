@@ -7,12 +7,12 @@ import ReactDOM from 'react-dom';
 
 import LatticeAuth from 'lattice-auth';
 import { ConnectedRouter } from 'connected-react-router/immutable';
+import { Colors } from 'lattice-ui-kit';
 import { normalize } from 'polished';
 import { Provider } from 'react-redux';
 import { createGlobalStyle } from 'styled-components';
 
 import AppContainer from './containers/app/AppContainer';
-import CSSOverrides from './utils/CSSOverrides';
 import initializeReduxStore from './core/redux/ReduxStore';
 import initializeRouterHistory from './core/router/RouterHistory';
 import { ROOT } from './core/router/Routes';
@@ -22,10 +22,8 @@ declare var __AUTH0_CLIENT_ID__ :string;
 declare var __AUTH0_DOMAIN__ :string;
 declare var __ENV_DEV__ :boolean;
 
-const {
-  AuthRoute,
-  AuthUtils
-} = LatticeAuth;
+const { NEUTRALS } = Colors;
+const { AuthRoute, AuthUtils } = LatticeAuth;
 
 /* eslint-disable */
 const NormalizeCSS = createGlobalStyle`
@@ -33,11 +31,17 @@ const NormalizeCSS = createGlobalStyle`
 `;
 
 const GlobalStyle = createGlobalStyle`
+  @supports (font-variation-settings: normal) {
+    html {
+      font-family: 'Inter var', sans-serif;
+    }
+  }
+
   html,
   body {
-    background-color: #f8f8fb;
-    color: #135;
-    font-family: 'Open Sans', sans-serif;
+    background-color: ${NEUTRALS[7]};
+    color: ${NEUTRALS[0]};
+    font-family: 'Inter', sans-serif;
     height: 100%;
     line-height: 1.5;
     width: 100%;
@@ -61,8 +65,6 @@ const GlobalStyle = createGlobalStyle`
     height: 100%;
     width: 100%;
   }
-
-  ${CSSOverrides}
 `;
 /* eslint-enable */
 

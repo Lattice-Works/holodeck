@@ -2,8 +2,9 @@
  * @flow
  */
 
-import * as FullyQualifiedNames from './FullyQualifiedNames';
+// import * as PropertyTypes from './PropertyTypes';
+import PropertyTypes from './PropertyTypes';
 
 export {
-  FullyQualifiedNames,
+  PropertyTypes,
 };
