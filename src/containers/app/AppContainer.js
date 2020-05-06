@@ -11,7 +11,11 @@ import {
   AppContentWrapper,
   AppHeaderWrapper,
   AppNavigationWrapper,
+  LatticeLuxonUtils,
+  MuiPickersUtilsProvider,
   Spinner,
+  ThemeProvider,
+  lightTheme,
 } from 'lattice-ui-kit';
 import { useDispatch, useSelector } from 'react-redux';
 import { Redirect, Route, Switch } from 'react-router';
@@ -26,6 +30,7 @@ import { REDUCERS, REQUEST_STATE } from '../../core/redux/constants';
 import { Routes } from '../../core/router';
 import { GOOGLE_TRACKING_ID } from '../../core/tracking/google/GoogleAnalytics';
 import { LangUtils } from '../../utils';
+import { ExploreContainer } from '../explore';
 
 declare var gtag :?Function;
 
@@ -58,36 +63,40 @@ const AppContainer = () => {
   }
 
   return (
-    <AppContainerWrapper>
-      <AppHeaderWrapper appIcon={OpenLatticeLogo} appTitle="Holodeck" logout={logout} user={user}>
-        <AppNavigationWrapper>
-          <NavLink to={Routes.ROOT} />
-          <NavLink to={Routes.EXPLORE}>Explore</NavLink>
-        </AppNavigationWrapper>
-      </AppHeaderWrapper>
-      {
-        initAppRS === RequestStates.PENDING && (
-          <AppContentWrapper>
-            <Spinner size="2x" />
-          </AppContentWrapper>
-        )
-      }
-      {
-        initAppRS === RequestStates.FAILURE && (
-          <AppContentWrapper>
-            Sorry, the application failed to initialize. Please try refreshing the page, or contact support.
-          </AppContentWrapper>
-        )
-      }
-      {
-        initAppRS === RequestStates.SUCCESS && (
-          <Switch>
-            <Route path={Routes.EXPLORE} component={() => null} />
-            <Redirect to={Routes.EXPLORE} />
-          </Switch>
-        )
-      }
-    </AppContainerWrapper>
+    <ThemeProvider theme={lightTheme}>
+      <MuiPickersUtilsProvider utils={LatticeLuxonUtils}>
+        <AppContainerWrapper>
+          <AppHeaderWrapper appIcon={OpenLatticeLogo} appTitle="Holodeck" logout={logout} user={user}>
+            <AppNavigationWrapper>
+              <NavLink to={Routes.ROOT} />
+              <NavLink to={Routes.EXPLORE}>Explore</NavLink>
+            </AppNavigationWrapper>
+          </AppHeaderWrapper>
+          {
+            initAppRS === RequestStates.PENDING && (
+              <AppContentWrapper>
+                <Spinner size="2x" />
+              </AppContentWrapper>
+            )
+          }
+          {
+            initAppRS === RequestStates.FAILURE && (
+              <AppContentWrapper>
+                Sorry, the application failed to initialize. Please try refreshing the page, or contact support.
+              </AppContentWrapper>
+            )
+          }
+          {
+            initAppRS === RequestStates.SUCCESS && (
+              <Switch>
+                <Route path={Routes.EXPLORE} component={ExploreContainer} />
+                <Redirect to={Routes.EXPLORE} />
+              </Switch>
+            )
+          }
+        </AppContainerWrapper>
+      </MuiPickersUtilsProvider>
+    </ThemeProvider>
   );
 };
 

@@ -9,6 +9,7 @@ import { EntitySetsApiSagas } from 'lattice-sagas';
 import { AppSagas } from '../../containers/app';
 import { EDMSagas } from '../edm';
 import { RoutingSagas } from '../router';
+import { SearchSagas } from '../search';
 
 export default function* sagas() :Generator<*, *, *> {
 
@@ -33,5 +34,8 @@ export default function* sagas() :Generator<*, *, *> {
     // RoutingSagas
     fork(RoutingSagas.goToRootWatcher),
     fork(RoutingSagas.goToRouteWatcher),
+
+    // SearchSagas
+    fork(SearchSagas.searchEntitySetsWatcher),
   ]);
 }
