@@ -10,14 +10,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { List, Map } from 'immutable';
 import {
   AppContentWrapper,
-  Card,
   CardSegment,
   CardStack,
   Colors,
   PaginationToolbar,
   SearchButton,
   SearchInput,
-  Sizes,
   Spinner,
 } from 'lattice-ui-kit';
 import { useDispatch, useSelector } from 'react-redux';
@@ -26,24 +24,20 @@ import type { RequestState } from 'redux-reqseq';
 
 import useInput from './useInput';
 
+import { EntitySetSearchResultCard } from '../../components';
+import { useRequestState } from '../../components/hooks';
 import {
   HITS,
   REDUCERS,
-  REQUEST_STATE,
   TOTAL_HITS,
 } from '../../core/redux/constants';
-import { SEARCH_ENTITY_SETS, searchEntitySets } from '../../core/search/SearchActions';
+import { SearchActions } from '../../core/search';
 import { MAX_HITS } from '../../core/search/constants';
 import { LangUtils } from '../../utils';
 
 const { NEUTRALS, WHITE } = Colors;
-const { APP_CONTENT_WIDTH } = Sizes;
 const { SEARCH } = REDUCERS;
-
-const SearchContentWrapper = styled(AppContentWrapper)`
-  background-color: ${WHITE};
-  border-bottom: 1px solid ${NEUTRALS[5]};
-`;
+const { SEARCH_ENTITY_SETS, searchEntitySets } = SearchActions;
 
 const SearchGrid = styled.div`
   align-items: flex-start;
@@ -80,34 +74,21 @@ const NoSearchResults = styled.span`
   color: ${NEUTRALS[1]};
 `;
 
-const EntitySetTitle = styled.span`
-  font-size: 18px;
-  font-weight: normal;
-  margin: 0;
-  padding: 0;
-  word-break: break-word;
-`;
-
-const EntitySetDescription = styled.span`
-  color: ${NEUTRALS[1]};
-  font-size: 12px;
-  font-weight: normal;
-  margin-top: 8px;
-`;
-
 const ExploreContainer = () => {
 
   const dispatch = useDispatch();
   const [query, setQuery] = useInput('');
   const [page, setPage] = useState(0);
 
-  const searchRS :RequestState = useSelector((store) => store.getIn([SEARCH, SEARCH_ENTITY_SETS, REQUEST_STATE]));
-  const searchResults :List = useSelector((store) => store.getIn([SEARCH, SEARCH_ENTITY_SETS, HITS], List()));
-  const totalHits :number = useSelector((store) => store.getIn([SEARCH, SEARCH_ENTITY_SETS, TOTAL_HITS], 0));
+  const searchRS :?RequestState = useRequestState(SEARCH, SEARCH_ENTITY_SETS);
+  const searchResults :List = useSelector((s) => s.getIn([SEARCH, SEARCH_ENTITY_SETS, HITS], List()));
+  const totalHits :number = useSelector((s) => s.getIn([SEARCH, SEARCH_ENTITY_SETS, TOTAL_HITS], 0));
 
   const dispatchSearch = (start = 0) => {
     if (LangUtils.isNonEmptyString(query)) {
-      dispatch(searchEntitySets({ query, start }));
+      dispatch(
+        searchEntitySets({ query, start })
+      );
     }
   };
 
@@ -124,7 +105,7 @@ const ExploreContainer = () => {
 
   return (
     <>
-      <SearchContentWrapper contentWidth={APP_CONTENT_WIDTH}>
+      <AppContentWrapper bgColor={WHITE}>
         <form>
           <SearchGrid>
             <SearchInput onChange={setQuery} value={query} />
@@ -135,8 +116,8 @@ const ExploreContainer = () => {
                 type="submit" />
           </SearchGrid>
         </form>
-      </SearchContentWrapper>
-      <AppContentWrapper contentWidth={APP_CONTENT_WIDTH}>
+      </AppContentWrapper>
+      <AppContentWrapper>
         {
           searchRS === RequestStates.PENDING && (
             <Spinner size="2x" />
@@ -168,20 +149,10 @@ const ExploreContainer = () => {
                   rowsPerPage={MAX_HITS} />
               <SearchResultCardStack>
                 {
-                  searchResults.map((result :Map) => (
-                    <Card
-                        id={result.getIn(['entitySet', 'id'])}
-                        key={result.getIn(['entitySet', 'id'])}
-                        onClick={() => {}}>
-                      <CardSegment vertical>
-                        <EntitySetTitle>
-                          {result.getIn(['entitySet', 'title'])}
-                        </EntitySetTitle>
-                        <EntitySetDescription>
-                          {result.getIn(['entitySet', 'description'])}
-                        </EntitySetDescription>
-                      </CardSegment>
-                    </Card>
+                  searchResults.map((searchResult :Map) => (
+                    <EntitySetSearchResultCard
+                        key={searchResult.getIn(['entitySet', 'id'])}
+                        searchResult={searchResult} />
                   ))
                 }
               </SearchResultCardStack>

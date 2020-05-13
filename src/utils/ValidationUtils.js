@@ -2,9 +2,7 @@
  * @flow
  */
 
-import { isNonEmptyArray } from './LangUtils';
-
-type ValidatorFn = (value :any) => boolean;
+import isString from 'lodash/isString';
 
 /*
  * https://github.com/mixer/uuid-validate
@@ -16,33 +14,11 @@ type ValidatorFn = (value :any) => boolean;
  */
 const BASE_UUID_PATTERN :RegExp = /^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$/i;
 
-function validateNonEmptyArray(value :any[], validatorFn :ValidatorFn) :boolean {
+function isValidUUID(value :mixed) :boolean %checks {
 
-  if (!isNonEmptyArray(value)) {
-    return false;
-  }
-
-  for (let index = 0; index < value.length; index += 1) {
-    if (!validatorFn(value[index])) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-function isValidUUID(value :any) :boolean {
-
-  return BASE_UUID_PATTERN.test(value);
-}
-
-function isValidUUIDArray(uuids :any[]) :boolean {
-
-  return validateNonEmptyArray(uuids, (id :any) => isValidUUID(id));
+  return isString(value) && BASE_UUID_PATTERN.test(value);
 }
 
 export {
   isValidUUID,
-  isValidUUIDArray,
-  validateNonEmptyArray,
 };

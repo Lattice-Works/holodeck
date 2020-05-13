@@ -1,5 +1,5 @@
-// flow-typed signature: a0fbdb22ab391eceafc1d5643528e257
-// flow-typed version: dd2428a21d/jest_v25.x.x/flow_>=v0.104.x
+// flow-typed signature: 87510e2b267ef11bf9268e18a6c80045
+// flow-typed version: dc072f12af/jest_v25.x.x/flow_>=v0.104.x
 
 type JestMockFn<TArguments: $ReadOnlyArray<*>, TReturn> = {
  (...args: TArguments): TReturn,
@@ -227,6 +227,8 @@ type DomTestingLibraryType = {
   * @deprecated
   */
  toBeInTheDOM(container?: HTMLElement): void,
+
+ // 4.x
  toBeInTheDocument(): void,
  toBeVisible(): void,
  toBeEmpty(): void,
@@ -241,12 +243,16 @@ type DomTestingLibraryType = {
  toHaveClass(...classNames: string[]): void,
  toHaveFocus(): void,
  toHaveFormValues(expectedValues: { [name: string]: any, ... }): void,
- toHaveStyle(css: string): void,
+ toHaveStyle(css: string | { [name: string]: any, ... }): void, 
  toHaveTextContent(
    text: string | RegExp,
-   options?: { normalizeWhitespace: boolean, ... }
+   options?: {| normalizeWhitespace: boolean |}
  ): void,
  toHaveValue(value?: string | string[] | number): void,
+
+ // 5.x
+ toHaveDisplayValue(value: string | string[]): void,
+ toBeChecked(): void,
  ...
 };
 

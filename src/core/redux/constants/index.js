@@ -4,11 +4,13 @@
 
 const APP :'app' = 'app';
 const EDM :'edm' = 'edm';
+const ENTITY_SET :'entitySet' = 'entitySet';
 const SEARCH :'search' = 'search';
 
 const REDUCERS = {
   APP,
   EDM,
+  ENTITY_SET,
   SEARCH,
 };
 
