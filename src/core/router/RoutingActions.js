@@ -7,7 +7,7 @@ import * as Routes from './Routes';
 declare type RoutingAction = {
   type :string;
   route :string;
-  state ?:Object;
+  state :Object;
 };
 
 declare type GoToRoot = () => RoutingAction;

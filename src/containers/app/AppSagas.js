@@ -15,11 +15,11 @@ import { INITIALIZE_APPLICATION, initializeApplication } from './AppActions';
 import Logger from '../../utils/Logger';
 import {
   getEntityDataModelTypes,
-  getEntitySetsWithMetaData,
+  // getEntitySetsWithMetaData,
 } from '../../core/edm/EDMActions';
 import {
   getEntityDataModelTypesWorker,
-  getEntitySetsWithMetaDataWorker,
+  // getEntitySetsWithMetaDataWorker,
 } from '../../core/edm/EDMSagas';
 
 const LOG = new Logger('AppSagas');
@@ -36,10 +36,10 @@ function* initializeApplicationWorker(action :SequenceAction) :Generator<*, *, *
     yield put(initializeApplication.request(action.id));
     const responses :Object[] = yield all([
       call(getEntityDataModelTypesWorker, getEntityDataModelTypes()),
-      call(getEntitySetsWithMetaDataWorker, getEntitySetsWithMetaData()),
+      // call(getEntitySetsWithMetaDataWorker, getEntitySetsWithMetaData()),
     ]);
     if (responses[0].error) throw responses[0].error;
-    if (responses[1].error) throw responses[1].error;
+    // if (responses[1].error) throw responses[1].error;
     yield put(initializeApplication.success(action.id));
   }
   catch (error) {
