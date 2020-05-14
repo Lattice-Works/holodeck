@@ -8,18 +8,16 @@ import {
   put,
   takeEvery,
 } from '@redux-saga/core/effects';
+import { Logger } from 'lattice-utils';
 import type { SequenceAction } from 'redux-reqseq';
 
 import { INITIALIZE_APPLICATION, initializeApplication } from './AppActions';
 
-import Logger from '../../utils/Logger';
 import {
   getEntityDataModelTypes,
-  // getEntitySetsWithMetaData,
 } from '../../core/edm/EDMActions';
 import {
   getEntityDataModelTypesWorker,
-  // getEntitySetsWithMetaDataWorker,
 } from '../../core/edm/EDMSagas';
 
 const LOG = new Logger('AppSagas');

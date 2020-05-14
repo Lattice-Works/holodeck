@@ -4,14 +4,13 @@
 
 import { put, takeEvery } from '@redux-saga/core/effects';
 import { push } from 'connected-react-router';
+import { Logger } from 'lattice-utils';
 
-import Logger from '../../utils/Logger';
 import {
   GO_TO_ROOT,
   GO_TO_ROUTE,
   routingFailure,
 } from './RoutingActions';
-
 import type { RoutingAction } from './RoutingActions';
 
 const LOG :Logger = new Logger('RoutingSagas');

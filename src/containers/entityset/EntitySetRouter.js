@@ -12,6 +12,7 @@ import {
   Colors,
   Spinner,
 } from 'lattice-ui-kit';
+import { Logger, ValidationUtils, useRequestState } from 'lattice-utils';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Redirect,
@@ -29,10 +30,8 @@ import {
   EntitySetSearchContainer,
 } from './components';
 
-import { useRequestState } from '../../components/hooks';
 import { REDUCERS } from '../../core/redux/constants';
 import { Routes } from '../../core/router';
-import { Logger, ValidationUtils } from '../../utils';
 
 const LOG :Logger = new Logger('EntitySetRouter');
 
@@ -40,6 +39,7 @@ const { WHITE } = Colors;
 const { ENTITY_SET } = REDUCERS;
 const { EntitySet } = Models;
 const { GET_ENTITY_SET } = EntitySetsApiActions;
+const { isValidUUID } = ValidationUtils;
 
 type EntitySetParams = {
   entitySetId :?UUID;
@@ -51,7 +51,7 @@ const EntitySetRouter = () => {
   const { entitySetId } :EntitySetParams = useParams();
 
   const entitySet :?EntitySet = useSelector((s) => s.getIn([ENTITY_SET, 'entitySet']));
-  const getEntitySetRS :?RequestState = useRequestState(ENTITY_SET, GET_ENTITY_SET);
+  const getEntitySetRS :?RequestState = useRequestState([ENTITY_SET, GET_ENTITY_SET]);
 
   useEffect(() => {
     if (!entitySet) {
@@ -59,7 +59,8 @@ const EntitySetRouter = () => {
     }
   }, [dispatch, entitySet, entitySetId]);
 
-  if (!entitySetId || !ValidationUtils.isValidUUID(entitySetId)) {
+  // UGH FLOW! >[
+  if (!entitySetId || !isValidUUID(entitySetId)) {
     LOG.error('invalid entity set id', entitySetId);
     return (
       <Redirect to={Routes.ROOT} />

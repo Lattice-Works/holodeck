@@ -18,14 +18,12 @@ import {
   SearchInput,
   Spinner,
 } from 'lattice-ui-kit';
+import { LangUtils, useInput, useRequestState } from 'lattice-utils';
 import { useDispatch, useSelector } from 'react-redux';
 import { RequestStates } from 'redux-reqseq';
 import type { RequestState } from 'redux-reqseq';
 
-import useInput from './useInput';
-
 import { EntitySetSearchResultCard } from '../../components';
-import { useRequestState } from '../../components/hooks';
 import {
   HITS,
   REDUCERS,
@@ -33,11 +31,11 @@ import {
 } from '../../core/redux/constants';
 import { SearchActions } from '../../core/search';
 import { MAX_HITS } from '../../core/search/constants';
-import { LangUtils } from '../../utils';
 
 const { NEUTRALS, WHITE } = Colors;
 const { SEARCH } = REDUCERS;
 const { SEARCH_ENTITY_SETS, searchEntitySets } = SearchActions;
+const { isNonEmptyString } = LangUtils;
 
 const SearchGrid = styled.div`
   align-items: flex-start;
@@ -80,12 +78,12 @@ const ExploreContainer = () => {
   const [query, setQuery] = useInput('');
   const [page, setPage] = useState(0);
 
-  const searchRS :?RequestState = useRequestState(SEARCH, SEARCH_ENTITY_SETS);
+  const searchRS :?RequestState = useRequestState([SEARCH, SEARCH_ENTITY_SETS]);
   const searchResults :List = useSelector((s) => s.getIn([SEARCH, SEARCH_ENTITY_SETS, HITS], List()));
   const totalHits :number = useSelector((s) => s.getIn([SEARCH, SEARCH_ENTITY_SETS, TOTAL_HITS], 0));
 
   const dispatchSearch = (start = 0) => {
-    if (LangUtils.isNonEmptyString(query)) {
+    if (isNonEmptyString(query)) {
       dispatch(
         searchEntitySets({ query, start })
       );

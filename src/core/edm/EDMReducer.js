@@ -4,6 +4,7 @@
 
 import { List, Map, fromJS } from 'immutable';
 import { Models } from 'lattice';
+import { Logger } from 'lattice-utils';
 import { RequestStates } from 'redux-reqseq';
 import type {
   EntitySetObject,
@@ -19,7 +20,6 @@ import {
   getEntitySetsWithMetaData,
 } from './EDMActions';
 
-import Logger from '../../utils/Logger';
 import { REQUEST_STATE } from '../redux/constants';
 
 const LOG :Logger = new Logger('EDMReducer');

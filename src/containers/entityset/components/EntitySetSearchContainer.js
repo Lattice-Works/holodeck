@@ -9,12 +9,11 @@ import styled from 'styled-components';
 import {
   AppContentWrapper,
   Card,
-  // CardSegment,
   SearchButton,
   SearchInput,
 } from 'lattice-ui-kit';
+import { useInput } from 'lattice-utils';
 
-import useInput from '../../explore/useInput';
 import { CardSegmentNoBorder } from '../../../components';
 
 // const { EntitySet } = Models;
