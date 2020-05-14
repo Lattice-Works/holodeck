@@ -2,7 +2,7 @@
  * @flow
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 
 import styled from 'styled-components';
 import { faEmptySet } from '@fortawesome/pro-light-svg-icons';
@@ -26,6 +26,8 @@ import type { RequestState } from 'redux-reqseq';
 import { EntitySetSearchResultCard } from '../../components';
 import {
   HITS,
+  PAGE,
+  QUERY,
   REDUCERS,
   TOTAL_HITS,
 } from '../../core/redux/constants';
@@ -75,17 +77,19 @@ const NoSearchResults = styled.span`
 const ExploreContainer = () => {
 
   const dispatch = useDispatch();
-  const [query, setQuery] = useInput('');
-  const [page, setPage] = useState(0);
-
+  const searchPage :number = useSelector((s) => s.getIn([SEARCH, SEARCH_ENTITY_SETS, PAGE], 0));
+  const searchQuery :string = useSelector((s) => s.getIn([SEARCH, SEARCH_ENTITY_SETS, QUERY], ''));
   const searchRS :?RequestState = useRequestState([SEARCH, SEARCH_ENTITY_SETS]);
   const searchResults :List = useSelector((s) => s.getIn([SEARCH, SEARCH_ENTITY_SETS, HITS], List()));
   const totalHits :number = useSelector((s) => s.getIn([SEARCH, SEARCH_ENTITY_SETS, TOTAL_HITS], 0));
 
-  const dispatchSearch = (start = 0) => {
+  const [query, setQuery] = useInput(searchQuery);
+
+  const dispatchSearch = (params ?:{ page :number, start :number } = {}) => {
     if (isNonEmptyString(query)) {
+      const { page = 0, start = 0 } = params;
       dispatch(
-        searchEntitySets({ query, start })
+        searchEntitySets({ page, query, start })
       );
     }
   };
@@ -93,12 +97,10 @@ const ExploreContainer = () => {
   const handleOnClickSearch = (event :SyntheticEvent<HTMLButtonElement>) => {
     event.preventDefault();
     dispatchSearch();
-    setPage(0);
   };
 
-  const handleOnPageChange = ({ page: newPage, start }) => {
-    dispatchSearch(start);
-    setPage(newPage);
+  const handleOnPageChange = ({ page, start }) => {
+    dispatchSearch({ page, start });
   };
 
   return (
@@ -141,7 +143,7 @@ const ExploreContainer = () => {
           searchRS === RequestStates.SUCCESS && !searchResults.isEmpty() && (
             <>
               <PaginationToolbar
-                  page={page}
+                  page={searchPage}
                   count={totalHits}
                   onPageChange={handleOnPageChange}
                   rowsPerPage={MAX_HITS} />
@@ -155,7 +157,7 @@ const ExploreContainer = () => {
                 }
               </SearchResultCardStack>
               <PaginationToolbar
-                  page={page}
+                  page={searchPage}
                   count={totalHits}
                   onPageChange={handleOnPageChange}
                   rowsPerPage={MAX_HITS} />

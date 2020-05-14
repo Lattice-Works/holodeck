@@ -8,13 +8,21 @@ import type { SequenceAction } from 'redux-reqseq';
 
 import { SEARCH_ENTITY_SETS, searchEntitySets } from './SearchActions';
 
-import { HITS, REQUEST_STATE, TOTAL_HITS } from '../redux/constants';
+import {
+  HITS,
+  PAGE,
+  QUERY,
+  REQUEST_STATE,
+  TOTAL_HITS,
+} from '../redux/constants';
 
 const INITIAL_STATE :Map = fromJS({
   [SEARCH_ENTITY_SETS]: {
     [REQUEST_STATE]: RequestStates.STANDBY,
-    hits: List(),
-    totalHits: 0,
+    [HITS]: List(),
+    [PAGE]: 0,
+    [QUERY]: '',
+    [TOTAL_HITS]: 0,
   },
 });
 
@@ -28,10 +36,19 @@ export default function reducer(state :Map = INITIAL_STATE, action :Object) {
         REQUEST: () => state
           .setIn([SEARCH_ENTITY_SETS, REQUEST_STATE], RequestStates.PENDING)
           .setIn([SEARCH_ENTITY_SETS, seqAction.id], seqAction),
-        SUCCESS: () => state
-          .setIn([SEARCH_ENTITY_SETS, REQUEST_STATE], RequestStates.SUCCESS)
-          .setIn([SEARCH_ENTITY_SETS, HITS], seqAction.value[HITS])
-          .setIn([SEARCH_ENTITY_SETS, TOTAL_HITS], seqAction.value[TOTAL_HITS]),
+        SUCCESS: () => {
+          const storedSeqAction :SequenceAction = state.getIn([SEARCH_ENTITY_SETS, seqAction.id]);
+          if (storedSeqAction) {
+            const { page, query } = storedSeqAction.value;
+            return state
+              .setIn([SEARCH_ENTITY_SETS, REQUEST_STATE], RequestStates.SUCCESS)
+              .setIn([SEARCH_ENTITY_SETS, PAGE], page)
+              .setIn([SEARCH_ENTITY_SETS, QUERY], query)
+              .setIn([SEARCH_ENTITY_SETS, HITS], seqAction.value[HITS])
+              .setIn([SEARCH_ENTITY_SETS, TOTAL_HITS], seqAction.value[TOTAL_HITS]);
+          }
+          return state;
+        },
         FAILURE: () => state
           .set(HITS, List())
           .set(TOTAL_HITS, 0)
