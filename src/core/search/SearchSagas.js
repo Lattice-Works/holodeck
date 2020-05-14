@@ -5,6 +5,7 @@
 import { call, put, takeEvery } from '@redux-saga/core/effects';
 import { fromJS } from 'immutable';
 import { SearchApiActions, SearchApiSagas } from 'lattice-sagas';
+import { Logger } from 'lattice-utils';
 import type { Saga } from '@redux-saga/core';
 import type { WorkerResponse } from 'lattice-sagas';
 import type { SequenceAction } from 'redux-reqseq';
@@ -14,8 +15,6 @@ import {
   searchEntitySets,
 } from './SearchActions';
 import { MAX_HITS } from './constants';
-
-import Logger from '../../utils/Logger';
 
 const LOG = new Logger('SearchSagas');
 

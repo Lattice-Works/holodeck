@@ -4,17 +4,17 @@
 
 import { Map } from 'immutable';
 import { Models } from 'lattice';
+import { ValidationUtils } from 'lattice-utils';
 import { useSelector } from 'react-redux';
 
-import { ValidationUtils } from '../../utils';
-
+const { isValidUUID } = ValidationUtils;
 const { FQN, EntityType, PropertyType } = Models;
 
 const useEntityTypePropertyTypes = (idOrFQN :?UUID | FQN) => {
 
   const propertyTypes :PropertyType[] = useSelector((state :Map) => {
 
-    if (ValidationUtils.isValidUUID(idOrFQN) || FQN.isValid(idOrFQN)) {
+    if (isValidUUID(idOrFQN) || FQN.isValid(idOrFQN)) {
 
       const entityTypeIndex :?number = state.getIn(['edm', 'entityTypesIndexMap', idOrFQN], -1);
       if (entityTypeIndex === -1) {

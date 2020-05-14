@@ -17,6 +17,7 @@ import {
   ThemeProvider,
   lightTheme,
 } from 'lattice-ui-kit';
+import { LangUtils, useRequestState } from 'lattice-utils';
 import { useDispatch } from 'react-redux';
 import { Redirect, Route, Switch } from 'react-router';
 import { NavLink } from 'react-router-dom';
@@ -26,15 +27,15 @@ import type { RequestState } from 'redux-reqseq';
 import { INITIALIZE_APPLICATION, initializeApplication } from './AppActions';
 
 import OpenLatticeLogo from '../../assets/images/ol-icon.png';
-import { useRequestState } from '../../components/hooks';
 import { REDUCERS } from '../../core/redux/constants';
 import { Routes } from '../../core/router';
 import { GOOGLE_TRACKING_ID } from '../../core/tracking/google/GoogleAnalytics';
-import { LangUtils } from '../../utils';
 import { EntitySetRouter } from '../entityset';
 import { ExploreContainer } from '../explore';
 
 declare var gtag :?Function;
+
+const { isNonEmptyString } = LangUtils;
 
 const AppContainer = () => {
 
@@ -51,14 +52,14 @@ const AppContainer = () => {
     dispatch(initializeApplication());
   }, [dispatch]);
 
-  const initAppRS :?RequestState = useRequestState(REDUCERS.APP, INITIALIZE_APPLICATION);
+  const initAppRS :?RequestState = useRequestState([REDUCERS.APP, INITIALIZE_APPLICATION]);
 
   const userInfo = AuthUtils.getUserInfo() || {};
   let user :?string = null;
-  if (LangUtils.isNonEmptyString(userInfo.name)) {
+  if (isNonEmptyString(userInfo.name)) {
     user = userInfo.name;
   }
-  else if (LangUtils.isNonEmptyString(userInfo.email)) {
+  else if (isNonEmptyString(userInfo.email)) {
     user = userInfo.email;
   }
 

@@ -32,7 +32,7 @@ export default function initializeReduxStore(routerHistory :any) :Object {
   /* eslint-disable no-underscore-dangle */
   const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
     ? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({
-      stateSanitizer,
+      // stateSanitizer,
       maxAge: 100
     })
     : compose;
