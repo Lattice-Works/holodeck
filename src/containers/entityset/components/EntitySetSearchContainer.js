@@ -24,6 +24,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RequestStates } from 'redux-reqseq';
 import type { RequestState } from 'redux-reqseq';
 
+import EntityDataRow from './EntityDataRow';
+
 import { ErrorCardSegment } from '../../../components';
 import { EDMUtils } from '../../../core/edm';
 import {
@@ -100,6 +102,10 @@ const TableCardSegment = styled(CardSegment)`
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+
+  th {
+    padding: 15px 10px;
+  }
 `;
 
 const SpinnerWrapper = styled.div`
@@ -166,6 +172,12 @@ const EntitySetSearchContainer = ({ entitySet } :Props) => {
     dispatchSearch({ page, start });
   };
 
+  const components = {
+    Row: ({ data, headers } :Object) => (
+      <EntityDataRow data={data} entitySetId={(entitySet.id :any)} headers={headers} />
+    )
+  };
+
   return (
     <SearchContentWrapper>
       <SearchCard>
@@ -204,6 +216,7 @@ const EntitySetSearchContainer = ({ entitySet } :Props) => {
                 rowsPerPage={MAX_HITS_10} />
           </PagingWrapper>
           <Table
+              components={components}
               data={tableData}
               headers={tableHeaders} />
           <PagingWrapper>
