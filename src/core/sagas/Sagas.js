@@ -36,6 +36,7 @@ export default function* sagas() :Generator<*, *, *> {
     fork(RoutingSagas.goToRouteWatcher),
 
     // SearchSagas
+    fork(SearchSagas.searchEntitySetWatcher),
     fork(SearchSagas.searchEntitySetsWatcher),
   ]);
 }

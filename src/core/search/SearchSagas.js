@@ -11,15 +11,71 @@ import type { WorkerResponse } from 'lattice-sagas';
 import type { SequenceAction } from 'redux-reqseq';
 
 import {
+  SEARCH_ENTITY_SET,
   SEARCH_ENTITY_SETS,
+  searchEntitySet,
   searchEntitySets,
 } from './SearchActions';
-import { MAX_HITS } from './constants';
+import { MAX_HITS_10, MAX_HITS_20 } from './constants';
 
 const LOG = new Logger('SearchSagas');
 
-const { searchEntitySetMetaData } = SearchApiActions;
-const { searchEntitySetMetaDataWorker } = SearchApiSagas;
+const { searchEntitySetData, searchEntitySetMetaData } = SearchApiActions;
+const { searchEntitySetDataWorker, searchEntitySetMetaDataWorker } = SearchApiSagas;
+
+/*
+ *
+ * SearchActions.searchEntitySet
+ *
+ */
+
+function* searchEntitySetWorker(action :SequenceAction) :Saga<*> {
+
+  try {
+    yield put(searchEntitySet.request(action.id, action.value));
+
+    const {
+      entitySetId,
+      query,
+      maxHits = MAX_HITS_10,
+      start = 0,
+    } = action.value;
+
+    const searchConstraints = {
+      maxHits,
+      start,
+      constraints: [{
+        constraints: [{
+          searchTerm: query,
+        }],
+      }],
+      entitySetIds: [entitySetId],
+    };
+
+    const response :WorkerResponse = yield call(
+      searchEntitySetDataWorker,
+      searchEntitySetData(searchConstraints),
+    );
+
+    if (response.error) throw response.error;
+
+    const hits = fromJS(response.data.hits || []);
+    const totalHits = response.data.numHits || 0;
+    yield put(searchEntitySet.success(action.id, { hits, totalHits }));
+  }
+  catch (error) {
+    LOG.error(action.type, error);
+    yield put(searchEntitySet.failure(action.id, error));
+  }
+  finally {
+    yield put(searchEntitySet.finally(action.id));
+  }
+}
+
+function* searchEntitySetWatcher() :Saga<*> {
+
+  yield takeEvery(SEARCH_ENTITY_SET, searchEntitySetWorker);
+}
 
 /*
  *
@@ -32,7 +88,11 @@ function* searchEntitySetsWorker(action :SequenceAction) :Saga<*> {
   try {
     yield put(searchEntitySets.request(action.id, action.value));
 
-    const { maxHits = MAX_HITS, query, start = 0 } = action.value;
+    const {
+      query,
+      maxHits = MAX_HITS_20,
+      start = 0,
+    } = action.value;
     const response :WorkerResponse = yield call(
       searchEntitySetMetaDataWorker,
       searchEntitySetMetaData({
@@ -63,6 +123,8 @@ function* searchEntitySetsWatcher() :Saga<*> {
 }
 
 export {
+  searchEntitySetWatcher,
+  searchEntitySetWorker,
   searchEntitySetsWatcher,
   searchEntitySetsWorker,
 };

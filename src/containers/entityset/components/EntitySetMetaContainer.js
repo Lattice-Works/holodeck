@@ -38,11 +38,6 @@ const TABLE_HEADERS = [
     key: 'datatype',
     label: 'DATA TYPE',
   },
-  {
-    key: 'Visibility',
-    label: 'VISIBILITY',
-    sortable: false,
-  },
 ];
 
 type Props = {

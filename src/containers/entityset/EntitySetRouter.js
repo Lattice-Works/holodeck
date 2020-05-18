@@ -31,15 +31,18 @@ import {
 } from './components';
 
 import { REDUCERS } from '../../core/redux/constants';
+import { SearchActions } from '../../core/search';
 import { Routes } from '../../core/router';
 
 const LOG :Logger = new Logger('EntitySetRouter');
 
 const { WHITE } = Colors;
-const { ENTITY_SET } = REDUCERS;
 const { EntitySet } = Models;
 const { GET_ENTITY_SET } = EntitySetsApiActions;
 const { isValidUUID } = ValidationUtils;
+
+const { ENTITY_SET } = REDUCERS;
+const { SEARCH_ENTITY_SET, clearSearchState } = SearchActions;
 
 type EntitySetParams = {
   entitySetId :?UUID;
@@ -52,6 +55,10 @@ const EntitySetRouter = () => {
 
   const entitySet :?EntitySet = useSelector((s) => s.getIn([ENTITY_SET, 'entitySet']));
   const getEntitySetRS :?RequestState = useRequestState([ENTITY_SET, GET_ENTITY_SET]);
+
+  useEffect(() => () => {
+    dispatch(clearSearchState(SEARCH_ENTITY_SET));
+  }, [dispatch]);
 
   useEffect(() => {
     if (!entitySet) {
