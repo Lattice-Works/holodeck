@@ -68,7 +68,7 @@ const AppContainer = () => {
     <ThemeProvider theme={lightTheme}>
       <MuiPickersUtilsProvider utils={LatticeLuxonUtils}>
         <AppContainerWrapper>
-          <AppHeaderWrapper appIcon={OpenLatticeLogo} appTitle="Holodeck" logout={logout} user={user}>
+          <AppHeaderWrapper appIcon={OpenLatticeLogo} appTitle="Regallery" logout={logout} user={user}>
             <AppNavigationWrapper>
               <NavLink to={Routes.ROOT} />
               <NavLink to={Routes.EXPLORE}>Explore</NavLink>
