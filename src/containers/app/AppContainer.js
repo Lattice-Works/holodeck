@@ -25,6 +25,7 @@ import { RequestStates } from 'redux-reqseq';
 import type { RequestState } from 'redux-reqseq';
 
 import { INITIALIZE_APPLICATION, initializeApplication } from './AppActions';
+import { ErrorCardSegment } from '../../components';
 
 import OpenLatticeLogo from '../../assets/images/ol-icon.png';
 import { REDUCERS } from '../../core/redux/constants';
@@ -67,7 +68,7 @@ const AppContainer = () => {
     <ThemeProvider theme={lightTheme}>
       <MuiPickersUtilsProvider utils={LatticeLuxonUtils}>
         <AppContainerWrapper>
-          <AppHeaderWrapper appIcon={OpenLatticeLogo} appTitle="Holodeck" logout={logout} user={user}>
+          <AppHeaderWrapper appIcon={OpenLatticeLogo} appTitle="Regallery" logout={logout} user={user}>
             <AppNavigationWrapper>
               <NavLink to={Routes.ROOT} />
               <NavLink to={Routes.EXPLORE}>Explore</NavLink>
@@ -83,7 +84,9 @@ const AppContainer = () => {
           {
             initAppRS === RequestStates.FAILURE && (
               <AppContentWrapper>
-                Sorry, the application failed to initialize. Please try refreshing the page, or contact support.
+                <ErrorCardSegment>
+                  Sorry, the application failed to initialize. Please try refreshing the page, or contact support.
+                </ErrorCardSegment>
               </AppContentWrapper>
             )
           }

@@ -2,10 +2,6 @@
  * @flow
  */
 
-import CardSegmentNoBorder from './CardSegmentNoBorder';
-import EntitySetSearchResultCard from './EntitySetSearchResultCard';
-
-export {
-  CardSegmentNoBorder,
-  EntitySetSearchResultCard,
-};
+export { default as CardSegmentNoBorder } from './CardSegmentNoBorder';
+export { default as EntitySetSearchResultCard } from './EntitySetSearchResultCard';
+export { default as ErrorCardSegment } from './ErrorCardSegment';

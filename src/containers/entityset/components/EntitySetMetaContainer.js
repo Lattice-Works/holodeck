@@ -16,6 +16,7 @@ import {
 import { EDMUtils } from '../../../core/edm';
 
 const { EntitySet, PropertyType } = Models;
+const { useEntityTypePropertyTypes } = EDMUtils;
 
 const ScrollableCard = styled(Card)`
   overflow: scroll;
@@ -26,23 +27,9 @@ const FixedWidthCardSegment = styled(CardSegment)`
 `;
 
 const TABLE_HEADERS = [
-  {
-    key: 'title',
-    label: 'TITLE',
-  },
-  {
-    key: 'description',
-    label: 'DESCRIPTION',
-  },
-  {
-    key: 'datatype',
-    label: 'DATA TYPE',
-  },
-  {
-    key: 'Visibility',
-    label: 'VISIBILITY',
-    sortable: false,
-  },
+  { key: 'title', label: 'TITLE' },
+  { key: 'description', label: 'DESCRIPTION' },
+  { key: 'datatype', label: 'DATA TYPE' },
 ];
 
 type Props = {
@@ -51,7 +38,7 @@ type Props = {
 
 const EntitySetMetaContainer = ({ entitySet } :Props) => {
 
-  const propertyTypes :PropertyType[] = EDMUtils.useEntityTypePropertyTypes(entitySet.entityTypeId);
+  const propertyTypes :PropertyType[] = useEntityTypePropertyTypes(entitySet.entityTypeId);
 
   return (
     <AppContentWrapper>

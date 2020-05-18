@@ -8,8 +8,9 @@ import styled from 'styled-components';
 import { Map } from 'immutable';
 import { Models } from 'lattice';
 import { Card, CardSegment, Colors } from 'lattice-ui-kit';
+import { useGoToRoute } from 'lattice-utils';
 
-import { Routes, useGoToRoute } from '../../core/router';
+import { Routes } from '../../core/router';
 
 const { NEUTRALS } = Colors;
 const { EntitySet, EntitySetBuilder } = Models;

@@ -21,8 +21,11 @@ const LOGIN :'/login' = '/login';
 const ENTITY_SET :'/entitySet/:entitySetId' = `/entitySet/${ESID_PARAM}`;
 // $FlowFixMe - ignoring flow because I prefer the code hints to show the value
 const ENTITY_SET_SEARCH :'/entitySet/:entitySetId/search' = `${ENTITY_SET}/search`;
+// $FlowFixMe - ignoring flow because I prefer the code hints to show the value
+const ENTITY_DATA :'/entitySet/:entitySetId/search/:entityKeyId' = `${ENTITY_SET_SEARCH}/${EKID_PARAM}`;
 
 export {
+  ENTITY_DATA,
   ENTITY_SET,
   ENTITY_SET_SEARCH,
   EXPLORE,

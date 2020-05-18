@@ -4,7 +4,7 @@
 
 import { all, fork } from '@redux-saga/core/effects';
 import { AuthSagas } from 'lattice-auth';
-import { EntitySetsApiSagas } from 'lattice-sagas';
+import { DataApiSagas, EntitySetsApiSagas } from 'lattice-sagas';
 
 import { AppSagas } from '../../containers/app';
 import { EDMSagas } from '../edm';
@@ -22,6 +22,7 @@ export default function* sagas() :Generator<*, *, *> {
     fork(AuthSagas.watchLogout),
 
     // "lattice-sagas" sagas
+    fork(DataApiSagas.getEntityDataWatcher),
     fork(EntitySetsApiSagas.getEntitySetWatcher),
 
     // AppSagas
@@ -36,6 +37,7 @@ export default function* sagas() :Generator<*, *, *> {
     fork(RoutingSagas.goToRouteWatcher),
 
     // SearchSagas
+    fork(SearchSagas.searchEntitySetWatcher),
     fork(SearchSagas.searchEntitySetsWatcher),
   ]);
 }

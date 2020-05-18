@@ -2,12 +2,7 @@
  * @flow
  */
 
-import EntitySetMetaContainer from './EntitySetMetaContainer';
-import EntitySetOverviewContainer from './EntitySetOverviewContainer';
-import EntitySetSearchContainer from './EntitySetSearchContainer';
-
-export {
-  EntitySetMetaContainer,
-  EntitySetOverviewContainer,
-  EntitySetSearchContainer,
-};
+export { default as EntityDataContainer } from './EntityDataContainer';
+export { default as EntitySetMetaContainer } from './EntitySetMetaContainer';
+export { default as EntitySetOverviewContainer } from './EntitySetOverviewContainer';
+export { default as EntitySetSearchContainer } from './EntitySetSearchContainer';
