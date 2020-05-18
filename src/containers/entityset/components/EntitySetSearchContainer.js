@@ -56,10 +56,6 @@ const SearchContentWrapper = styled(AppContentWrapper)`
   }
 `;
 
-const SearchCard = styled(Card)`
-  flex: 1;
-`;
-
 const SearchGrid = styled.div`
   align-items: flex-start;
   display: grid;
@@ -180,7 +176,7 @@ const EntitySetSearchContainer = ({ entitySet } :Props) => {
 
   return (
     <SearchContentWrapper>
-      <SearchCard>
+      <Card>
         <AppContentWrapper>
           <form>
             <SearchGrid>
@@ -227,7 +223,7 @@ const EntitySetSearchContainer = ({ entitySet } :Props) => {
                 rowsPerPage={MAX_HITS_10} />
           </PagingWrapper>
         </TableCardSegment>
-      </SearchCard>
+      </Card>
     </SearchContentWrapper>
   );
 };
