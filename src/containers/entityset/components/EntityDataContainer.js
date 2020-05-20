@@ -16,7 +16,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router';
 
-import { CrumbItem, CrumbLink } from '../../../components';
+import { CrumbItem, CrumbLink, TableCardSegment } from '../../../components';
 import { EDMUtils } from '../../../core/edm';
 import { REDUCERS } from '../../../core/redux/constants';
 import { Routes } from '../../../core/router';
@@ -68,11 +68,11 @@ const EntityDataContainer = ({ entitySet } :Props) => {
         </AppContentWrapper>
         <AppContentWrapper>
           <Card>
-            <CardSegment>
+            <TableCardSegment>
               <Table
                   data={data}
                   headers={TABLE_HEADERS} />
-            </CardSegment>
+            </TableCardSegment>
           </Card>
         </AppContentWrapper>
       </>

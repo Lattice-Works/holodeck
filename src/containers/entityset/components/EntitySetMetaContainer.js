@@ -4,27 +4,18 @@
 
 import React from 'react';
 
-import styled from 'styled-components';
 import { Models } from 'lattice';
 import {
   AppContentWrapper,
   Card,
-  CardSegment,
   Table,
 } from 'lattice-ui-kit';
 
 import { EDMUtils } from '../../../core/edm';
+import { TableCardSegment } from '../../../components';
 
 const { EntitySet, PropertyType } = Models;
 const { useEntityTypePropertyTypes } = EDMUtils;
-
-const ScrollableCard = styled(Card)`
-  overflow: scroll;
-`;
-
-const FixedWidthCardSegment = styled(CardSegment)`
-  min-width: 900px;
-`;
 
 const TABLE_HEADERS = [
   { key: 'title', label: 'TITLE' },
@@ -42,13 +33,13 @@ const EntitySetMetaContainer = ({ entitySet } :Props) => {
 
   return (
     <AppContentWrapper>
-      <ScrollableCard>
-        <FixedWidthCardSegment vertical>
+      <Card>
+        <TableCardSegment>
           <Table
               data={propertyTypes}
               headers={TABLE_HEADERS} />
-        </FixedWidthCardSegment>
-      </ScrollableCard>
+        </TableCardSegment>
+      </Card>
     </AppContentWrapper>
   );
 };
