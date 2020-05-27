@@ -11,8 +11,8 @@ import {
   Table,
 } from 'lattice-ui-kit';
 
-import { EDMUtils } from '../../../core/edm';
-import { TableCardSegment } from '../../../components';
+import { TableCardSegment } from '../../components';
+import { EDMUtils } from '../../core/edm';
 
 const { EntitySet, PropertyType } = Models;
 const { useEntityTypePropertyTypes } = EDMUtils;

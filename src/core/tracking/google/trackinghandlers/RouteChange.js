@@ -9,7 +9,7 @@ import { Logger } from 'lattice-utils';
 
 import { GOOGLE_TRACKING_ID } from '../GoogleAnalytics';
 
-const LOG :Logger = new Logger('RouteChangeEventHandler');
+const LOG = new Logger('RouteChangeEventHandler');
 
 declare var gtag :?Function;
 type Action = {

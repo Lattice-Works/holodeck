@@ -31,8 +31,7 @@ import OpenLatticeLogo from '../../assets/images/ol-icon.png';
 import { REDUCERS } from '../../core/redux/constants';
 import { Routes } from '../../core/router';
 import { GOOGLE_TRACKING_ID } from '../../core/tracking/google/GoogleAnalytics';
-import { EntitySetRouter } from '../entityset';
-import { ExploreContainer } from '../explore';
+import { ExploreRouter } from '../explore';
 
 declare var gtag :?Function;
 
@@ -93,8 +92,7 @@ const AppContainer = () => {
           {
             initAppRS === RequestStates.SUCCESS && (
               <Switch>
-                <Route path={Routes.EXPLORE} component={ExploreContainer} />
-                <Route path={Routes.ENTITY_SET} component={EntitySetRouter} />
+                <Route path={Routes.EXPLORE} component={ExploreRouter} />
                 <Redirect to={Routes.EXPLORE} />
               </Switch>
             )

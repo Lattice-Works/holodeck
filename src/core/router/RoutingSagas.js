@@ -13,9 +13,11 @@ import {
 } from './RoutingActions';
 import type { RoutingAction } from './RoutingActions';
 
-const LOG :Logger = new Logger('RoutingSagas');
+import { Errors } from '../../utils';
 
-const ERR_INVALID_ROUTE :string = 'invalid route: a route must be a non-empty string that starts with "/"';
+const LOG = new Logger('RoutingSagas');
+
+const { ERR_INVALID_ROUTE } = Errors;
 
 /*
  *

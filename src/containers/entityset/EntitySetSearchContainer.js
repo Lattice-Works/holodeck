@@ -23,19 +23,17 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RequestStates } from 'redux-reqseq';
 import type { RequestState } from 'redux-reqseq';
 
-import EntityDataRow from './EntityDataRow';
-
-import { ErrorCardSegment, TableCardSegment } from '../../../components';
-import { EDMUtils } from '../../../core/edm';
+import { EntityDataRow, ErrorCardSegment, TableCardSegment } from '../../components';
+import { EDMUtils } from '../../core/edm';
 import {
   HITS,
   PAGE,
   QUERY,
   REDUCERS,
   TOTAL_HITS,
-} from '../../../core/redux/constants';
-import { SearchActions } from '../../../core/search';
-import { MAX_HITS_10 } from '../../../core/search/constants';
+} from '../../core/redux/constants';
+import { SearchActions } from '../../core/search';
+import { MAX_HITS_10 } from '../../core/search/constants';
 
 const { OPENLATTICE_ID_FQN } = Constants;
 const { EntitySet, PropertyType } = Models;

@@ -7,6 +7,7 @@ import { AuthSagas } from 'lattice-auth';
 import { DataApiSagas, EntitySetsApiSagas } from 'lattice-sagas';
 
 import { AppSagas } from '../../containers/app';
+import { ExploreSagas } from '../../containers/explore';
 import { EDMSagas } from '../edm';
 import { RoutingSagas } from '../router';
 import { SearchSagas } from '../search';
@@ -31,6 +32,10 @@ export default function* sagas() :Generator<*, *, *> {
     // EDMSagas
     fork(EDMSagas.getEntityDataModelTypesWatcher),
     fork(EDMSagas.getEntitySetsWithMetaDataWatcher),
+
+    // ExploreSagas
+    fork(ExploreSagas.exploreEntityDataWatcher),
+    fork(ExploreSagas.exploreEntitySetWatcher),
 
     // RoutingSagas
     fork(RoutingSagas.goToRootWatcher),

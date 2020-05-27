@@ -8,7 +8,7 @@ import styled from 'styled-components';
 import { Cell, Colors, StyleUtils } from 'lattice-ui-kit';
 import { useGoToRoute } from 'lattice-utils';
 
-import { Routes } from '../../../core/router';
+import { Routes } from '../../core/router';
 
 const { NEUTRALS } = Colors;
 

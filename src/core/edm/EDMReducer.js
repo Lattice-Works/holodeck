@@ -4,6 +4,7 @@
 
 import { List, Map, fromJS } from 'immutable';
 import { Models } from 'lattice';
+import { EntitySetsApiActions } from 'lattice-sagas';
 import { Logger } from 'lattice-utils';
 import { RequestStates } from 'redux-reqseq';
 import type {
@@ -22,17 +23,21 @@ import {
 
 import { REQUEST_STATE } from '../redux/constants';
 
-const LOG :Logger = new Logger('EDMReducer');
+const LOG = new Logger('EDMReducer');
 
 const {
+  EntitySet,
   EntitySetBuilder,
   EntityTypeBuilder,
   PropertyTypeBuilder,
 } = Models;
 
+const { GET_ENTITY_SET, getEntitySet } = EntitySetsApiActions;
+
 const INITIAL_STATE :Map<*, *> = fromJS({
   [GET_EDM_TYPES]: { [REQUEST_STATE]: RequestStates.STANDBY },
   [GET_ENTITY_SETS_WITH_METADATA]: { [REQUEST_STATE]: RequestStates.STANDBY },
+  [GET_ENTITY_SET]: { [REQUEST_STATE]: RequestStates.STANDBY },
   entitySets: List(),
   entitySetsIndexMap: Map(),
   entitySetsMetaData: Map(),
@@ -103,6 +108,44 @@ export default function reducer(state :Map<*, *> = INITIAL_STATE, action :Object
           .setIn([GET_EDM_TYPES, REQUEST_STATE], RequestStates.FAILURE),
         FINALLY: () => state
           .deleteIn([GET_EDM_TYPES, seqAction.id]),
+      });
+    }
+
+    case getEntitySet.case(action.type): {
+      const seqAction :SequenceAction = action;
+      return getEntitySet.reducer(state, seqAction, {
+        REQUEST: () => state
+          .setIn([GET_ENTITY_SET, REQUEST_STATE], RequestStates.PENDING)
+          .setIn([GET_ENTITY_SET, seqAction.id], seqAction),
+        SUCCESS: () => {
+
+          if (state.hasIn([GET_ENTITY_SET, seqAction.id])) {
+
+            const entitySet :EntitySet = (new EntitySetBuilder(seqAction.value)).build();
+
+            let entitySets :List = state.get('entitySets');
+            let entitySetsIndexMap :Map = state.get('entitySetsIndexMap');
+            if (entitySetsIndexMap.has(entitySet.id)) {
+              entitySets = entitySets.delete(entitySetsIndexMap.get(entitySet.id));
+            }
+
+            entitySets = entitySets.push(entitySet);
+
+            const newEntitySetIndex :number = entitySets.count() - 1;
+            entitySetsIndexMap = entitySetsIndexMap
+              .set(entitySet.id, newEntitySetIndex)
+              .set(entitySet.name, newEntitySetIndex);
+
+            return state
+              .set('entitySets', entitySets)
+              .set('entitySetsIndexMap', entitySetsIndexMap)
+              .setIn([GET_ENTITY_SET, REQUEST_STATE], RequestStates.SUCCESS);
+          }
+
+          return state;
+        },
+        FAILURE: () => state.setIn([GET_ENTITY_SET, REQUEST_STATE], RequestStates.FAILURE),
+        FINALLY: () => state.deleteIn([GET_ENTITY_SET, seqAction.id]),
       });
     }
 

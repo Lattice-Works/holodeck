@@ -2,5 +2,8 @@
  * @flow
  */
 
+import * as Errors from './Errors';
 
-export {};
+export {
+  Errors,
+};

@@ -7,8 +7,27 @@ import { Models } from 'lattice';
 import { ValidationUtils } from 'lattice-utils';
 import { useSelector } from 'react-redux';
 
+import { REDUCERS } from '../redux/constants';
+
 const { isValidUUID } = ValidationUtils;
-const { FQN, EntityType, PropertyType } = Models;
+const {
+  EntitySet,
+  EntityType,
+  FQN,
+  PropertyType,
+} = Models;
+
+const { EDM } = REDUCERS;
+
+const selectEntitySet = (idOrName :UUID | string) => (state :Map) :?EntitySet => {
+  if (state.hasIn([EDM, 'entitySetsIndexMap', idOrName])) {
+    const index :number = state.getIn([EDM, 'entitySetsIndexMap', idOrName]);
+    if (state.hasIn([EDM, 'entitySets', index])) {
+      return state.getIn([EDM, 'entitySets', index]);
+    }
+  }
+  return undefined;
+};
 
 const useEntityTypePropertyTypes = (idOrFQN :?UUID | FQN) => {
 
@@ -39,5 +58,6 @@ const useEntityTypePropertyTypes = (idOrFQN :?UUID | FQN) => {
 };
 
 export {
+  selectEntitySet,
   useEntityTypePropertyTypes,
 };
