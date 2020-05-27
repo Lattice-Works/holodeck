@@ -35,7 +35,7 @@ const UtilizerTagWrapper = styled.div`
   justify-content: center;
   position: absolute;
   width: 100%;
-  bottom: 5px;
+  bottom: 0;
 `;
 
 const UtilizerTag = styled.div`
