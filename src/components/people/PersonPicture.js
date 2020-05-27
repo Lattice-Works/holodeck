@@ -62,10 +62,16 @@ type Props = {
   person :Map;
   round ?:boolean;
   size ?:string;
+  overlay ?:object;
 };
 
 const PersonPicture = (props :Props) => {
-  const { person, round, size } = props;
+  const {
+    person,
+    round,
+    size,
+    overlay
+  } = props;
   const image = person.getIn([PERSON_MUGSHOT_FQN, 0], person.getIn([PERSON_PICTURE_FQN, 0]));
   if (!image) {
     return (
@@ -73,12 +79,14 @@ const PersonPicture = (props :Props) => {
         <UserIconWrapper size={size}>
           <FontAwesomeIcon icon={faUser} />
         </UserIconWrapper>
+        {overlay}
       </PictureWrapper>
     );
   }
   return (
     <PictureWrapper>
       <img alt="" src={image} />
+      {overlay}
     </PictureWrapper>
   );
 };

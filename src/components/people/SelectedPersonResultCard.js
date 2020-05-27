@@ -32,10 +32,10 @@ const DataGridWrapper = styled.div`
 const UtilizerTagWrapper = styled.div`
   align-items: flex-end;
   display: flex;
-  height: 200px; /* expected to be size of picture */
   justify-content: center;
   position: absolute;
-  width: 200px; /* expected to be size of picture */
+  width: 100%;
+  bottom: 0;
 `;
 
 const UtilizerTag = styled.div`
@@ -64,23 +64,25 @@ const labelMap = Map({
   [PERSON_SSN_FQN]: 'SSN',
 });
 
-const SelectedPersonResultCard = ({ index, person } :Props) => (
-  <Card>
-    <NoPaddingCardSegment>
-      <PersonPicture person={person} size="xl" />
-      {
-        index !== undefined && (
-          <UtilizerTagWrapper>
-            <UtilizerTag>{`#${index} Utilizer`}</UtilizerTag>
-          </UtilizerTagWrapper>
-        )
-      }
-      <DataGridWrapper>
-        <DataGrid columns={3} data={person} labelMap={labelMap} />
-      </DataGridWrapper>
-    </NoPaddingCardSegment>
-  </Card>
-);
+const SelectedPersonResultCard = ({ index, person } :Props) => {
+
+  const utilizerTag = index !== undefined ? (
+    <UtilizerTagWrapper>
+      <UtilizerTag>{`#${index} Utilizer`}</UtilizerTag>
+    </UtilizerTagWrapper>
+  ) : null;
+
+  return (
+    <Card>
+      <NoPaddingCardSegment>
+        <PersonPicture person={person} size="xl" overlay={utilizerTag} />
+        <DataGridWrapper>
+          <DataGrid columns={3} data={person} labelMap={labelMap} />
+        </DataGridWrapper>
+      </NoPaddingCardSegment>
+    </Card>
+  );
+};
 
 SelectedPersonResultCard.defaultProps = {
   index: 0,
