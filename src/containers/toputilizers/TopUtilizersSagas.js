@@ -181,7 +181,7 @@ function* getTopUtilizersWorker(action :SequenceAction) {
       let descriptor = {
         associationTypeId: assocId,
         neighborTypeId: neighborId,
-        isDst: selectedType[TOP_UTILIZERS_FILTER.IS_SRC],
+        isDst: !selectedType[TOP_UTILIZERS_FILTER.IS_SRC],
         entitySetAggregations: getAgg(neighborId),
         associationAggregations: getAgg(assocId),
         weight: countWeight
