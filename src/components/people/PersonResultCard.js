@@ -20,6 +20,7 @@ const {
   PERSON_BIRTH_DATE_FQN,
   PERSON_FIRST_NAME_FQN,
   PERSON_LAST_NAME_FQN,
+  PERSON_MUGSHOT_FQN,
 } = FullyQualifiedNames.PROPERTY_TYPE_FQNS;
 
 const { AT_COUNT_FQN } = FullyQualifiedNames.RESERVED_FQNS;
@@ -44,6 +45,14 @@ const UserIconWrapper = styled.div`
   justify-content: center;
   margin: 0 30px 0 0;
   width: 45px;
+`;
+
+const ProfileImage = styled.img`
+  height: 45px;
+  width: 45px;
+  min-height: 45px;
+  min-width: 45px;
+  border-radius: 50%;
 `;
 
 const labelMap = Map({
@@ -77,12 +86,15 @@ const PersonResultCard = ({
     [AT_COUNT_FQN]: person.get(AT_COUNT_FQN),
   });
 
+  const imageSrc = person.getIn([PERSON_MUGSHOT_FQN, 0]);
+  const profileImg = imageSrc ? <ProfileImage src={imageSrc} /> : <FontAwesomeIcon icon={faUser} size="2x" />;
+
   return (
     <Card onClick={onClickFn}>
       <CardSegment padding="sm">
         <IndexWrapper>{index}</IndexWrapper>
         <UserIconWrapper>
-          <FontAwesomeIcon icon={faUser} size="2x" />
+          {profileImg}
         </UserIconWrapper>
         <DataGrid columns={4} data={data} labelMap={labelMap} />
       </CardSegment>
