@@ -415,7 +415,7 @@ export default class TopUtilizerParameterSelection extends React.Component<Props
 
         </Wrapper>
         {
-          !searchHasRun && (
+          searchHasRun && (
             <TabButtonRow>
               {this.renderNavButton(RESULT_DISPLAYS.SEARCH_RESULTS)}
               {this.renderNavButton(RESULT_DISPLAYS.DASHBOARD)}
