@@ -4,7 +4,12 @@
 
 import Papa from 'papaparse';
 import moment from 'moment';
-import { call, put, takeEvery } from '@redux-saga/core/effects';
+import {
+  call,
+  put,
+  select,
+  takeEvery
+} from '@redux-saga/core/effects';
 import {
   fromJS,
   List,
@@ -72,27 +77,32 @@ const getDateFiltersFromMap = (id, dateMap) => {
 const getCountBreakdown = (query, topUtilizers) => {
   let breakdown = Map();
   topUtilizers.forEach((utilizer) => {
+
+    const { results } = utilizer;
+
     const id = utilizer[OPENLATTICE_ID_FQN][0];
 
     let utilizerBreakdown = Map().set('score', utilizer[COUNT_FQN][0]);
 
-    query.forEach((pairDetails, index) => {
+    results.forEach((aggResult) => {
       const {
         associationTypeId,
         neighborTypeId,
-        associationAggregations,
-        entitySetAggregations
-      } = pairDetails;
+        associationsEntityAggregationResult,
+        neighborsEntityAggregationResult,
+        score
+      } = aggResult;
+
       const pair = List.of(associationTypeId, neighborTypeId);
 
-      let pairMap = Map().set(COUNT_FQN, utilizer[`assoc_${index}_count`]);
+      let pairMap = Map().set(COUNT_FQN, score);
 
-      Object.keys(associationAggregations).forEach((propertyTypeId) => {
-        pairMap = pairMap.set(propertyTypeId, utilizer[`assoc_${index}_${propertyTypeId}`]);
+      Object.entries(associationsEntityAggregationResult.scorable).forEach(([propertyTypeId, ptScore]) => {
+        pairMap = pairMap.set(propertyTypeId, ptScore);
       });
 
-      Object.keys(entitySetAggregations).forEach((propertyTypeId) => {
-        pairMap = pairMap.set(propertyTypeId, utilizer[`entity_${index}_${propertyTypeId}`]);
+      Object.entries(neighborsEntityAggregationResult.scorable).forEach(([propertyTypeId, ptScore]) => {
+        pairMap = pairMap.set(propertyTypeId, ptScore);
       });
 
       utilizerBreakdown = utilizerBreakdown.set(pair, pairMap);
@@ -194,24 +204,30 @@ function* getTopUtilizersWorker(action :SequenceAction) {
       neighborAggregations: formattedFilters
     };
 
-    let topUtilizers = yield call(AnalysisApi.getTopUtilizers, entitySetId, numResults, query);
+    const {
+      associations,
+      edges,
+      entities,
+      neighbors,
+      rankings
+    } = yield call(AnalysisApi.getTopUtilizers, entitySetId, numResults, query);
 
     // TODO delete when we have data in response v
     const ID_KEY = 'self_entity_key_id';
 
-    const utilizerData = yield call(DataApi.getEntitySetData, entitySetId, [], topUtilizers.map((u) => u[ID_KEY]));
+    const topUtilizers = [];
 
-    const entitiesAsMap = {};
-    utilizerData.forEach((utilizer) => {
-      entitiesAsMap[utilizer[OPENLATTICE_ID_FQN][0]] = utilizer;
+    rankings.forEach(({ entityKeyId, score, results }) => {
+      const utilizerData = {
+        [ID_KEY]: entityKeyId,
+        [OPENLATTICE_ID_FQN]: [entityKeyId],
+        [COUNT_FQN]: [score],
+        ...entities[entityKeyId],
+        results
+      };
+
+      topUtilizers.push(utilizerData);
     });
-
-    topUtilizers = topUtilizers.map((utilizer) => ({
-      ...utilizer,
-      ...entitiesAsMap[utilizer[ID_KEY]],
-      [COUNT_FQN]: [utilizer.score],
-    }));
-    // TODO delete when we have data in response ^
 
     const scoresByUtilizer = getCountBreakdown(formattedFilters, topUtilizers);
 
