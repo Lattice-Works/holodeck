@@ -2,7 +2,7 @@
  * @flow
  */
 
-import { Map, fromJS } from 'immutable';
+import { Map, List, fromJS } from 'immutable';
 import { Models } from 'lattice';
 import { matchPath } from 'react-router';
 import { RequestStates } from 'redux-reqseq';
@@ -10,8 +10,10 @@ import type { SequenceAction } from 'redux-reqseq';
 
 import {
   EXPLORE_ENTITY_DATA,
+  EXPLORE_ENTITY_NEIGHBORS,
   EXPLORE_ENTITY_SET,
   exploreEntityData,
+  exploreEntityNeighbors,
   exploreEntitySet,
 } from './ExploreActions';
 
@@ -24,10 +26,11 @@ const { GO_TO_ROUTE } = RoutingActions;
 
 const INITIAL_STATE :Map = fromJS({
   [EXPLORE_ENTITY_DATA]: { [REQUEST_STATE]: RequestStates.STANDBY },
+  [EXPLORE_ENTITY_NEIGHBORS]: { [REQUEST_STATE]: RequestStates.STANDBY },
   [EXPLORE_ENTITY_SET]: { [REQUEST_STATE]: RequestStates.STANDBY },
+  entityNeighborsMap: Map(),
   selectedEntityData: undefined,
   selectedEntitySet: undefined,
-  explorationPath: [],
 });
 
 export default function reducer(state :Map = INITIAL_STATE, action :Object) {
@@ -63,6 +66,27 @@ export default function reducer(state :Map = INITIAL_STATE, action :Object) {
           .set('selectedEntityData', undefined)
           .setIn([EXPLORE_ENTITY_DATA, REQUEST_STATE], RequestStates.FAILURE),
         FINALLY: () => state.deleteIn([EXPLORE_ENTITY_DATA, seqAction.id]),
+      });
+    }
+
+    case exploreEntityNeighbors.case(action.type): {
+      const seqAction :SequenceAction = action;
+      return exploreEntityNeighbors.reducer(state, seqAction, {
+        REQUEST: () => state
+          .setIn([EXPLORE_ENTITY_NEIGHBORS, REQUEST_STATE], RequestStates.PENDING)
+          .setIn([EXPLORE_ENTITY_NEIGHBORS, seqAction.id], seqAction),
+        SUCCESS: () => {
+          if (state.hasIn([EXPLORE_ENTITY_NEIGHBORS, seqAction.id])) {
+            const storedSeqAction = state.getIn([EXPLORE_ENTITY_NEIGHBORS, seqAction.id]);
+            const { entityKeyId, entitySetId } = storedSeqAction.value;
+            return state
+              .setIn(['entityNeighborsMap', entityKeyId], seqAction.value)
+              .setIn([EXPLORE_ENTITY_NEIGHBORS, REQUEST_STATE], RequestStates.SUCCESS);
+          }
+          return state;
+        },
+        FAILURE: () => state.setIn([EXPLORE_ENTITY_NEIGHBORS, REQUEST_STATE], RequestStates.FAILURE),
+        FINALLY: () => state.deleteIn([EXPLORE_ENTITY_NEIGHBORS, seqAction.id]),
       });
     }
 

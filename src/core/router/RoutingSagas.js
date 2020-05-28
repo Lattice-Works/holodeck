@@ -34,7 +34,10 @@ function* goToRouteWorker(action :RoutingAction) :Generator<*, *, *> {
     return;
   }
 
-  yield put(push({ state, pathname: route }));
+  // ISSUE: https://github.com/supasate/connected-react-router/issues/394#issuecomment-596713700
+  // FIX: https://github.com/supasate/connected-react-router/pull/399
+  // TODO: remove JSON.stringify() once the fix ^ is released
+  yield put(push({ state: JSON.stringify(state), pathname: route }));
 }
 
 function* goToRouteWatcher() :Generator<*, *, *> {

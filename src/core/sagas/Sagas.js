@@ -31,10 +31,10 @@ export default function* sagas() :Generator<*, *, *> {
 
     // EDMSagas
     fork(EDMSagas.getEntityDataModelTypesWatcher),
-    fork(EDMSagas.getEntitySetsWithMetaDataWatcher),
 
     // ExploreSagas
     fork(ExploreSagas.exploreEntityDataWatcher),
+    fork(ExploreSagas.exploreEntityNeighborsWatcher),
     fork(ExploreSagas.exploreEntitySetWatcher),
 
     // RoutingSagas

@@ -32,7 +32,12 @@ const {
   PropertyTypeBuilder,
 } = Models;
 
-const { GET_ENTITY_SET, getEntitySet } = EntitySetsApiActions;
+const {
+  GET_ENTITY_SET,
+  GET_ENTITY_SETS,
+  getEntitySet,
+  getEntitySets,
+} = EntitySetsApiActions;
 
 const INITIAL_STATE :Map<*, *> = fromJS({
   [GET_EDM_TYPES]: { [REQUEST_STATE]: RequestStates.STANDBY },
@@ -122,19 +127,19 @@ export default function reducer(state :Map<*, *> = INITIAL_STATE, action :Object
           if (state.hasIn([GET_ENTITY_SET, seqAction.id])) {
 
             const entitySet :EntitySet = (new EntitySetBuilder(seqAction.value)).build();
-
             let entitySets :List = state.get('entitySets');
             let entitySetsIndexMap :Map = state.get('entitySetsIndexMap');
+
             if (entitySetsIndexMap.has(entitySet.id)) {
-              entitySets = entitySets.delete(entitySetsIndexMap.get(entitySet.id));
+              entitySets = entitySets.update(entitySetsIndexMap.get(entitySet.id), () => entitySet);
             }
-
-            entitySets = entitySets.push(entitySet);
-
-            const newEntitySetIndex :number = entitySets.count() - 1;
-            entitySetsIndexMap = entitySetsIndexMap
-              .set(entitySet.id, newEntitySetIndex)
-              .set(entitySet.name, newEntitySetIndex);
+            else {
+              entitySets = entitySets.push(entitySet);
+              const newEntitySetIndex :number = entitySets.count() - 1;
+              entitySetsIndexMap = entitySetsIndexMap
+                .set(entitySet.id, newEntitySetIndex)
+                .set(entitySet.name, newEntitySetIndex);
+            }
 
             return state
               .set('entitySets', entitySets)
@@ -146,6 +151,47 @@ export default function reducer(state :Map<*, *> = INITIAL_STATE, action :Object
         },
         FAILURE: () => state.setIn([GET_ENTITY_SET, REQUEST_STATE], RequestStates.FAILURE),
         FINALLY: () => state.deleteIn([GET_ENTITY_SET, seqAction.id]),
+      });
+    }
+
+    case getEntitySets.case(action.type): {
+      const seqAction :SequenceAction = action;
+      return getEntitySets.reducer(state, seqAction, {
+        REQUEST: () => state
+          .setIn([GET_ENTITY_SETS, REQUEST_STATE], RequestStates.PENDING)
+          .setIn([GET_ENTITY_SETS, seqAction.id], seqAction),
+        SUCCESS: () => {
+
+          if (state.hasIn([GET_ENTITY_SETS, seqAction.id])) {
+
+            let entitySets :List = state.get('entitySets');
+            let entitySetsIndexMap :Map = state.get('entitySetsIndexMap');
+
+            Object.values(seqAction.value).forEach((es) => {
+
+              const entitySet :EntitySet = (new EntitySetBuilder(es)).build();
+              if (entitySetsIndexMap.has(entitySet.id)) {
+                entitySets = entitySets.update(entitySetsIndexMap.get(entitySet.id), () => entitySet);
+              }
+              else {
+                entitySets = entitySets.push(entitySet);
+                const newEntitySetIndex :number = entitySets.count() - 1;
+                entitySetsIndexMap = entitySetsIndexMap
+                  .set(entitySet.id, newEntitySetIndex)
+                  .set(entitySet.name, newEntitySetIndex);
+              }
+            });
+
+            return state
+              .set('entitySets', entitySets)
+              .set('entitySetsIndexMap', entitySetsIndexMap)
+              .setIn([GET_ENTITY_SETS, REQUEST_STATE], RequestStates.SUCCESS);
+          }
+
+          return state;
+        },
+        FAILURE: () => state.setIn([GET_ENTITY_SETS, REQUEST_STATE], RequestStates.FAILURE),
+        FINALLY: () => state.deleteIn([GET_ENTITY_SETS, seqAction.id]),
       });
     }
 

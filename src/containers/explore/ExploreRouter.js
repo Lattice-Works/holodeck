@@ -22,6 +22,7 @@ import {
   EXPLORE_ENTITY_DATA,
   EXPLORE_ENTITY_SET,
   exploreEntityData,
+  exploreEntityNeighbors,
   exploreEntitySet,
 } from './ExploreActions';
 
@@ -72,6 +73,7 @@ const ExploreRouter = () => {
   useEffect(() => {
     if (isValidUUID(entityKeyId) && isValidUUID(entitySetId)) {
       dispatch(exploreEntityData({ entityKeyId, entitySetId }));
+      dispatch(exploreEntityNeighbors({ entityKeyId, entitySetId }));
     }
   }, [dispatch, entityKeyId, entitySetId]);
 

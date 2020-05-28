@@ -4,6 +4,7 @@
 
 import React from 'react';
 
+import { Map } from 'immutable';
 import { Models } from 'lattice';
 import {
   AppContentWrapper,
@@ -12,8 +13,11 @@ import {
   Colors,
 } from 'lattice-ui-kit';
 import { Logger, ValidationUtils } from 'lattice-utils';
+import { useSelector } from 'react-redux';
 import { Redirect } from 'react-router';
 import { NavLink } from 'react-router-dom';
+
+import EntityNeighborsContainer from './EntityNeighborsContainer';
 
 import {
   CrumbItem,
@@ -21,6 +25,7 @@ import {
   EntityDataGrid,
 } from '../../components';
 import { EDMUtils } from '../../core/edm';
+import { REDUCERS } from '../../core/redux/constants';
 import { Routes } from '../../core/router';
 import { Errors } from '../../utils';
 
@@ -28,10 +33,8 @@ const { WHITE } = Colors;
 const { EntitySet, PropertyType } = Models;
 const { isValidUUID } = ValidationUtils;
 
-const {
-  ERR_INVALID_UUID,
-  ERR_UNEXPECTED_STATE,
-} = Errors;
+const { EXPLORE } = REDUCERS;
+const { ERR_INVALID_UUID, ERR_UNEXPECTED_STATE } = Errors;
 const { useEntityTypePropertyTypes } = EDMUtils;
 
 type Props = {
@@ -51,6 +54,7 @@ const EntityDataContainer = ({
 } :Props) => {
 
   const propertyTypes :PropertyType[] = useEntityTypePropertyTypes(entitySet.entityTypeId);
+  const neighbors :?Map = useSelector((s) => s.getIn([EXPLORE, 'entityNeighborsMap', entityKeyId]), Map());
 
   if (!isValidUUID(entityKeyId) || !isValidUUID(entitySetId)) {
     LOG.error(ERR_INVALID_UUID, entityKeyId, entitySetId);
@@ -77,10 +81,12 @@ const EntityDataContainer = ({
         </AppContentWrapper>
         <AppContentWrapper bgColor={WHITE} padding="0">
           <AppNavigationWrapper borderless>
-            <NavLink to="#">Associations</NavLink>
+            <NavLink to="#">Associated Data</NavLink>
           </AppNavigationWrapper>
         </AppContentWrapper>
-        {/* <AppContentWrapper></AppContentWrapper> */}
+        <AppContentWrapper>
+          <EntityNeighborsContainer entityKeyId={entityKeyId} neighbors={neighbors} />
+        </AppContentWrapper>
       </>
     );
   }
