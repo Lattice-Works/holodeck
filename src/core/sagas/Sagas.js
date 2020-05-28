@@ -4,11 +4,21 @@
 
 import { all, fork } from '@redux-saga/core/effects';
 import { AuthSagas } from 'lattice-auth';
+import {
+  DataApiSagas,
+  EntityDataModelApiSagas,
+  EntitySetsApiSagas,
+  SearchApiSagas,
+} from 'lattice-sagas';
 
-import * as EdmSagas from '../../containers/edm/EdmSagas';
+import * as AppSagas from '../../containers/app/AppSagas';
 import * as EntitySetSagas from '../../containers/entitysets/EntitySetSagas';
 import * as ExploreSagas from '../../containers/explore/ExploreSagas';
+import * as LinkingSagas from '../../containers/linking/LinkingSagas';
+import * as RoutingSagas from '../router/RoutingSagas';
 import * as TopUtilizersSagas from '../../containers/toputilizers/TopUtilizersSagas';
+
+import { EDMSagas } from '../edm';
 
 export default function* sagas() :Generator<*, *, *> {
 
@@ -20,19 +30,40 @@ export default function* sagas() :Generator<*, *, *> {
     fork(AuthSagas.watchAuthExpired),
     fork(AuthSagas.watchLogout),
 
-    /* EdmSagas */
-    fork(EdmSagas.loadEdmWatcher),
+    // "lattice-sagas" sagas
+    fork(DataApiSagas.getEntitySetSizeWatcher),
+    fork(DataApiSagas.getLinkedEntitySetBreakdownWatcher),
+    fork(EntityDataModelApiSagas.getAllEntityTypesWatcher),
+    fork(EntityDataModelApiSagas.getAllPropertyTypesWatcher),
+    fork(EntitySetsApiSagas.getAllEntitySetsWatcher),
+    fork(EntitySetsApiSagas.getEntitySetWatcher),
+    fork(EntitySetsApiSagas.getPropertyTypeMetaDataForEntitySetsWatcher),
+    fork(SearchApiSagas.searchEntitySetMetaDataWatcher),
 
-    /* EntitySetSagas */
+    // AppSagas
+    fork(AppSagas.initializeApplicationWatcher),
+
+    // EDMSagas
+    fork(EDMSagas.getEntityDataModelTypesWatcher),
+    fork(EDMSagas.getEntitySetsWithMetaDataWatcher),
+
+    // EntitySetSagas
     fork(EntitySetSagas.loadEntitySetSizesWatcher),
     fork(EntitySetSagas.searchEntitySetsWatcher),
     fork(EntitySetSagas.selectEntitySetByIdWatcher),
 
-    /* ExploreSagas */
+    // ExploreSagas
     fork(ExploreSagas.loadEntityNeighborsWatcher),
     fork(ExploreSagas.searchEntitySetDataWatcher),
 
-    /* TopUtilizersSagas */
+    // LinkingSagas
+    fork(LinkingSagas.searchLinkedEntitySetsWatcher),
+
+    // RoutingSagas
+    fork(RoutingSagas.goToRootWatcher),
+    fork(RoutingSagas.goToRouteWatcher),
+
+    // TopUtilizersSagas
     fork(TopUtilizersSagas.downloadTopUtilizersWatcher),
     fork(TopUtilizersSagas.getNeighborTypesWatcher),
     fork(TopUtilizersSagas.getTopUtilizersWatcher),

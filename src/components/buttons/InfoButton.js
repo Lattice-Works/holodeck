@@ -1,4 +1,3 @@
-import React from 'react';
 import styled from 'styled-components';
 
 const InfoButton = styled.button`
@@ -8,7 +7,7 @@ const InfoButton = styled.button`
   font-family: 'Open Sans', sans-serif;
   font-size: 14px;
   padding: 10px;
-  width: ${props => (props.fullSize ? '100%' : 'fit-content')};
+  width: ${(props) => (props.fullSize ? '100%' : 'fit-content')};
 
   &:hover {
     background-color: #8045ff;

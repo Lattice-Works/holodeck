@@ -1,10 +1,5 @@
-import { Constants } from 'lattice';
-import {
-  List,
-  Map,
-  fromJS,
-  isImmutable
-} from 'immutable';
+import { Constants, Models } from 'lattice';
+import { List, Map, fromJS } from 'immutable';
 
 import { COUNT_FQN } from './constants/DataConstants';
 import { PERSON_ENTITY_TYPE_FQN, PROPERTY_TYPES } from './constants/DataModelConstants';
@@ -12,34 +7,14 @@ import { TOP_UTILIZERS_FILTER } from './constants/TopUtilizerConstants';
 
 const {
   ASSOC_ID,
-  ASSOC_TITLE,
   NEIGHBOR_ID,
-  NEIGHBOR_TITLE,
-  IS_SRC,
-  VALUE,
   LABEL
 } = TOP_UTILIZERS_FILTER;
 
 const { OPENLATTICE_ID_FQN } = Constants;
+const { FullyQualifiedName } = Models;
 
-export const getFqnObj = (fqnStr) => {
-  const splitStr = fqnStr.split('.');
-  return {
-    namespace: splitStr[0],
-    name: splitStr[1]
-  };
-};
-
-export const getFqnString = (fqn) => {
-  let { namespace, name } = fqn;
-  if (isImmutable(fqn)) {
-    namespace = fqn.get('namespace');
-    name = fqn.get('name');
-  }
-  return `${namespace}.${name}`;
-};
-
-export const getEntityKeyId = entity => entity.getIn([OPENLATTICE_ID_FQN, 0]);
+export const getEntityKeyId = (entity) => entity.getIn([OPENLATTICE_ID_FQN, 0]);
 
 export const getNeighborCountsForFilters = (filters, neighbors) => {
   let counts = Map();
@@ -56,7 +31,7 @@ export const getNeighborCountsForFilters = (filters, neighbors) => {
     }
   });
 
-  return filters.map(filter => fromJS({
+  return filters.map((filter) => fromJS({
     [COUNT_FQN]: counts.getIn([filter.get(ASSOC_ID), filter.get(NEIGHBOR_ID)]),
     [LABEL]: filter.get(LABEL)
   }));
@@ -82,23 +57,46 @@ export const groupNeighbors = (neighbors) => {
   return groupedNeighbors;
 };
 
-export const getEntitySetPropertyTypes = ({ selectedEntitySet, entityTypesById, propertyTypesById }) => {
+export const getEntitySetPropertyTypes = ({
+  entityTypes,
+  entityTypesIndexMap,
+  propertyTypes,
+  propertyTypesIndexMap,
+  selectedEntitySet,
+}) => {
+
   if (!selectedEntitySet) {
     return List();
   }
 
-  return entityTypesById
-    .getIn([selectedEntitySet.get('entityTypeId'), 'properties'], List())
-    .map(propertyTypeId => propertyTypesById.get(propertyTypeId));
+  const entityTypeId = selectedEntitySet.get('entityTypeId');
+  const entityTypeIndex = entityTypesIndexMap.get(entityTypeId);
+  const entityType = entityTypes.get(entityTypeIndex, Map());
+
+  return entityType
+    .get('properties', List())
+    .map((propertyTypeId) => {
+      const propertyTypeIndex = propertyTypesIndexMap.get(propertyTypeId);
+      return propertyTypes.get(propertyTypeIndex, Map());
+    });
 };
 
 export const isPersonType = (props) => {
-  const { selectedEntitySet, entityTypesById, results } = props;
+
+  const {
+    selectedEntitySet,
+    entityTypes,
+    entityTypesIndexMap,
+    results,
+  } = props;
   let shouldShowPersonCard = false;
 
-  if (!!selectedEntitySet && getFqnString(
-    entityTypesById.getIn([selectedEntitySet.get('entityTypeId'), 'type'], Map())
-  ) === PERSON_ENTITY_TYPE_FQN) {
+  const entityTypeId = selectedEntitySet.get('entityTypeId');
+  const entityTypeIndex = entityTypesIndexMap.get(entityTypeId);
+  const entityType = entityTypes.get(entityTypeIndex, Map());
+  const entityTypeFQN = FullyQualifiedName.toString(entityType.get('type'));
+
+  if (!!selectedEntitySet && entityTypeFQN === PERSON_ENTITY_TYPE_FQN) {
 
     for (let i = 0; i < results.size; i += 1) {
       const entity = results.get(i);

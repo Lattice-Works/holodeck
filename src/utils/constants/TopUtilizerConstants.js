@@ -18,11 +18,13 @@ export const RESULT_DISPLAYS = {
   MAP: 'Map'
 };
 
+/* eslint-disable max-len */
 export const CHART_EXPLANATIONS = {
   EVENTS_PER_PERSON: 'The distribution of top utilizer usage in each circumstance. The number of times someone has appeared in an event is on the x-axis, and the number of people with such history is on the y-axis.',
   PARETO: 'Starting with the highest utilizing individual on the bottom left, the line shows the cumulative % of events that a small # of individuals account for.',
   RESOURCE_TIMELINE: 'The unique events and resources spent on any one top utilizer over time.'
-}
+};
+/* eslint-enable */
 
 export const PARETO_LABELS = {
   UTILIZER_NUM: '#',

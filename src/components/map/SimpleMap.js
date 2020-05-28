@@ -8,7 +8,6 @@ import reactMapboxGl, {
   Feature,
   GeoJSONLayer,
   Layer,
-  Source
 } from 'react-mapbox-gl';
 import { List, Map, Set } from 'immutable';
 
@@ -25,17 +24,6 @@ const COORDS = {
 
 const DEFAULT_COORDS = COORDS.CONTINENTAL_US;
 
-type Props = {
-  coordinatesByEntity :List<Map<*, *>>,
-  heatmap? :boolean,
-  selectedEntityKeyIds :Set<*>,
-  selectEntity :(entityKeyId :string) => void
-};
-
-type State = {
-  fitToBounds :boolean
-};
-
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
@@ -47,6 +35,17 @@ const Wrapper = styled.div`
 const MapComponent = reactMapboxGl({
   accessToken: __MAPBOX_TOKEN__
 });
+
+type Props = {
+  coordinatesByEntity :List<Map<*, *>>;
+  heatmap? :boolean;
+  selectEntity :(entityKeyId :?string) => void;
+  selectedEntityKeyIds :Set<*>;
+};
+
+type State = {
+  fitToBounds :boolean;
+};
 
 class SimpleMap extends React.Component<Props, State> {
 
@@ -61,7 +60,7 @@ class SimpleMap extends React.Component<Props, State> {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps(nextProps :Props) {
     const { coordinatesByEntity } = this.props;
     if (!nextProps.coordinatesByEntity.size || coordinatesByEntity !== nextProps.coordinatesByEntity) {
       this.setState({ fitToBounds: true });
@@ -126,7 +125,7 @@ class SimpleMap extends React.Component<Props, State> {
   getFeatures = () => {
     const { coordinatesByEntity } = this.props;
 
-    return coordinatesByEntity.valueSeq().flatMap(list => list).map((coordinates, index) => (
+    return coordinatesByEntity.valueSeq().flatMap((list) => list).map((coordinates, index) => (
       <Feature
           key={index}
           coordinates={coordinates} />
@@ -157,16 +156,16 @@ class SimpleMap extends React.Component<Props, State> {
     </Layer>
   )
 
-  mapEntityToFeature = (entityKeyId, coordinates) => ({
+  mapEntityToFeature = (entityKeyId :UUID, coordinates :any) => ({
     type: 'Feature',
     properties: { entityKeyId },
     geometry: {
+      coordinates,
       type: 'Point',
-      coordinates: coordinates
     }
   })
 
-  getSourceLayer = (id, shouldCluster) => {
+  getSourceLayer = (id :string, shouldCluster :boolean) => {
     const { coordinatesByEntity } = this.props;
 
     const features = [];
@@ -301,7 +300,7 @@ class SimpleMap extends React.Component<Props, State> {
     );
   }
 
-  onPointClick = (e) => {
+  onPointClick = (e :Object) => {
     const { selectEntity, selectedEntityKeyIds } = this.props;
 
     const { features } = e;
@@ -339,6 +338,7 @@ class SimpleMap extends React.Component<Props, State> {
       }
     } : {};
 
+    /* eslint-disable react/jsx-props-no-spreading */
     return (
       <Wrapper>
         <MapComponent
@@ -368,6 +368,7 @@ class SimpleMap extends React.Component<Props, State> {
         </MapComponent>
       </Wrapper>
     );
+    /* eslint-enable */
   }
 }
 

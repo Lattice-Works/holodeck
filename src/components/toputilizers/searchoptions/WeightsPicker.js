@@ -17,16 +17,16 @@ import {
 } from '../../layout/Layout';
 import { isNotNumber } from '../../../utils/ValidationUtils';
 
-type Props = {
-  selectedNeighborTypes :Object[],
-  setNeighborTypes :(selectedNeighborTypes :Object[]) => void,
-  resetWeights :() => void
-};
-
 const RightRowWrapper = styled(DropdownRowWrapper)`
   justify-content: flex-end;
   margin-top: 15px;
 `;
+
+type Props = {
+  resetWeights :() => void;
+  selectedNeighborTypes :Object[];
+  setNeighborTypes :(selectedNeighborTypes :Object[]) => void;
+};
 
 const WeightsPicker = ({ selectedNeighborTypes, setNeighborTypes, resetWeights } :Props) => {
 
@@ -37,7 +37,7 @@ const WeightsPicker = ({ selectedNeighborTypes, setNeighborTypes, resetWeights }
     return { key, value, label };
   }));
 
-  const onChange = (index, value) => {
+  const onChange = (index :any, value :any) => {
     const formattedValue = value === '.' ? '0.' : value;
     if (!isNotNumber(formattedValue) || formattedValue === '') {
       selectedNeighborTypes[index][TOP_UTILIZERS_FILTER.WEIGHT] = formattedValue;

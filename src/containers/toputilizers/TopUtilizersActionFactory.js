@@ -3,6 +3,7 @@
  */
 
 import { newRequestSequence } from 'redux-reqseq';
+import type { RequestSequence } from 'redux-reqseq';
 
 const CHANGE_NUM_UTILIZERS :string = 'CHANGE_NUM_UTILIZERS';
 const changeNumUtilizers :RequestSequence = newRequestSequence(CHANGE_NUM_UTILIZERS);

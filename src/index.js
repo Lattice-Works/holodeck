@@ -16,7 +16,6 @@ import CSSOverrides from './utils/CSSOverrides';
 import initializeReduxStore from './core/redux/ReduxStore';
 import initializeRouterHistory from './core/router/RouterHistory';
 import { ROOT } from './core/router/Routes';
-import { getLatticeConfigBaseUrl } from './utils/Utils';
 
 // injected by Webpack.DefinePlugin
 declare var __AUTH0_CLIENT_ID__ :string;
@@ -36,11 +35,16 @@ const NormalizeCSS = createGlobalStyle`
 const GlobalStyle = createGlobalStyle`
   html,
   body {
-    background-color: #f9fcff;
+    background-color: #f8f8fb;
     color: #135;
     font-family: 'Open Sans', sans-serif;
     height: 100%;
+    line-height: 1.5;
     width: 100%;
+  }
+
+  input {
+    line-height: 1.5;
   }
 
   * {
@@ -70,7 +74,6 @@ LatticeAuth.configure({
   auth0ClientId: __AUTH0_CLIENT_ID__,
   auth0Domain: __AUTH0_DOMAIN__,
   authToken: AuthUtils.getAuthToken(),
-  baseUrl: getLatticeConfigBaseUrl()
 });
 
 /*

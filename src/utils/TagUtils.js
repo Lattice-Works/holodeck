@@ -1,8 +1,10 @@
 import moment from 'moment';
 import { List, Map } from 'immutable';
+import { Models } from 'lattice';
 
 import { PROPERTY_TAGS } from './constants/DataModelConstants';
-import { getFqnString } from './DataUtils';
+
+const { FullyQualifiedName } = Models;
 
 const getDatesForList = (fqns, entity, skipConversion) => {
   const dates = [];
@@ -24,41 +26,57 @@ const getDatesForList = (fqns, entity, skipConversion) => {
   return dates;
 };
 
-export const getTagsByFqn = (entityType, propertyTypesById) => {
+export const getTagsByFqn = (entityType, propertyTypes, propertyTypesIndexMap) => {
   let tagsbyFqn = Map();
-
   entityType.get('propertyTags').entrySeq().forEach(([propertyTypeId, tags]) => {
-    tagsbyFqn = tagsbyFqn.set(getFqnString(propertyTypesById.getIn([propertyTypeId, 'type'])), tags);
+    const propertyTypeIndex = propertyTypesIndexMap.get(propertyTypeId);
+    const propertyType = propertyTypes.get(propertyTypeIndex, Map());
+    const propertyTypeFQN = FullyQualifiedName.toString(propertyType.get('type', Map()));
+    tagsbyFqn = tagsbyFqn.set(propertyTypeFQN, tags);
   });
-
   return tagsbyFqn;
 };
 
-export const getTagPropertyFqns = (entityType, propertyTypesById, tag) => getTagsByFqn(entityType, propertyTypesById)
-  .entrySeq()
-  .filter(([fqn, tags]) => tags.includes(tag))
-  .map(([fqn]) => fqn);
+export const getTagPropertyFqns = (
+  entityType,
+  propertyTypes,
+  propertyTypesIndexMap,
+  tag,
+) => (
+  getTagsByFqn(entityType, propertyTypes, propertyTypesIndexMap)
+    .entrySeq()
+    .filter(([fqn, tags]) => tags.includes(tag))
+    .map(([fqn]) => fqn)
+);
 
 export const getEntityEventDates = (
   entityType,
-  propertyTypesById,
+  propertyTypes,
+  propertyTypesIndexMap,
   entity,
   skipConversion
 ) => getDatesForList(
-  getTagPropertyFqns(entityType, propertyTypesById, PROPERTY_TAGS.EVENT_DATE),
+  getTagPropertyFqns(entityType, propertyTypes, propertyTypesIndexMap, PROPERTY_TAGS.EVENT_DATE),
   entity,
   skipConversion
 );
 
-export const getPieChartPropertyFqns = (entityType, propertyTypesById) => getTagPropertyFqns(
+export const getPieChartPropertyFqns = (entityType, propertyTypes, propertyTypesIndexMap) => getTagPropertyFqns(
   entityType,
-  propertyTypesById,
-  PROPERTY_TAGS.PIE
+  propertyTypes,
+  propertyTypesIndexMap,
+  PROPERTY_TAGS.PIE,
 );
 
-export const getEntityTitle = (entityType, propertyTypesById, entity) => {
-  const titleFqns = getTagPropertyFqns(entityType, propertyTypesById, PROPERTY_TAGS.TITLE);
+export const getEntityTitle = (
+  entityType,
+  propertyTypes,
+  propertyTypesIndexMap,
+  entity,
+) => {
 
-  const titleValue = titleFqns.map(fqn => entity.getIn([fqn, 0])).filter(val => !!val).join(', ');
+  const titleFqns = getTagPropertyFqns(entityType, propertyTypes, propertyTypesIndexMap, PROPERTY_TAGS.TITLE);
+
+  const titleValue = titleFqns.map((fqn) => entity.getIn([fqn, 0])).filter((val) => !!val).join(', ');
   return titleValue.length ? titleValue : `[${entityType.get('title')}]`;
 };

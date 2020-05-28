@@ -4,29 +4,15 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import { List, Map, fromJS } from 'immutable';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronUp } from '@fortawesome/pro-regular-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { List, Map, fromJS } from 'immutable';
+import { Models } from 'lattice';
 
 import DataTable from './DataTable';
 import { getEntityTitle } from '../../utils/TagUtils';
-import { getFqnString } from '../../utils/DataUtils';
 
-type Props = {
-  neighbor :Map<*, *>,
-  propertyTypeTitle :string,
-  colors :{
-    PRIMARY :string,
-    SECONDARY :string
-  },
-  entityTypesById :Map<*, *>,
-  propertyTypesById :Map<*, *>,
-  onClick :() => void
-};
-
-type State = {
-  open :boolean
-}
+const { FullyQualifiedName } = Models;
 
 const ROW_WIDTH = 730;
 
@@ -93,9 +79,27 @@ const EntityTitle = styled.div`
   }
 `;
 
+type Props = {
+  colors :{
+    PRIMARY :string;
+    SECONDARY :string;
+  };
+  entityTypes :List;
+  entityTypesIndexMap :Map;
+  neighbor :Map<*, *>;
+  onClick :() => void;
+  propertyTypeTitle :string;
+  propertyTypes :List;
+  propertyTypesIndexMap :Map;
+};
+
+type State = {
+  open :boolean;
+};
+
 export default class TimelineRow extends React.Component<Props, State> {
 
-  constructor(props) {
+  constructor(props :Props) {
     super(props);
     this.state = {
       open: false
@@ -103,12 +107,22 @@ export default class TimelineRow extends React.Component<Props, State> {
   }
 
   getEventName = () => {
-    const { entityTypesById, propertyTypesById, neighbor } = this.props;
+
+    const {
+      entityTypes,
+      entityTypesIndexMap,
+      neighbor,
+      propertyTypes,
+      propertyTypesIndexMap,
+    } = this.props;
+
     const entity = neighbor.get('neighborDetails', Map());
-    const entityType = entityTypesById.get(neighbor.getIn(['neighborEntitySet', 'entityTypeId']));
+    const entityTypeId :UUID = neighbor.getIn(['neighborEntitySet', 'entityTypeId']);
+    const entityTypeIndex :number = entityTypesIndexMap.get(entityTypeId);
+    const entityType :Map = entityTypes.get(entityTypeIndex, Map());
 
     const entityTypeTitle = entityType.get('title');
-    let entityTitle = getEntityTitle(entityType, propertyTypesById, entity);
+    let entityTitle = getEntityTitle(entityType, propertyTypes, propertyTypesIndexMap, entity);
     if (entityTitle === `[${entityTypeTitle}]`) {
       entityTitle = '';
     }
@@ -130,13 +144,25 @@ export default class TimelineRow extends React.Component<Props, State> {
     );
   }
 
-  getPropertyHeaders = (entityTypeId) => {
-    const { entityTypesById, propertyTypesById } = this.props;
-    return entityTypesById.getIn([entityTypeId, 'properties'], List()).map((propertyTypeId) => {
-      const propertyType = propertyTypesById.get(propertyTypeId, Map());
-      const id = getFqnString(propertyType.get('type', Map()));
-      const value = propertyType.get('title', '');
-      return fromJS({ id, value });
+  getPropertyHeaders = (entityTypeId :UUID) => {
+
+    const {
+      entityTypes,
+      entityTypesIndexMap,
+      propertyTypes,
+      propertyTypesIndexMap,
+    } = this.props;
+    const entityTypeIndex :number = entityTypesIndexMap.get(entityTypeId);
+    const entityType :Map = entityTypes.get(entityTypeIndex, Map());
+
+    return entityType.get('properties', List()).map((propertyTypeId :UUID) => {
+      const propertyTypeIndex = propertyTypesIndexMap.get(propertyTypeId);
+      const propertyType = propertyTypes.get(propertyTypeIndex, Map());
+      const propertyTypeFQN = FullyQualifiedName.toString(propertyType.get('type', Map()));
+      return fromJS({
+        id: propertyTypeFQN,
+        value: propertyType.get('title', ''),
+      });
     });
   }
 
