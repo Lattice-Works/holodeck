@@ -41,11 +41,11 @@ const SectionHeader = styled.div`
 `;
 
 const ChevronDownIcon = (
-  <FontAwesomeIcon icon={faChevronCircleDown} size="2x" />
+  <FontAwesomeIcon fixedWidth icon={faChevronCircleDown} size="2x" />
 );
 
 const ChevronUpIcon = (
-  <FontAwesomeIcon icon={faChevronCircleUp} size="2x" />
+  <FontAwesomeIcon fixedWidth icon={faChevronCircleUp} size="2x" />
 );
 
 const ChevronButton = styled(IconButton).attrs(({ isOpen }) => ({
