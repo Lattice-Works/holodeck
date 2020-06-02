@@ -7,13 +7,17 @@ import React, { useEffect } from 'react';
 import { Models } from 'lattice';
 import { AppContentWrapper, Spinner } from 'lattice-ui-kit';
 import {
-  Logger,
   RoutingUtils,
   ValidationUtils,
   useRequestState,
 } from 'lattice-utils';
 import { useDispatch, useSelector } from 'react-redux';
-import { Route, Switch, useRouteMatch } from 'react-router';
+import {
+  Redirect,
+  Route,
+  Switch,
+  useRouteMatch,
+} from 'react-router';
 import { RequestStates } from 'redux-reqseq';
 import type { RequestState } from 'redux-reqseq';
 
@@ -26,7 +30,9 @@ import {
   exploreEntitySet,
 } from './ExploreActions';
 
-import { REDUCERS } from '../../core/redux/constants';
+import { BasicErrorComponent } from '../../components';
+import { ReduxActions } from '../../core/redux';
+import { ERROR, REDUCERS } from '../../core/redux/constants';
 import { Routes } from '../../core/router';
 import { SearchActions } from '../../core/search';
 import { EntityDataContainer } from '../entitydata';
@@ -37,9 +43,8 @@ const { getParamFromMatch } = RoutingUtils;
 const { isValidUUID } = ValidationUtils;
 
 const { EXPLORE } = REDUCERS;
+const { resetRequestState } = ReduxActions;
 const { SEARCH_ENTITY_SET, clearSearchState } = SearchActions;
-
-const LOG = new Logger('ExploreRouter');
 
 const ExploreRouter = () => {
 
@@ -60,6 +65,8 @@ const ExploreRouter = () => {
 
   const exploreEntityDataRS :?RequestState = useRequestState([EXPLORE, EXPLORE_ENTITY_DATA]);
   const exploreEntitySetRS :?RequestState = useRequestState([EXPLORE, EXPLORE_ENTITY_SET]);
+  const exploreEntityDataError :?SagaError = useSelector((s) => s.getIn([EXPLORE, EXPLORE_ENTITY_DATA, ERROR]));
+  const exploreEntitySetError :?SagaError = useSelector((s) => s.getIn([EXPLORE, EXPLORE_ENTITY_SET, ERROR]));
   const entityData :?Object = useSelector((s) => s.getIn([EXPLORE, 'selectedEntityData']));
   const entitySet :?EntitySet = useSelector((s) => s.getIn([EXPLORE, 'selectedEntitySet']));
 
@@ -77,10 +84,25 @@ const ExploreRouter = () => {
     }
   }, [dispatch, entityKeyId, entitySetId]);
 
+  useEffect(() => {
+    if (!matchEntityData && !matchEntitySet) {
+      dispatch(resetRequestState(EXPLORE_ENTITY_DATA));
+      dispatch(resetRequestState(EXPLORE_ENTITY_SET));
+    }
+  }, [dispatch, matchEntityData, matchEntitySet]);
+
   if (exploreEntityDataRS === RequestStates.PENDING || exploreEntitySetRS === RequestStates.PENDING) {
     return (
       <AppContentWrapper>
         <Spinner size="2x" />
+      </AppContentWrapper>
+    );
+  }
+
+  if (exploreEntityDataRS === RequestStates.FAILURE || exploreEntitySetRS === RequestStates.FAILURE) {
+    return (
+      <AppContentWrapper>
+        <BasicErrorComponent error={exploreEntityDataError || exploreEntitySetError} />
       </AppContentWrapper>
     );
   }
@@ -108,6 +130,7 @@ const ExploreRouter = () => {
       <Route exact path={Routes.EXPLORE} component={ExploreContainer} />
       <Route path={Routes.ENTITY_SET} render={renderEntitySetContainer} />
       <Route path={Routes.ENTITY_DATA} render={renderEntityDataContainer} />
+      <Redirect to={Routes.EXPLORE} />
     </Switch>
   );
 };

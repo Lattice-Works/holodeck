@@ -10,7 +10,7 @@ import {
   select,
   takeEvery,
 } from '@redux-saga/core/effects';
-import { List, Map, Set, fromJS } from 'immutable';
+import { Set, fromJS } from 'immutable';
 import { Models } from 'lattice';
 import {
   DataApiActions,
@@ -35,6 +35,7 @@ import {
 } from './ExploreActions';
 
 import { EDMUtils } from '../../core/edm';
+import { AxiosUtils } from '../../utils';
 
 const LOG = new Logger('EntityDataSagas');
 
@@ -75,7 +76,7 @@ function* exploreEntityDataWorker(action :SequenceAction) :Saga<*> {
   }
   catch (error) {
     LOG.error(action.type, error);
-    yield put(exploreEntityData.failure(action.id, error));
+    yield put(exploreEntityData.failure(action.id, AxiosUtils.toSagaError(error)));
   }
   finally {
     yield put(exploreEntityData.finally(action.id));
@@ -184,7 +185,7 @@ function* exploreEntitySetWorker(action :SequenceAction) :Saga<*> {
   }
   catch (error) {
     LOG.error(action.type, error);
-    yield put(exploreEntitySet.failure(action.id, error));
+    yield put(exploreEntitySet.failure(action.id, AxiosUtils.toSagaError(error)));
   }
   finally {
     yield put(exploreEntitySet.finally(action.id));

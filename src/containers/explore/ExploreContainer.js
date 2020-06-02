@@ -21,8 +21,8 @@ import { RequestStates } from 'redux-reqseq';
 import type { RequestState } from 'redux-reqseq';
 
 import {
+  BasicErrorComponent,
   EntitySetSearchResultCard,
-  ErrorCardSegment,
   NoSearchResultsCardSegment,
 } from '../../components';
 import {
@@ -109,9 +109,9 @@ const ExploreContainer = () => {
         }
         {
           searchRS === RequestStates.FAILURE && (
-            <ErrorCardSegment>
-              <span>Sorry, something went wrong with this search. Please try again.</span>
-            </ErrorCardSegment>
+            <BasicErrorComponent>
+              Sorry, something went wrong with this search. Please try again.
+            </BasicErrorComponent>
           )
         }
         {

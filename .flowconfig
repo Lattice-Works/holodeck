@@ -22,4 +22,4 @@
 .*/node_modules/immutable/.*
 
 [libs]
-./config/flow/types.js.flow
+./src/types.js.flow

@@ -1,0 +1,11 @@
+/*
+ * @flow
+ */
+
+declare type UUID = string;
+
+declare type SagaError = {
+  message :string;
+  status :number;
+  statusText :string;
+};

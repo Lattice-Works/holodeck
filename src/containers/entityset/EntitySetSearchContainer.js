@@ -23,7 +23,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RequestStates } from 'redux-reqseq';
 import type { RequestState } from 'redux-reqseq';
 
-import { EntityDataRow, ErrorCardSegment, TableCardSegment } from '../../components';
+import { BasicErrorComponent, EntityDataRow, TableCardSegment } from '../../components';
 import { EDMUtils } from '../../core/edm';
 import {
   HITS,
@@ -153,9 +153,9 @@ const EntitySetSearchContainer = ({ entitySet } :Props) => {
         </CardSegment>
         {
           searchRS === RequestStates.FAILURE && (
-            <ErrorCardSegment borderless>
-              <span>Sorry, something went wrong with this search. Please try again.</span>
-            </ErrorCardSegment>
+            <BasicErrorComponent>
+              Sorry, something went wrong with this search. Please try again.
+            </BasicErrorComponent>
           )
         }
         {
