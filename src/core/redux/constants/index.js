@@ -20,6 +20,7 @@ export {
   REDUCERS,
 };
 
+const ERROR :'error' = 'error';
 const HITS :'hits' = 'hits';
 const PAGE :'page' = 'page';
 const QUERY :'query' = 'query';
@@ -27,6 +28,7 @@ const REQUEST_STATE :'requestState' = 'requestState';
 const TOTAL_HITS :'totalHits' = 'totalHits';
 
 export {
+  ERROR,
   HITS,
   PAGE,
   QUERY,

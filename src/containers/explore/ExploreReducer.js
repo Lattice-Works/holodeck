@@ -2,7 +2,7 @@
  * @flow
  */
 
-import { Map, List, fromJS } from 'immutable';
+import { Map, fromJS } from 'immutable';
 import { Models } from 'lattice';
 import { matchPath } from 'react-router';
 import { RequestStates } from 'redux-reqseq';
@@ -17,17 +17,24 @@ import {
   exploreEntitySet,
 } from './ExploreActions';
 
-import { REQUEST_STATE } from '../../core/redux/constants';
+import { ReduxActions } from '../../core/redux';
+import { ERROR, REQUEST_STATE } from '../../core/redux/constants';
 import { Routes, RoutingActions } from '../../core/router';
 import type { RoutingAction } from '../../core/router/RoutingActions';
 
 const { EntitySetBuilder } = Models;
 const { GO_TO_ROUTE } = RoutingActions;
+const { RESET_REQUEST_STATE } = ReduxActions;
+
+const RS_INITIAL_STATE = {
+  [ERROR]: false,
+  [REQUEST_STATE]: RequestStates.STANDBY,
+};
 
 const INITIAL_STATE :Map = fromJS({
-  [EXPLORE_ENTITY_DATA]: { [REQUEST_STATE]: RequestStates.STANDBY },
-  [EXPLORE_ENTITY_NEIGHBORS]: { [REQUEST_STATE]: RequestStates.STANDBY },
-  [EXPLORE_ENTITY_SET]: { [REQUEST_STATE]: RequestStates.STANDBY },
+  [EXPLORE_ENTITY_DATA]: RS_INITIAL_STATE,
+  [EXPLORE_ENTITY_NEIGHBORS]: RS_INITIAL_STATE,
+  [EXPLORE_ENTITY_SET]: RS_INITIAL_STATE,
   entityNeighborsMap: Map(),
   selectedEntityData: undefined,
   selectedEntitySet: undefined,
@@ -48,6 +55,16 @@ export default function reducer(state :Map = INITIAL_STATE, action :Object) {
       return state;
     }
 
+    case RESET_REQUEST_STATE: {
+      const { actionType } = action;
+      if (actionType && state.has(actionType)) {
+        return state
+          .setIn([actionType, ERROR], false)
+          .setIn([actionType, REQUEST_STATE], RequestStates.STANDBY);
+      }
+      return state;
+    }
+
     case exploreEntityData.case(action.type): {
       const seqAction :SequenceAction = action;
       return exploreEntityData.reducer(state, seqAction, {
@@ -64,6 +81,7 @@ export default function reducer(state :Map = INITIAL_STATE, action :Object) {
         },
         FAILURE: () => state
           .set('selectedEntityData', undefined)
+          .setIn([EXPLORE_ENTITY_DATA, ERROR], seqAction.value)
           .setIn([EXPLORE_ENTITY_DATA, REQUEST_STATE], RequestStates.FAILURE),
         FINALLY: () => state.deleteIn([EXPLORE_ENTITY_DATA, seqAction.id]),
       });
@@ -78,7 +96,7 @@ export default function reducer(state :Map = INITIAL_STATE, action :Object) {
         SUCCESS: () => {
           if (state.hasIn([EXPLORE_ENTITY_NEIGHBORS, seqAction.id])) {
             const storedSeqAction = state.getIn([EXPLORE_ENTITY_NEIGHBORS, seqAction.id]);
-            const { entityKeyId, entitySetId } = storedSeqAction.value;
+            const { entityKeyId } = storedSeqAction.value;
             return state
               .setIn(['entityNeighborsMap', entityKeyId], seqAction.value)
               .setIn([EXPLORE_ENTITY_NEIGHBORS, REQUEST_STATE], RequestStates.SUCCESS);
@@ -106,6 +124,7 @@ export default function reducer(state :Map = INITIAL_STATE, action :Object) {
         },
         FAILURE: () => state
           .set('selectedEntitySet', undefined)
+          .setIn([EXPLORE_ENTITY_SET, ERROR], seqAction.value)
           .setIn([EXPLORE_ENTITY_SET, REQUEST_STATE], RequestStates.FAILURE),
         FINALLY: () => state.deleteIn([EXPLORE_ENTITY_SET, seqAction.id]),
       });

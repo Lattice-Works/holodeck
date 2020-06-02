@@ -25,9 +25,9 @@ import { RequestStates } from 'redux-reqseq';
 import type { RequestState } from 'redux-reqseq';
 
 import { INITIALIZE_APPLICATION, initializeApplication } from './AppActions';
-import { ErrorCardSegment } from '../../components';
 
-import OpenLatticeLogo from '../../assets/images/ol-icon.png';
+import OpenLatticeIcon from '../../assets/images/ol-icon.png';
+import { BasicErrorComponent } from '../../components';
 import { REDUCERS } from '../../core/redux/constants';
 import { Routes } from '../../core/router';
 import { GOOGLE_TRACKING_ID } from '../../core/tracking/google/GoogleAnalytics';
@@ -67,7 +67,7 @@ const AppContainer = () => {
     <ThemeProvider theme={lightTheme}>
       <MuiPickersUtilsProvider utils={LatticeLuxonUtils}>
         <AppContainerWrapper>
-          <AppHeaderWrapper appIcon={OpenLatticeLogo} appTitle="Regallery" logout={logout} user={user}>
+          <AppHeaderWrapper appIcon={OpenLatticeIcon} appTitle="Regallery" logout={logout} user={user}>
             <AppNavigationWrapper>
               <NavLink to={Routes.ROOT} />
               <NavLink to={Routes.EXPLORE}>Explore</NavLink>
@@ -83,9 +83,9 @@ const AppContainer = () => {
           {
             initAppRS === RequestStates.FAILURE && (
               <AppContentWrapper>
-                <ErrorCardSegment>
+                <BasicErrorComponent>
                   Sorry, the application failed to initialize. Please try refreshing the page, or contact support.
-                </ErrorCardSegment>
+                </BasicErrorComponent>
               </AppContentWrapper>
             )
           }

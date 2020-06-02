@@ -9,7 +9,7 @@ import { faEmptySet } from '@fortawesome/pro-light-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Colors } from 'lattice-ui-kit';
 
-import { ErrorCardSegment } from '../cards';
+import { BasicErrorComponent } from '../errors';
 
 const { NEUTRALS } = Colors;
 
@@ -24,11 +24,11 @@ type Props = {
 };
 
 const NoSearchResultsCardSegment = ({ message } :Props) => (
-  <ErrorCardSegment>
+  <BasicErrorComponent>
     <FontAwesomeIcon icon={faEmptySet} size="3x" />
     <NoSearchResults>No search results.</NoSearchResults>
     <span>{message}</span>
-  </ErrorCardSegment>
+  </BasicErrorComponent>
 );
 
 NoSearchResultsCardSegment.defaultProps = {
