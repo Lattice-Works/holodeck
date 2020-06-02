@@ -18,11 +18,14 @@ const EXPLORE :'/explore' = '/explore';
 const LOGIN :'/login' = '/login';
 
 // $FlowFixMe - ignoring flow because I prefer the code hints to show the value
-const ENTITY_SET :'/entitySet/:entitySetId' = `/entitySet/${ESID_PARAM}`;
+const ENTITY_SET :'/explore/entitySet/:entitySetId' = `${EXPLORE}/entitySet/${ESID_PARAM}`;
 // $FlowFixMe - ignoring flow because I prefer the code hints to show the value
-const ENTITY_SET_SEARCH :'/entitySet/:entitySetId/search' = `${ENTITY_SET}/search`;
+const ENTITY_SET_SEARCH :'/explore/entitySet/:entitySetId/search' = `${ENTITY_SET}/search`;
+
 // $FlowFixMe - ignoring flow because I prefer the code hints to show the value
-const ENTITY_DATA :'/entitySet/:entitySetId/search/:entityKeyId' = `${ENTITY_SET_SEARCH}/${EKID_PARAM}`;
+const ENTITY_DATA :'/explore/entityData/:entitySetId/:entityKeyId' = `${EXPLORE}/entityData`
+  + `/${ESID_PARAM}`
+  + `/${EKID_PARAM}`;
 
 export {
   ENTITY_DATA,

@@ -9,24 +9,19 @@ import { combineReducers } from 'redux-immutable';
 import { REDUCERS } from './constants';
 
 import { AppReducer } from '../../containers/app';
-import { EntitySetReducer } from '../../containers/entityset';
+import { ExploreReducer } from '../../containers/explore';
+import { DataReducer } from '../data';
 import { EDMReducer } from '../edm';
 import { SearchReducer } from '../search';
-
-const {
-  APP,
-  EDM,
-  ENTITY_SET,
-  SEARCH,
-} = REDUCERS;
 
 export default function reduxReducer(routerHistory :any) {
 
   return combineReducers({
-    [APP]: AppReducer,
-    [EDM]: EDMReducer,
-    [ENTITY_SET]: EntitySetReducer,
-    [SEARCH]: SearchReducer,
+    [REDUCERS.APP]: AppReducer,
+    [REDUCERS.DATA]: DataReducer,
+    [REDUCERS.EDM]: EDMReducer,
+    [REDUCERS.EXPLORE]: ExploreReducer,
+    [REDUCERS.SEARCH]: SearchReducer,
     auth: AuthReducer,
     router: connectRouter(routerHistory),
   });

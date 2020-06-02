@@ -34,7 +34,7 @@ const { getAllEntitySetsWorker, getPropertyTypeMetaDataForEntitySetsWorker } = E
 
 /*
  *
- * EDMActions.getEntityDataModelTypes()
+ * EDMActions.getEntityDataModelTypes
  *
  */
 

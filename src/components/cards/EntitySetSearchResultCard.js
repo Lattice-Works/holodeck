@@ -46,7 +46,7 @@ const EntitySetSearchResultCard = ({ searchResult } :Props) => {
 
   return (
     <Card id={entitySetId} onClick={goToEntitySet}>
-      <CardSegment vertical>
+      <CardSegment>
         <EntitySetTitle>{entitySet.title}</EntitySetTitle>
         <EntitySetDescription>{entitySet.description}</EntitySetDescription>
       </CardSegment>

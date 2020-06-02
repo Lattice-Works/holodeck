@@ -10,7 +10,7 @@ import {
   Colors,
 } from 'lattice-ui-kit';
 
-import { Title } from '../../../components';
+import { Title } from '../../components';
 
 const { WHITE } = Colors;
 const { EntitySet } = Models;

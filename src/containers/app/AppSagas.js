@@ -9,35 +9,30 @@ import {
   takeEvery,
 } from '@redux-saga/core/effects';
 import { Logger } from 'lattice-utils';
+import type { Saga } from '@redux-saga/core';
 import type { SequenceAction } from 'redux-reqseq';
 
 import { INITIALIZE_APPLICATION, initializeApplication } from './AppActions';
 
-import {
-  getEntityDataModelTypes,
-} from '../../core/edm/EDMActions';
-import {
-  getEntityDataModelTypesWorker,
-} from '../../core/edm/EDMSagas';
+import { getEntityDataModelTypes } from '../../core/edm/EDMActions';
+import { getEntityDataModelTypesWorker } from '../../core/edm/EDMSagas';
 
 const LOG = new Logger('AppSagas');
 
 /*
  *
- * AppActions.initializeApplication()
+ * AppActions.initializeApplication
  *
  */
 
-function* initializeApplicationWorker(action :SequenceAction) :Generator<*, *, *> {
+function* initializeApplicationWorker(action :SequenceAction) :Saga<*> {
 
   try {
     yield put(initializeApplication.request(action.id));
     const responses :Object[] = yield all([
       call(getEntityDataModelTypesWorker, getEntityDataModelTypes()),
-      // call(getEntitySetsWithMetaDataWorker, getEntitySetsWithMetaData()),
     ]);
     if (responses[0].error) throw responses[0].error;
-    // if (responses[1].error) throw responses[1].error;
     yield put(initializeApplication.success(action.id));
   }
   catch (error) {
@@ -49,7 +44,7 @@ function* initializeApplicationWorker(action :SequenceAction) :Generator<*, *, *
   }
 }
 
-function* initializeApplicationWatcher() :Generator<*, *, *> {
+function* initializeApplicationWatcher() :Saga<*> {
 
   yield takeEvery(INITIALIZE_APPLICATION, initializeApplicationWorker);
 }

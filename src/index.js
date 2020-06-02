@@ -91,7 +91,7 @@ if (APP_ROOT_NODE) {
     <Provider store={reduxStore}>
       <>
         <ConnectedRouter history={routerHistory}>
-          <AuthRoute path={ROOT} component={AppContainer} />
+          <AuthRoute path={ROOT} component={AppContainer} redirectToLogin />
         </ConnectedRouter>
         <NormalizeCSS />
         <GlobalStyle />

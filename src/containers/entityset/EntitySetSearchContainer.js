@@ -11,7 +11,6 @@ import {
   AppContentWrapper,
   Card,
   CardSegment,
-  Colors,
   PaginationToolbar,
   SearchButton,
   SearchInput,
@@ -24,37 +23,35 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RequestStates } from 'redux-reqseq';
 import type { RequestState } from 'redux-reqseq';
 
-import EntityDataRow from './EntityDataRow';
-
-import { ErrorCardSegment } from '../../../components';
-import { EDMUtils } from '../../../core/edm';
+import { EntityDataRow, ErrorCardSegment, TableCardSegment } from '../../components';
+import { EDMUtils } from '../../core/edm';
 import {
   HITS,
   PAGE,
   QUERY,
   REDUCERS,
   TOTAL_HITS,
-} from '../../../core/redux/constants';
-import { SearchActions } from '../../../core/search';
-import { MAX_HITS_10 } from '../../../core/search/constants';
+} from '../../core/redux/constants';
+import { SearchActions } from '../../core/search';
+import { MAX_HITS_10 } from '../../core/search/constants';
 
 const { OPENLATTICE_ID_FQN } = Constants;
-const { NEUTRALS } = Colors;
 const { EntitySet, PropertyType } = Models;
 const { SEARCH } = REDUCERS;
 const { SEARCH_ENTITY_SET, searchEntitySet } = SearchActions;
 const { isNonEmptyString } = LangUtils;
 const { useEntityTypePropertyTypes } = EDMUtils;
 
-const SearchContentWrapper = styled(AppContentWrapper)`
-  flex: 1;
-
-  > div {
-    flex: 0 1 auto;
-    max-width: none;
-    width: auto;
-  }
-`;
+// NOTE: saving for later, in case we bring this back
+// const SearchContentWrapper = styled(AppContentWrapper)`
+//   flex: 1;
+//
+//   > div {
+//     flex: 0 1 auto;
+//     max-width: none;
+//     width: auto;
+//   }
+// `;
 
 const SearchGrid = styled.div`
   align-items: flex-start;
@@ -66,41 +63,6 @@ const SearchGrid = styled.div`
 
   button {
     line-height: 1.5;
-  }
-`;
-
-const PagingWrapper = styled.section`
-  padding: 2px;
-`;
-
-
-// TODO: this is hacky, we can do better
-const TableCardSegment = styled(CardSegment)`
-  padding-top: 0;
-
-  > div {
-    border: 1px solid ${NEUTRALS[4]};
-    border-radius: 3px;
-    overflow: scroll;
-  }
-
-  table {
-    margin-bottom: -1px;
-    overflow: scroll;
-    width: auto;
-  }
-
-  td,
-  th {
-    max-width: 500px;
-    min-width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  th {
-    padding: 15px 10px;
   }
 `;
 
@@ -175,9 +137,9 @@ const EntitySetSearchContainer = ({ entitySet } :Props) => {
   };
 
   return (
-    <SearchContentWrapper>
+    <AppContentWrapper>
       <Card>
-        <AppContentWrapper>
+        <CardSegment borderless>
           <form>
             <SearchGrid>
               <SearchInput onChange={setQuery} value={query} />
@@ -188,7 +150,7 @@ const EntitySetSearchContainer = ({ entitySet } :Props) => {
                   type="submit" />
             </SearchGrid>
           </form>
-        </AppContentWrapper>
+        </CardSegment>
         {
           searchRS === RequestStates.FAILURE && (
             <ErrorCardSegment borderless>
@@ -203,28 +165,28 @@ const EntitySetSearchContainer = ({ entitySet } :Props) => {
             </SpinnerWrapper>
           )
         }
-        <TableCardSegment vertical>
-          <PagingWrapper>
-            <PaginationToolbar
-                page={searchPage}
-                count={totalHits}
-                onPageChange={handleOnPageChange}
-                rowsPerPage={MAX_HITS_10} />
-          </PagingWrapper>
+        <CardSegment borderless padding="2px 30px">
+          <PaginationToolbar
+              page={searchPage}
+              count={totalHits}
+              onPageChange={handleOnPageChange}
+              rowsPerPage={MAX_HITS_10} />
+        </CardSegment>
+        <TableCardSegment borderless padding="0 30px" noWrap>
           <Table
               components={components}
               data={tableData}
               headers={tableHeaders} />
-          <PagingWrapper>
-            <PaginationToolbar
-                page={searchPage}
-                count={totalHits}
-                onPageChange={handleOnPageChange}
-                rowsPerPage={MAX_HITS_10} />
-          </PagingWrapper>
         </TableCardSegment>
+        <CardSegment padding="2px 30px 30px 30px">
+          <PaginationToolbar
+              page={searchPage}
+              count={totalHits}
+              onPageChange={handleOnPageChange}
+              rowsPerPage={MAX_HITS_10} />
+        </CardSegment>
       </Card>
-    </SearchContentWrapper>
+    </AppContentWrapper>
   );
 };
 

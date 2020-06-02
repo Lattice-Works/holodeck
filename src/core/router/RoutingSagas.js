@@ -13,9 +13,11 @@ import {
 } from './RoutingActions';
 import type { RoutingAction } from './RoutingActions';
 
-const LOG :Logger = new Logger('RoutingSagas');
+import { Errors } from '../../utils';
 
-const ERR_INVALID_ROUTE :string = 'invalid route: a route must be a non-empty string that starts with "/"';
+const LOG = new Logger('RoutingSagas');
+
+const { ERR_INVALID_ROUTE } = Errors;
 
 /*
  *
@@ -32,7 +34,10 @@ function* goToRouteWorker(action :RoutingAction) :Generator<*, *, *> {
     return;
   }
 
-  yield put(push({ state, pathname: route }));
+  // ISSUE: https://github.com/supasate/connected-react-router/issues/394#issuecomment-596713700
+  // FIX: https://github.com/supasate/connected-react-router/pull/399
+  // TODO: remove JSON.stringify() once the fix ^ is released
+  yield put(push({ state: JSON.stringify(state), pathname: route }));
 }
 
 function* goToRouteWatcher() :Generator<*, *, *> {

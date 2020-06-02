@@ -24,7 +24,7 @@ type Props = {
 };
 
 const NoSearchResultsCardSegment = ({ message } :Props) => (
-  <ErrorCardSegment vertical>
+  <ErrorCardSegment>
     <FontAwesomeIcon icon={faEmptySet} size="3x" />
     <NoSearchResults>No search results.</NoSearchResults>
     <span>{message}</span>
