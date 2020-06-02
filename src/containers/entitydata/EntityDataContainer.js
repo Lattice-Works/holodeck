@@ -6,12 +6,7 @@ import React from 'react';
 
 import { Map } from 'immutable';
 import { Models } from 'lattice';
-import {
-  AppContentWrapper,
-  AppNavigationWrapper,
-  Breadcrumbs,
-  Colors,
-} from 'lattice-ui-kit';
+import { AppContentWrapper, AppNavigationWrapper, Colors } from 'lattice-ui-kit';
 import { Logger, ValidationUtils } from 'lattice-utils';
 import { useSelector } from 'react-redux';
 import { Redirect } from 'react-router';
@@ -19,11 +14,7 @@ import { NavLink } from 'react-router-dom';
 
 import EntityNeighborsContainer from './EntityNeighborsContainer';
 
-import {
-  CrumbItem,
-  CrumbLink,
-  EntityDataGrid,
-} from '../../components';
+import { EntityDataGrid } from '../../components';
 import { EDMUtils } from '../../core/edm';
 import { REDUCERS } from '../../core/redux/constants';
 import { Routes } from '../../core/router';
@@ -64,18 +55,8 @@ const EntityDataContainer = ({
   }
 
   if (entityData && entitySet) {
-
-    // TODO: move out to ExploreRouter
-    const searchPath = Routes.ENTITY_SET_SEARCH.replace(Routes.ESID_PARAM, entitySetId);
-
     return (
       <>
-        <AppContentWrapper bgColor={WHITE}>
-          <Breadcrumbs>
-            <CrumbLink to={searchPath}>SEARCH</CrumbLink>
-            <CrumbItem>{entityKeyId}</CrumbItem>
-          </Breadcrumbs>
-        </AppContentWrapper>
         <AppContentWrapper bgColor={WHITE}>
           <EntityDataGrid data={entityData} propertyTypes={propertyTypes} />
         </AppContentWrapper>

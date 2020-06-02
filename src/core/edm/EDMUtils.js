@@ -2,14 +2,15 @@
  * @flow
  */
 
-import { Map } from 'immutable';
+import { Map, Set, isCollection } from 'immutable';
 import { Models } from 'lattice';
-import { ValidationUtils } from 'lattice-utils';
+import { LangUtils, ValidationUtils } from 'lattice-utils';
 import { useSelector } from 'react-redux';
 
 import { REDUCERS } from '../redux/constants';
 
 const { isValidUUID } = ValidationUtils;
+const { isNonEmptyArray, isNonEmptyString } = LangUtils;
 const {
   EntitySet,
   EntityType,
@@ -29,9 +30,45 @@ const selectEntitySet = (idOrName :UUID | string) => (state :Map) :?EntitySet =>
   return undefined;
 };
 
-const useEntityTypePropertyTypes = (idOrFQN :?UUID | FQN) => {
+type IdsOrNames =
+  | UUID[]
+  | string[]
+  | Set<UUID>
+  | Set<string>;
 
-  const propertyTypes :PropertyType[] = useSelector((state :Map) => {
+// OPTIMIZE
+const useEntitySets = (idsOrNames :?IdsOrNames) :{ [UUID] :EntitySet } => (
+  useSelector((state :Map) => {
+
+    const isValid = (
+      (isNonEmptyArray(idsOrNames) || isCollection(idsOrNames))
+      && (
+        idsOrNames.every(isValidUUID) || idsOrNames.every(isNonEmptyString)
+      )
+    );
+
+    if (!isValid || !idsOrNames) {
+      return {};
+    }
+
+    const entitySetsMap = {};
+    idsOrNames.forEach((idOrName) => {
+      const entitySetIndex :number = state.getIn(['edm', 'entitySetsIndexMap', idOrName], -1);
+      if (entitySetIndex >= 0) {
+        const entitySet :?EntitySet = state.getIn(['edm', 'entitySets', entitySetIndex]);
+        if (entitySet && entitySet.id) {
+          entitySetsMap[entitySet.id] = entitySet;
+        }
+      }
+    });
+
+    return entitySetsMap;
+  })
+);
+
+// OPTIMIZE
+const useEntityTypePropertyTypes = (idOrFQN :?UUID | FQN) :PropertyType[] => (
+  useSelector((state :Map) => {
 
     if (isValidUUID(idOrFQN) || FQN.isValid(idOrFQN)) {
 
@@ -52,12 +89,11 @@ const useEntityTypePropertyTypes = (idOrFQN :?UUID | FQN) => {
     }
 
     return [];
-  });
-
-  return propertyTypes;
-};
+  })
+);
 
 export {
   selectEntitySet,
+  useEntitySets,
   useEntityTypePropertyTypes,
 };

@@ -2,36 +2,37 @@
  * @flow
  */
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import styled from 'styled-components';
 import { faChevronCircleDown, faChevronCircleUp } from '@fortawesome/pro-light-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Map, Set } from 'immutable';
 import { Models } from 'lattice';
-import {
-  Card,
-  CardSegment,
-  CardStack,
-  IconButton,
-  Spinner,
-} from 'lattice-ui-kit';
+import { CardStack, IconButton, Spinner } from 'lattice-ui-kit';
 import { useRequestState } from 'lattice-utils';
-import { useSelector } from 'react-redux';
 import { RequestStates } from 'redux-reqseq';
 import type { RequestState } from 'redux-reqseq';
 
+import EntityNeighborsCardContainer from './EntityNeighborsCardContainer';
+
 import { Title } from '../../components';
+import { EDMUtils } from '../../core/edm';
 import { REDUCERS } from '../../core/redux/constants';
 import { ExploreActions } from '../explore';
 
 const { EntitySet } = Models;
 
-const { EDM, EXPLORE } = REDUCERS;
+const { EXPLORE } = REDUCERS;
 const { EXPLORE_ENTITY_NEIGHBORS } = ExploreActions;
+const { useEntitySets } = EDMUtils;
 
 const AssociationSection = styled.section`
-  padding: 10px 0;
+  padding-bottom: 30px;
+
+  &:last-child {
+    padding-bottom: 0;
+  }
 `;
 
 const SectionHeader = styled.div`
@@ -55,39 +56,28 @@ const ChevronButton = styled(IconButton).attrs(({ isOpen }) => ({
 `;
 
 type Props = {
-  entityKeyId :UUID;
   neighbors :Map;
 };
 
-const EntityNeighborsContainer = ({ entityKeyId, neighbors } :Props) => {
+const EntityNeighborsContainer = ({ neighbors } :Props) => {
 
   const [visibleSections, setVisibleSections] = useState(Map());
   const exploreEntityNeighborsRS :?RequestState = useRequestState([EXPLORE, EXPLORE_ENTITY_NEIGHBORS]);
 
-  let associationEntitySetIds = Set();
-  let entitySetIds = Set();
-  if (neighbors && !neighbors.isEmpty()) {
-    associationEntitySetIds = neighbors.keySeq().toSet();
-    entitySetIds = Set().withMutations((set) => {
-      neighbors.reduce((ids, value) => ids.add(value.keySeq()), set);
-    }).flatten();
-  }
+  const associationEntitySetIds :Set<UUID> = useMemo(() => (
+    neighbors ? neighbors.keySeq().toSet() : Set()
+  ), [neighbors]);
 
-  // OPTIMIZE
-  const associationEntitySets :EntitySet[] = useSelector((s) => {
-    return associationEntitySetIds.map((id :UUID) => {
-      return s.getIn([EDM, 'entitySets', s.getIn([EDM, 'entitySetsIndexMap', id])]);
-    });
-  });
+  const entitySetIds :Set<UUID> = useMemo(() => (
+    Set().withMutations((set) => {
+      if (neighbors) {
+        neighbors.reduce((ids :Set<UUID>, esNeighborsMap :Map) => ids.add(esNeighborsMap.keySeq()), set);
+      }
+    }).flatten()
+  ), [neighbors]);
 
-  // OPTIMIZE
-  const entitySetsMap :{ [UUID] :EntitySet } = useSelector((s) => {
-    const map = {};
-    entitySetIds.forEach((esid :UUID) => {
-      map[esid] = s.getIn([EDM, 'entitySets', s.getIn([EDM, 'entitySetsIndexMap', esid])]);
-    }, map);
-    return map;
-  });
+  const entitySetsMap = useEntitySets(entitySetIds);
+  const associationEntitySetsMap = useEntitySets(associationEntitySetIds);
 
   const handleOnClick = (event :SyntheticEvent<HTMLButtonElement>) => {
     const { currentTarget } = event;
@@ -107,30 +97,33 @@ const EntityNeighborsContainer = ({ entityKeyId, neighbors } :Props) => {
   }
 
   return (
-    <div>
+    <>
       {
-        associationEntitySets.map((aes :EntitySet) => (
-          <AssociationSection key={aes.id}>
+        (Object.values(associationEntitySetsMap) :any).map((associationEntitySet :EntitySet) => (
+          <AssociationSection key={associationEntitySet.id}>
             <SectionHeader>
-              <Title as="h2">{aes.title}</Title>
-              <ChevronButton isOpen={visibleSections.get(aes.id)} data-entity-set-id={aes.id} onClick={handleOnClick} />
+              <Title as="h2">{associationEntitySet.title}</Title>
+              <ChevronButton
+                  isOpen={visibleSections.get(associationEntitySet.id)}
+                  data-entity-set-id={associationEntitySet.id}
+                  onClick={handleOnClick} />
             </SectionHeader>
             {
-              visibleSections.get(aes.id) && (
+              visibleSections.get(associationEntitySet.id) && (
                 <>
                   <br />
                   <CardStack>
                     {
-                      neighbors.get(aes.id)
-                        .map((entities, entitySetId) => {
+                      neighbors
+                        .get(associationEntitySet.id)
+                        .map((entitySetNeighbors, entitySetId :UUID) => {
                           const entitySet :?EntitySet = entitySetsMap[entitySetId];
                           if (entitySet) {
                             return (
-                              <Card key={entitySet.id}>
-                                <CardSegment>
-                                  <Title as="h3">{entitySet.title}</Title>
-                                </CardSegment>
-                              </Card>
+                              <EntityNeighborsCardContainer
+                                  key={entitySet.id}
+                                  entitySet={entitySet}
+                                  neighbors={entitySetNeighbors} />
                             );
                           }
                           return null;
@@ -144,9 +137,8 @@ const EntityNeighborsContainer = ({ entityKeyId, neighbors } :Props) => {
           </AssociationSection>
         ))
       }
-    </div>
+    </>
   );
-
 };
 
 export default EntityNeighborsContainer;

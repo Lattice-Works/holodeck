@@ -42,15 +42,16 @@ const { SEARCH_ENTITY_SET, searchEntitySet } = SearchActions;
 const { isNonEmptyString } = LangUtils;
 const { useEntityTypePropertyTypes } = EDMUtils;
 
-const SearchContentWrapper = styled(AppContentWrapper)`
-  flex: 1;
-
-  > div {
-    flex: 0 1 auto;
-    max-width: none;
-    width: auto;
-  }
-`;
+// NOTE: saving for later, in case we bring this back
+// const SearchContentWrapper = styled(AppContentWrapper)`
+//   flex: 1;
+//
+//   > div {
+//     flex: 0 1 auto;
+//     max-width: none;
+//     width: auto;
+//   }
+// `;
 
 const SearchGrid = styled.div`
   align-items: flex-start;
@@ -136,9 +137,9 @@ const EntitySetSearchContainer = ({ entitySet } :Props) => {
   };
 
   return (
-    <SearchContentWrapper>
+    <AppContentWrapper>
       <Card>
-        <AppContentWrapper>
+        <CardSegment borderless>
           <form>
             <SearchGrid>
               <SearchInput onChange={setQuery} value={query} />
@@ -149,7 +150,7 @@ const EntitySetSearchContainer = ({ entitySet } :Props) => {
                   type="submit" />
             </SearchGrid>
           </form>
-        </AppContentWrapper>
+        </CardSegment>
         {
           searchRS === RequestStates.FAILURE && (
             <ErrorCardSegment borderless>
@@ -185,7 +186,7 @@ const EntitySetSearchContainer = ({ entitySet } :Props) => {
               rowsPerPage={MAX_HITS_10} />
         </CardSegment>
       </Card>
-    </SearchContentWrapper>
+    </AppContentWrapper>
   );
 };
 

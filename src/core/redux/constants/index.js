@@ -3,12 +3,14 @@
  */
 
 const APP :'app' = 'app';
+const DATA :'data' = 'data';
 const EDM :'edm' = 'edm';
 const EXPLORE :'explore' = 'explore';
 const SEARCH :'search' = 'search';
 
 const REDUCERS = {
   APP,
+  DATA,
   EDM,
   EXPLORE,
   SEARCH,
