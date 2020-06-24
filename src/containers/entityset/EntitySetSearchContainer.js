@@ -18,12 +18,16 @@ import {
   Table,
 } from 'lattice-ui-kit';
 import { LangUtils, useInput, useRequestState } from 'lattice-utils';
-import { rgba } from 'polished';
 import { useDispatch, useSelector } from 'react-redux';
 import { RequestStates } from 'redux-reqseq';
 import type { RequestState } from 'redux-reqseq';
 
-import { BasicErrorComponent, EntityDataRow, TableCardSegment } from '../../components';
+import {
+  BasicErrorComponent,
+  EntityDataRow,
+  SpinnerOverlay,
+  TableCardSegment,
+} from '../../components';
 import { EDMUtils } from '../../core/edm';
 import {
   HITS,
@@ -66,19 +70,6 @@ const SearchGrid = styled.div`
   }
 `;
 
-const SpinnerWrapper = styled.div`
-  background-color: ${rgba('white', 0.8)};
-  display: flex;
-  height: 100%;
-  justify-content: center;
-  left: 0;
-  opacity: 0.9;
-  position: absolute;
-  top: 0;
-  width: 100%;
-  z-index: 1000;
-`;
-
 type Props = {
   entitySet :EntitySet;
 };
@@ -98,7 +89,7 @@ const EntitySetSearchContainer = ({ entitySet } :Props) => {
   // OPTIMIZE: no need to compute this on every render
   const tableHeaders = propertyTypes.map((propertyType) => ({
     key: propertyType.type.toString(),
-    label: propertyType.title,
+    label: `${propertyType.title} (${propertyType.type.toString()})`,
     sortable: false,
   }));
 
@@ -160,9 +151,9 @@ const EntitySetSearchContainer = ({ entitySet } :Props) => {
         }
         {
           searchRS === RequestStates.PENDING && (
-            <SpinnerWrapper>
+            <SpinnerOverlay>
               <Spinner size="2x" />
-            </SpinnerWrapper>
+            </SpinnerOverlay>
           )
         }
         <CardSegment borderless padding="2px 30px">

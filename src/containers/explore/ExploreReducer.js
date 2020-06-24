@@ -56,11 +56,11 @@ export default function reducer(state :Map = INITIAL_STATE, action :Object) {
     }
 
     case RESET_REQUEST_STATE: {
-      const { actionType } = action;
-      if (actionType && state.has(actionType)) {
+      const { path } = action;
+      if (path && state.hasIn(path)) {
         return state
-          .setIn([actionType, ERROR], false)
-          .setIn([actionType, REQUEST_STATE], RequestStates.STANDBY);
+          .setIn([...path, ERROR], false)
+          .setIn([...path, REQUEST_STATE], RequestStates.STANDBY);
       }
       return state;
     }

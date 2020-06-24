@@ -8,7 +8,7 @@ import {
   select,
   takeEvery,
 } from '@redux-saga/core/effects';
-import { Map, Set } from 'immutable';
+import { Set, isCollection } from 'immutable';
 import { DataApiActions, DataApiSagas } from 'lattice-sagas';
 import { Logger } from 'lattice-utils';
 import type { Saga } from '@redux-saga/core';
@@ -19,7 +19,7 @@ import {
   FETCH_ENTITY_SET_DATA,
   fetchEntitySetData,
 } from './DataActions';
-import { selectEntitySetData } from './DataUtils';
+import { selectStoredEntityKeyIds } from './DataUtils';
 
 const LOG = new Logger('DataSagas');
 
@@ -37,11 +37,14 @@ function* fetchEntitySetDataWorker(action :SequenceAction) :Saga<*> {
   try {
     yield put(fetchEntitySetData.request(action.id, action.value));
 
-    const { entityKeyIds, entitySetId } = action.value;
+    const { entityKeyIds, entitySetId } :{
+      entityKeyIds :Set<UUID>;
+      entitySetId :UUID;
+    } = action.value;
 
     // TODO: expire stored data
-    const storedEntitySetData :Map = yield select(selectEntitySetData(entitySetId, entityKeyIds));
-    const missingEntityKeyIds :Set<UUID> = Set(entityKeyIds).subtract(storedEntitySetData.keySeq());
+    const storedEntityKeyIds :Set<UUID> = yield select(selectStoredEntityKeyIds(entitySetId, entityKeyIds));
+    const missingEntityKeyIds :Set<UUID> = entityKeyIds.subtract(storedEntityKeyIds);
 
     let entitySetData = {};
     if (!missingEntityKeyIds.isEmpty()) {

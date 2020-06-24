@@ -86,8 +86,8 @@ const ExploreRouter = () => {
 
   useEffect(() => {
     if (!matchEntityData && !matchEntitySet) {
-      dispatch(resetRequestState(EXPLORE_ENTITY_DATA));
-      dispatch(resetRequestState(EXPLORE_ENTITY_SET));
+      dispatch(resetRequestState([EXPLORE_ENTITY_DATA]));
+      dispatch(resetRequestState([EXPLORE_ENTITY_SET]));
     }
   }, [dispatch, matchEntityData, matchEntitySet]);
 

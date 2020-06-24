@@ -27,6 +27,10 @@ const { EXPLORE } = REDUCERS;
 const { EXPLORE_ENTITY_NEIGHBORS } = ExploreActions;
 const { useEntitySets } = EDMUtils;
 
+const ContainerWrapper = styled.div`
+  min-height: 500px;
+`;
+
 const AssociationSection = styled.section`
   padding-bottom: 30px;
 
@@ -97,7 +101,7 @@ const EntityNeighborsContainer = ({ neighbors } :Props) => {
   }
 
   return (
-    <>
+    <ContainerWrapper>
       {
         (Object.values(associationEntitySetsMap) :any).map((associationEntitySet :EntitySet) => (
           <AssociationSection key={associationEntitySet.id}>
@@ -137,7 +141,7 @@ const EntityNeighborsContainer = ({ neighbors } :Props) => {
           </AssociationSection>
         ))
       }
-    </>
+    </ContainerWrapper>
   );
 };
 

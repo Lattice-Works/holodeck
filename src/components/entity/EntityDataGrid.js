@@ -26,12 +26,10 @@ const DataGrid = styled.div`
 `;
 
 const ValueList = styled.ul`
+  list-style-position: inside;
+  list-style-type: ${({ size }) => (size > 1 ? 'disc' : 'none')};
   margin: 0;
-  padding: 0;
-
-  > li {
-    list-style-type: none;
-  }
+  padding-left: 2px;
 `;
 
 type Props = {
@@ -50,22 +48,22 @@ const EntityDataGrid = ({ data, propertyTypes } :Props) => {
 
     const values :any[] = data[propertyType.type];
 
-    let elements = null;
+    let elements = [];
     if (isNonEmptyArray(values)) {
       elements = values.map((value, index) => (
         <li key={index.toString()}>{value}</li>
       ));
     }
     else {
-      elements = (
-        <li>---</li>
-      );
+      elements = [(
+        <li key="0">---</li>
+      )];
     }
 
     return (
       <div key={propertyType.type.toString()}>
         <Label subtle>{propertyType.title}</Label>
-        <ValueList>{elements}</ValueList>
+        <ValueList size={elements.length}>{elements}</ValueList>
       </div>
     );
   });
