@@ -3,10 +3,12 @@
  */
 
 import { call, put, takeEvery } from '@redux-saga/core/effects';
-import { fromJS } from 'immutable';
+import { List, fromJS } from 'immutable';
+import { Models } from 'lattice';
 import { SearchApiActions, SearchApiSagas } from 'lattice-sagas';
 import { Logger } from 'lattice-utils';
 import type { Saga } from '@redux-saga/core';
+import type { EntitySetObject, PropertyTypeObject } from 'lattice';
 import type { WorkerResponse } from 'lattice-sagas';
 import type { SequenceAction } from 'redux-reqseq';
 
@@ -19,6 +21,13 @@ import {
 import { MAX_HITS_10, MAX_HITS_20 } from './constants';
 
 const LOG = new Logger('SearchSagas');
+
+type SearchEntitySetsHit = {
+  entitySet :EntitySetObject;
+  propertyTypes :PropertyTypeObject[];
+};
+
+const { EntitySet, EntitySetBuilder } = Models;
 
 const { searchEntitySetData, searchEntitySetMetaData } = SearchApiActions;
 const { searchEntitySetDataWorker, searchEntitySetMetaDataWorker } = SearchApiSagas;
@@ -93,6 +102,7 @@ function* searchEntitySetsWorker(action :SequenceAction) :Saga<*> {
       maxHits = MAX_HITS_20,
       start = 0,
     } = action.value;
+
     const response :WorkerResponse = yield call(
       searchEntitySetMetaDataWorker,
       searchEntitySetMetaData({
@@ -104,9 +114,25 @@ function* searchEntitySetsWorker(action :SequenceAction) :Saga<*> {
 
     if (response.error) throw response.error;
 
-    const hits = fromJS(response.data.hits || []);
+    const hits = response.data.hits || [];
     const totalHits = response.data.numHits || 0;
-    yield put(searchEntitySets.success(action.id, { hits, totalHits }));
+
+    const entitySets :List<EntitySet> = List().withMutations((list) => {
+      hits.forEach((hit :SearchEntitySetsHit) => {
+        try {
+          list.push((new EntitySetBuilder(hit.entitySet)).build());
+        }
+        catch (e) {
+          LOG.error(action.type, e);
+          LOG.error(action.type, hit);
+        }
+      });
+    });
+
+    yield put(searchEntitySets.success(action.id, {
+      totalHits,
+      hits: entitySets,
+    }));
   }
   catch (error) {
     LOG.error(action.type, error);

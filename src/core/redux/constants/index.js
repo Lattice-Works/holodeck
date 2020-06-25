@@ -6,6 +6,7 @@ const APP :'app' = 'app';
 const DATA :'data' = 'data';
 const EDM :'edm' = 'edm';
 const EXPLORE :'explore' = 'explore';
+const ORGS :'orgs' = 'orgs';
 const SEARCH :'search' = 'search';
 
 const REDUCERS = {
@@ -13,6 +14,7 @@ const REDUCERS = {
   DATA,
   EDM,
   EXPLORE,
+  ORGS,
   SEARCH,
 };
 

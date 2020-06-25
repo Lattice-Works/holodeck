@@ -5,7 +5,6 @@
 import React from 'react';
 
 import styled from 'styled-components';
-import { Map } from 'immutable';
 import { Models } from 'lattice';
 import { Card, CardSegment, Colors } from 'lattice-ui-kit';
 import { useGoToRoute } from 'lattice-utils';
@@ -13,7 +12,7 @@ import { useGoToRoute } from 'lattice-utils';
 import { Routes } from '../../core/router';
 
 const { NEUTRALS } = Colors;
-const { EntitySet, EntitySetBuilder } = Models;
+const { EntitySet } = Models;
 
 const EntitySetTitle = styled.span`
   font-size: 18px;
@@ -31,12 +30,11 @@ const EntitySetDescription = styled.span`
 `;
 
 type Props = {
-  searchResult :Map;
+  entitySet :EntitySet;
 };
 
-const EntitySetSearchResultCard = ({ searchResult } :Props) => {
+const EntitySetSearchResultCard = ({ entitySet } :Props) => {
 
-  const entitySet :EntitySet = (new EntitySetBuilder(searchResult.get('entitySet'))).build();
   const entitySetId :UUID = (entitySet.id :any);
 
   const goToEntitySet = useGoToRoute(

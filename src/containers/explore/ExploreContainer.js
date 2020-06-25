@@ -2,17 +2,23 @@
  * @flow
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 
+import _includes from 'lodash/includes';
 import styled from 'styled-components';
-import { List, Map } from 'immutable';
+import { List } from 'immutable';
+import { Models, Types } from 'lattice';
 import {
   AppContentWrapper,
   CardStack,
+  Checkbox,
+  Collapse,
   Colors,
+  Label,
   PaginationToolbar,
   SearchButton,
   SearchInput,
+  Select,
   Spinner,
 } from 'lattice-ui-kit';
 import { LangUtils, useInput, useRequestState } from 'lattice-utils';
@@ -22,9 +28,11 @@ import type { RequestState } from 'redux-reqseq';
 
 import {
   BasicErrorComponent,
+  ChevronButton,
   EntitySetSearchResultCard,
   NoSearchResultsCardSegment,
 } from '../../components';
+import { useOrgSelectOptions } from '../../core/orgs/utils';
 import {
   HITS,
   PAGE,
@@ -35,10 +43,16 @@ import {
 import { SearchActions } from '../../core/search';
 import { MAX_HITS_20 } from '../../core/search/constants';
 
+const { EntitySet } = Models;
+const { EntitySetFlagTypes } = Types;
 const { WHITE } = Colors;
 const { SEARCH } = REDUCERS;
 const { SEARCH_ENTITY_SETS, searchEntitySets } = SearchActions;
 const { isNonEmptyString } = LangUtils;
+
+const SearchSection = styled.section`
+  padding: 70px 0;
+`;
 
 const SearchGrid = styled.div`
   align-items: flex-start;
@@ -47,7 +61,6 @@ const SearchGrid = styled.div`
   grid-auto-flow: column;
   grid-gap: 10px;
   grid-template-columns: 1fr auto;
-  margin: 70px 0;
 
   button {
     line-height: 1.5;
@@ -58,16 +71,42 @@ const SearchResultCardStack = styled(CardStack)`
   margin: 30px 0;
 `;
 
+const SearchOptionsControl = styled.div`
+  align-items: center;
+  display: flex;
+  font-size: 14px;
+  font-weight: 600;
+  justify-content: space-between;
+  margin-top: 20px;
+
+  &:hover {
+    cursor: pointer;
+  }
+`;
+
+const SearchOptionsGrid = styled.div`
+  align-items: end;
+  display: grid;
+  grid-gap: 20px 30px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, auto));
+  margin-top: 10px;
+`;
+
 const ExploreContainer = () => {
 
   const dispatch = useDispatch();
   const searchPage :number = useSelector((s) => s.getIn([SEARCH, SEARCH_ENTITY_SETS, PAGE], 0));
   const searchQuery :string = useSelector((s) => s.getIn([SEARCH, SEARCH_ENTITY_SETS, QUERY], ''));
   const searchRS :?RequestState = useRequestState([SEARCH, SEARCH_ENTITY_SETS]);
-  const searchResults :List = useSelector((s) => s.getIn([SEARCH, SEARCH_ENTITY_SETS, HITS], List()));
+  const entitySets :List<EntitySet> = useSelector((s) => s.getIn([SEARCH, SEARCH_ENTITY_SETS, HITS], List()));
   const totalHits :number = useSelector((s) => s.getIn([SEARCH, SEARCH_ENTITY_SETS, TOTAL_HITS], 0));
 
   const [query, setQuery] = useInput(searchQuery);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isCheckedShowAudit, setIsCheckedShowAudit] = useState(false);
+
+  const orgOptions :SelectOption[] = useOrgSelectOptions();
+  const [selectedOrgOption, setSelectedOrgOption] = useState();
 
   const dispatchSearch = (params ?:{ page :number, start :number } = {}) => {
     if (isNonEmptyString(query)) {
@@ -87,19 +126,49 @@ const ExploreContainer = () => {
     dispatchSearch({ page, start });
   };
 
+  const toggleSearchOptions = () => setIsOpen(!isOpen);
+  const toggleShowAudit = () => setIsCheckedShowAudit(!isCheckedShowAudit);
+
   return (
     <>
       <AppContentWrapper bgColor={WHITE}>
-        <form>
-          <SearchGrid>
-            <SearchInput onChange={setQuery} value={query} />
-            <SearchButton
-                isLoading={searchRS === RequestStates.PENDING}
-                mode="primary"
-                onClick={handleOnClickSearch}
-                type="submit" />
-          </SearchGrid>
-        </form>
+        <SearchSection>
+          <form>
+            <SearchGrid>
+              <SearchInput onChange={setQuery} value={query} />
+              <SearchButton
+                  isLoading={searchRS === RequestStates.PENDING}
+                  mode="primary"
+                  onClick={handleOnClickSearch}
+                  type="submit" />
+            </SearchGrid>
+          </form>
+          <div>
+            <SearchOptionsControl onClick={toggleSearchOptions}>
+              <span>Filter Search Results</span>
+              <ChevronButton isOpen={isOpen} onClick={toggleSearchOptions} size="sm" />
+            </SearchOptionsControl>
+            <Collapse in={isOpen}>
+              <SearchOptionsGrid>
+                <div>
+                  <Label htmlFor="orgs">By Organization</Label>
+                  <Select
+                      id="orgs"
+                      isClearable
+                      onChange={(option) => setSelectedOrgOption(option)}
+                      value={selectedOrgOption}
+                      options={orgOptions} />
+                </div>
+                <div>
+                  <Checkbox
+                      checked={isCheckedShowAudit}
+                      label="Show audit entity sets"
+                      onChange={toggleShowAudit} />
+                </div>
+              </SearchOptionsGrid>
+            </Collapse>
+          </div>
+        </SearchSection>
       </AppContentWrapper>
       <AppContentWrapper>
         {
@@ -115,12 +184,12 @@ const ExploreContainer = () => {
           )
         }
         {
-          searchRS === RequestStates.SUCCESS && searchResults.isEmpty() && (
+          searchRS === RequestStates.SUCCESS && entitySets.isEmpty() && (
             <NoSearchResultsCardSegment />
           )
         }
         {
-          searchRS === RequestStates.SUCCESS && !searchResults.isEmpty() && (
+          searchRS === RequestStates.SUCCESS && !entitySets.isEmpty() && (
             <>
               <PaginationToolbar
                   page={searchPage}
@@ -129,11 +198,16 @@ const ExploreContainer = () => {
                   rowsPerPage={MAX_HITS_20} />
               <SearchResultCardStack>
                 {
-                  searchResults.map((searchResult :Map) => (
-                    <EntitySetSearchResultCard
-                        key={searchResult.getIn(['entitySet', 'id'])}
-                        searchResult={searchResult} />
-                  ))
+                  entitySets
+                    .filter((entitySet :EntitySet) => (
+                      isCheckedShowAudit || !_includes(entitySet.flags, EntitySetFlagTypes.AUDIT)
+                    ))
+                    .filter((entitySet :EntitySet) => (
+                      !selectedOrgOption || entitySet.organizationId === selectedOrgOption.value
+                    ))
+                    .map((entitySet :EntitySet) => (
+                      <EntitySetSearchResultCard key={entitySet.id} entitySet={entitySet} />
+                    ))
                 }
               </SearchResultCardStack>
               <PaginationToolbar

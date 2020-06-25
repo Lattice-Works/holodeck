@@ -36,7 +36,7 @@ type IdsOrNames =
   | Set<UUID>
   | Set<string>;
 
-// OPTIMIZE
+// OPTIMIZE / MEMOIZE
 const useEntitySets = (idsOrNames :?IdsOrNames) :{ [UUID] :EntitySet } => (
   useSelector((state :Map) => {
 
@@ -66,7 +66,7 @@ const useEntitySets = (idsOrNames :?IdsOrNames) :{ [UUID] :EntitySet } => (
   })
 );
 
-// OPTIMIZE
+// OPTIMIZE / MEMOIZE
 const useEntityTypePropertyTypes = (idOrFQN :?UUID | FQN) :PropertyType[] => (
   useSelector((state :Map) => {
 

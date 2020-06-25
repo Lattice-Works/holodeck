@@ -9,3 +9,8 @@ declare type SagaError = {
   status :number;
   statusText :string;
 };
+
+declare type SelectOption = {
+  label :string;
+  value :string;
+};

@@ -3,6 +3,7 @@
  */
 
 export * from './breadcrumbs';
+export * from './buttons';
 export * from './cards';
 export * from './entity';
 export * from './errors';

@@ -8,6 +8,7 @@ import {
   put,
   takeEvery,
 } from '@redux-saga/core/effects';
+import { OrganizationsApiActions, OrganizationsApiSagas } from 'lattice-sagas';
 import { Logger } from 'lattice-utils';
 import type { Saga } from '@redux-saga/core';
 import type { SequenceAction } from 'redux-reqseq';
@@ -18,6 +19,9 @@ import { getEntityDataModelTypes } from '../../core/edm/EDMActions';
 import { getEntityDataModelTypesWorker } from '../../core/edm/EDMSagas';
 
 const LOG = new Logger('AppSagas');
+
+const { getAllOrganizations } = OrganizationsApiActions;
+const { getAllOrganizationsWorker } = OrganizationsApiSagas;
 
 /*
  *
@@ -31,6 +35,7 @@ function* initializeApplicationWorker(action :SequenceAction) :Saga<*> {
     yield put(initializeApplication.request(action.id));
     const responses :Object[] = yield all([
       call(getEntityDataModelTypesWorker, getEntityDataModelTypes()),
+      call(getAllOrganizationsWorker, getAllOrganizations()),
     ]);
     if (responses[0].error) throw responses[0].error;
     yield put(initializeApplication.success(action.id));
