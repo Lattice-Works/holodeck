@@ -12,6 +12,7 @@ import { AppReducer } from '../../containers/app';
 import { ExploreReducer } from '../../containers/explore';
 import { DataReducer } from '../data';
 import { EDMReducer } from '../edm';
+import { OrgsReducer } from '../orgs';
 import { SearchReducer } from '../search';
 
 export default function reduxReducer(routerHistory :any) {
@@ -21,6 +22,7 @@ export default function reduxReducer(routerHistory :any) {
     [REDUCERS.DATA]: DataReducer,
     [REDUCERS.EDM]: EDMReducer,
     [REDUCERS.EXPLORE]: ExploreReducer,
+    [REDUCERS.ORGS]: OrgsReducer,
     [REDUCERS.SEARCH]: SearchReducer,
     auth: AuthReducer,
     router: connectRouter(routerHistory),
