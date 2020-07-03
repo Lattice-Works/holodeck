@@ -14,7 +14,7 @@ import { NavLink } from 'react-router-dom';
 
 import EntityNeighborsContainer from './EntityNeighborsContainer';
 
-import { EntityDataGrid, Title } from '../../components';
+import { EntityDataGrid, Header } from '../../components';
 import { EDMUtils } from '../../core/edm';
 import { REDUCERS } from '../../core/redux/constants';
 import { Routes } from '../../core/router';
@@ -58,7 +58,7 @@ const EntityDataContainer = ({
     return (
       <>
         <AppContentWrapper bgColor={WHITE}>
-          <Title>{entitySet.title}</Title>
+          <Header>{entitySet.title}</Header>
           <br />
           <EntityDataGrid data={entityData} propertyTypes={propertyTypes} />
         </AppContentWrapper>

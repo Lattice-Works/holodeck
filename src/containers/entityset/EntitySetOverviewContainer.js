@@ -10,7 +10,7 @@ import {
   Colors,
 } from 'lattice-ui-kit';
 
-import { Title } from '../../components';
+import { Header } from '../../components';
 
 const { WHITE } = Colors;
 const { EntitySet } = Models;
@@ -23,7 +23,7 @@ const EntitySetOverviewContainer = ({ entitySet } :Props) => {
 
   return (
     <AppContentWrapper bgColor={WHITE} borderless>
-      <Title>{entitySet.title}</Title>
+      <Header>{entitySet.title}</Header>
       <span>{entitySet.description}</span>
     </AppContentWrapper>
   );

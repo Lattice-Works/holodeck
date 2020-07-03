@@ -16,7 +16,7 @@ import type { RequestState } from 'redux-reqseq';
 
 import EntityNeighborsCardContainer from './EntityNeighborsCardContainer';
 
-import { Title } from '../../components';
+import { Header } from '../../components';
 import { EDMUtils } from '../../core/edm';
 import { REDUCERS } from '../../core/redux/constants';
 import { ExploreActions } from '../explore';
@@ -106,7 +106,7 @@ const EntityNeighborsContainer = ({ neighbors } :Props) => {
         (Object.values(associationEntitySetsMap) :any).map((associationEntitySet :EntitySet) => (
           <AssociationSection key={associationEntitySet.id}>
             <SectionHeader>
-              <Title as="h2">{associationEntitySet.title}</Title>
+              <Header as="h2">{associationEntitySet.title}</Header>
               <ChevronButton
                   isOpen={visibleSections.get(associationEntitySet.id)}
                   data-entity-set-id={associationEntitySet.id}

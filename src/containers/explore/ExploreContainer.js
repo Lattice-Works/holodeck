@@ -13,12 +13,10 @@ import {
   CardStack,
   Checkbox,
   Collapse,
-  Colors,
   Label,
   PaginationToolbar,
   SearchButton,
   SearchInput,
-  Select,
   Spinner,
 } from 'lattice-ui-kit';
 import { LangUtils, useInput, useRequestState } from 'lattice-utils';
@@ -29,10 +27,9 @@ import type { RequestState } from 'redux-reqseq';
 import {
   BasicErrorComponent,
   ChevronButton,
-  EntitySetSearchResultCard,
   NoSearchResultsCardSegment,
+  SimpleEntitySetCard,
 } from '../../components';
-import { useOrgSelectOptions } from '../../core/orgs/utils';
 import {
   HITS,
   PAGE,
@@ -42,10 +39,10 @@ import {
 } from '../../core/redux/constants';
 import { SearchActions } from '../../core/search';
 import { MAX_HITS_20 } from '../../core/search/constants';
+import { OrgSelect } from '../orgs';
 
 const { EntitySet } = Models;
 const { EntitySetFlagTypes } = Types;
-const { WHITE } = Colors;
 const { SEARCH } = REDUCERS;
 const { SEARCH_ENTITY_SETS, searchEntitySets } = SearchActions;
 const { isNonEmptyString } = LangUtils;
@@ -104,9 +101,7 @@ const ExploreContainer = () => {
   const [query, setQuery] = useInput(searchQuery);
   const [isOpen, setIsOpen] = useState(false);
   const [isCheckedShowAudit, setIsCheckedShowAudit] = useState(false);
-
-  const orgOptions :SelectOption[] = useOrgSelectOptions();
-  const [selectedOrgOption, setSelectedOrgOption] = useState();
+  const [selectedOrgId, setSelectedOrgId] = useState();
 
   const dispatchSearch = (params ?:{ page :number, start :number } = {}) => {
     if (isNonEmptyString(query)) {
@@ -131,7 +126,7 @@ const ExploreContainer = () => {
 
   return (
     <>
-      <AppContentWrapper bgColor={WHITE}>
+      <AppContentWrapper bgColor="white">
         <SearchSection>
           <form>
             <SearchGrid>
@@ -152,12 +147,7 @@ const ExploreContainer = () => {
               <SearchOptionsGrid>
                 <div>
                   <Label htmlFor="orgs">By Organization</Label>
-                  <Select
-                      id="orgs"
-                      isClearable
-                      onChange={(option) => setSelectedOrgOption(option)}
-                      value={selectedOrgOption}
-                      options={orgOptions} />
+                  <OrgSelect onChange={(orgId) => setSelectedOrgId(orgId)} />
                 </div>
                 <div>
                   <Checkbox
@@ -203,10 +193,10 @@ const ExploreContainer = () => {
                       isCheckedShowAudit || !_includes(entitySet.flags, EntitySetFlagTypes.AUDIT)
                     ))
                     .filter((entitySet :EntitySet) => (
-                      !selectedOrgOption || entitySet.organizationId === selectedOrgOption.value
+                      !selectedOrgId || entitySet.organizationId === selectedOrgId
                     ))
                     .map((entitySet :EntitySet) => (
-                      <EntitySetSearchResultCard key={entitySet.id} entitySet={entitySet} />
+                      <SimpleEntitySetCard key={entitySet.id} entitySet={entitySet} />
                     ))
                 }
               </SearchResultCardStack>

@@ -1,6 +1,7 @@
 import { Set } from 'immutable';
 
 import * as AppActions from './AppActions';
+
 import { testShouldExportActionTypes, testShouldExportRequestSequences } from '../../utils/testing/TestUtils';
 
 const ACTION_TYPES = Set([

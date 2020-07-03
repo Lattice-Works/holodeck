@@ -4,7 +4,7 @@
 
 import { all, fork } from '@redux-saga/core/effects';
 import { AuthSagas } from 'lattice-auth';
-import { DataApiSagas, EntitySetsApiSagas } from 'lattice-sagas';
+import { DataApiSagas, DataSetsApiSagas, EntitySetsApiSagas } from 'lattice-sagas';
 
 import { AppSagas } from '../../containers/app';
 import { ExploreSagas } from '../../containers/explore';
@@ -26,6 +26,7 @@ export default function* sagas() :Generator<*, *, *> {
     // "lattice-sagas" sagas
     fork(DataApiSagas.getEntityDataWatcher),
     fork(DataApiSagas.getEntitySetDataWatcher),
+    fork(DataSetsApiSagas.getOrganizationDataSetsWithColumnsWatcher),
     fork(EntitySetsApiSagas.getEntitySetWatcher),
 
     // AppSagas

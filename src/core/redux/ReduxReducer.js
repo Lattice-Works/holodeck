@@ -10,9 +10,9 @@ import { REDUCERS } from './constants';
 
 import { AppReducer } from '../../containers/app';
 import { ExploreReducer } from '../../containers/explore';
+import { OrgsReducer } from '../../containers/orgs';
 import { DataReducer } from '../data';
 import { EDMReducer } from '../edm';
-import { OrgsReducer } from '../orgs';
 import { SearchReducer } from '../search';
 
 export default function reduxReducer(routerHistory :any) {
