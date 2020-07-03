@@ -6,7 +6,7 @@ import { Map } from 'immutable';
 import { Models } from 'lattice';
 import { useSelector } from 'react-redux';
 
-import { REDUCERS } from '../../redux/constants';
+import { REDUCERS } from '../../../core/redux/constants';
 
 const { Organization } = Models;
 

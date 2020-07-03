@@ -32,6 +32,7 @@ import { REDUCERS } from '../../core/redux/constants';
 import { Routes } from '../../core/router';
 import { GOOGLE_TRACKING_ID } from '../../core/tracking/google/GoogleAnalytics';
 import { ExploreRouter } from '../explore';
+import { OrgsRouter } from '../orgs';
 
 declare var gtag :?Function;
 
@@ -71,6 +72,7 @@ const AppContainer = () => {
             <AppNavigationWrapper>
               <NavLink to={Routes.ROOT} />
               <NavLink to={Routes.EXPLORE}>Explore</NavLink>
+              <NavLink to={Routes.ORGANIZATIONS}>Organizations</NavLink>
             </AppNavigationWrapper>
           </AppHeaderWrapper>
           {
@@ -93,6 +95,7 @@ const AppContainer = () => {
             initAppRS === RequestStates.SUCCESS && (
               <Switch>
                 <Route path={Routes.EXPLORE} component={ExploreRouter} />
+                <Route path={Routes.ORGANIZATIONS} component={OrgsRouter} />
                 <Redirect to={Routes.EXPLORE} />
               </Switch>
             )

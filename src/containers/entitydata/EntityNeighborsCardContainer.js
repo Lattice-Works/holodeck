@@ -27,7 +27,7 @@ import {
   EntityDataRow,
   SpinnerOverlay,
   TableCardSegment,
-  Title,
+  Header,
 } from '../../components';
 import { DataActions, DataUtils } from '../../core/data';
 import { EDMUtils } from '../../core/edm';
@@ -129,7 +129,7 @@ const EntityNeighborsCardContainer = ({ entitySet, neighbors } :Props) => {
   return (
     <Card>
       <CardSegment>
-        <Title as="h3">{entitySet.title}</Title>
+        <Header as="h3">{entitySet.title}</Header>
       </CardSegment>
       {
         fetchEntitySetDataRS === RequestStates.PENDING && (
