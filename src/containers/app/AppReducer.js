@@ -3,12 +3,13 @@
  */
 
 import { Map, fromJS } from 'immutable';
+import { ReduxConstants } from 'lattice-utils';
 import { RequestStates } from 'redux-reqseq';
 import type { SequenceAction } from 'redux-reqseq';
 
 import { INITIALIZE_APPLICATION, initializeApplication } from './AppActions';
 
-import { REQUEST_STATE } from '../../core/redux/constants';
+const { REQUEST_STATE } = ReduxConstants;
 
 const INITIAL_STATE :Map = fromJS({
   [INITIALIZE_APPLICATION]: { [REQUEST_STATE]: RequestStates.STANDBY },

@@ -9,13 +9,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Models } from 'lattice';
 import { AppContentWrapper, AppNavigationWrapper } from 'lattice-ui-kit';
 import { LangUtils, Logger, ValidationUtils } from 'lattice-utils';
-import { Redirect, Route, Switch } from 'react-router';
+import { Route, Switch } from 'react-router';
 import { NavLink } from 'react-router-dom';
 
-import AtlasDataSetContainer from './AtlasDataSetContainer';
 import AtlasDataSetsContainer from './AtlasDataSetsContainer';
 
-import { Header } from '../../components';
+import { BasicErrorComponent, Header } from '../../components';
 import { Routes } from '../../core/router';
 import { Errors } from '../../utils';
 
@@ -37,17 +36,15 @@ const OrgContainer = ({ organization, organizationId } :Props) => {
   if (!isValidUUID(organizationId)) {
     LOG.error(ERR_INVALID_UUID, organizationId);
     return (
-      <Redirect to={Routes.EXPLORE} />
+      <BasicErrorComponent error="fixMe">
+        Yo, this UUID is broked.
+      </BasicErrorComponent>
     );
   }
 
   if (organization) {
 
     const atlasDataSetsPath = Routes.ATLAS_DATA_SETS.replace(Routes.ORG_ID_PARAM, organizationId);
-
-    const renderAtlasDataSetContainer = () => (
-      <AtlasDataSetContainer organizationId={organizationId} />
-    );
 
     const renderAtlasDataSetsContainer = () => (
       <AtlasDataSetsContainer organizationId={organizationId} />
@@ -61,7 +58,6 @@ const OrgContainer = ({ organization, organizationId } :Props) => {
               <FontAwesomeIcon fixedWidth icon={faLandmark} size="sm" style={{ marginRight: '20px' }} />
               <span>{organization.title}</span>
             </Header>
-            {/* <OrgSelect onChange={handleOnChangeOrgSelect} /> */}
           </div>
           {
             isNonEmptyString(organization.description) && (
@@ -76,7 +72,6 @@ const OrgContainer = ({ organization, organizationId } :Props) => {
         </AppContentWrapper>
         <Switch>
           <Route exact path={Routes.ATLAS_DATA_SETS} render={renderAtlasDataSetsContainer} />
-          <Route exact path={Routes.ATLAS_DATA_SET} render={renderAtlasDataSetContainer} />
         </Switch>
       </>
     );

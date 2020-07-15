@@ -26,6 +26,7 @@ export default function* sagas() :Generator<*, *, *> {
     // "lattice-sagas" sagas
     fork(DataApiSagas.getEntityDataWatcher),
     fork(DataApiSagas.getEntitySetDataWatcher),
+    fork(DataSetsApiSagas.getOrganizationDataSetDataWatcher),
     fork(DataSetsApiSagas.getOrganizationDataSetsWithColumnsWatcher),
     fork(EntitySetsApiSagas.getEntitySetWatcher),
 

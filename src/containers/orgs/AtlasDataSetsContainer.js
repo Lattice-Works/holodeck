@@ -16,7 +16,7 @@ import { BasicErrorComponent, SimpleAtlasDataSetCard } from '../../components';
 import { ReduxActions } from '../../core/redux';
 import { REDUCERS } from '../../core/redux/constants';
 
-const { GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS, getOrganizationDataSetsWithColumns } = DataSetsApiActions;
+const { GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS } = DataSetsApiActions;
 
 const { resetRequestState } = ReduxActions;
 const { ORGS } = REDUCERS;
@@ -27,15 +27,10 @@ type Props = {
 
 const AtlasDataSetsContainer = ({ organizationId } :Props) => {
 
-  const getAtlasDataSetsRS :?RequestState = useRequestState([ORGS, GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS]);
-  const atlasDataSets :List = useSelector((s) => s.getIn([ORGS, 'atlasDataSets', organizationId], List()));
-
   const dispatch = useDispatch();
-  useEffect(() => {
-    if (!atlasDataSets || atlasDataSets.isEmpty()) {
-      dispatch(getOrganizationDataSetsWithColumns(organizationId));
-    }
-  }, [atlasDataSets, dispatch, organizationId]);
+
+  // const getAtlasDataSetsRS :?RequestState = useRequestState([ORGS, GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS]);
+  const atlasDataSets :List = useSelector((s) => s.getIn([ORGS, 'atlasDataSets', organizationId], List()));
 
   useEffect(() => () => (
     dispatch(resetRequestState([GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS]))
@@ -43,26 +38,26 @@ const AtlasDataSetsContainer = ({ organizationId } :Props) => {
 
   return (
     <AppContentWrapper>
-      {
+      {/*
         getAtlasDataSetsRS === RequestStates.FAILURE && (
           <BasicErrorComponent>
             Sorry, something went wrong. Please try again.
           </BasicErrorComponent>
         )
-      }
-      {
+      */}
+      {/*
         getAtlasDataSetsRS === RequestStates.PENDING && (
           <Spinner size="2x" />
         )
-      }
+      */}
       {
         atlasDataSets && !atlasDataSets.isEmpty() && (
           <CardStack>
             {
-              atlasDataSets.map((dataSet :Map) => (
+              atlasDataSets.map((atlasDataSet :Map) => (
                 <SimpleAtlasDataSetCard
-                    key={getIn(dataSet, ['table', 'id'])}
-                    dataSet={dataSet}
+                    atlasDataSet={atlasDataSet}
+                    key={getIn(atlasDataSet, ['table', 'id'])}
                     organizationId={organizationId} />
               ))
             }

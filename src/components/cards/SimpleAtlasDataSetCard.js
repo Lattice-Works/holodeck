@@ -12,25 +12,25 @@ import { Routes } from '../../core/router';
 import { Header, SubHeader } from '../headers';
 
 type Props = {
-  dataSet :Map;
+  atlasDataSet :Map;
   organizationId :UUID;
 };
 
-const SimpleAtlasDataSetCard = ({ dataSet, organizationId } :Props) => {
+const SimpleAtlasDataSetCard = ({ atlasDataSet, organizationId } :Props) => {
 
-  const dataSetId :UUID = getIn(dataSet, ['table', 'id']);
+  const atlasDataSetId :UUID = getIn(atlasDataSet, ['table', 'id']);
 
   const goToAtlasDataSet = useGoToRoute(
-    Routes.ATLAS_DATA_SET.replace(Routes.ORG_ID_PARAM, organizationId).replace(Routes.DSID_PARAM, dataSetId),
-    { dataSet },
+    Routes.ATLAS_DATA_SET.replace(Routes.ORG_ID_PARAM, organizationId).replace(Routes.ADSID_PARAM, atlasDataSetId),
+    { atlasDataSet },
   );
 
-  const description :string = getIn(dataSet, ['table', 'description']);
-  const name :string = getIn(dataSet, ['table', 'name']);
-  const title :string = getIn(dataSet, ['table', 'title']);
+  const description :string = getIn(atlasDataSet, ['table', 'description']);
+  const name :string = getIn(atlasDataSet, ['table', 'name']);
+  const title :string = getIn(atlasDataSet, ['table', 'title']);
 
   return (
-    <Card id={dataSetId} onClick={goToAtlasDataSet}>
+    <Card id={atlasDataSetId} onClick={goToAtlasDataSet}>
       <CardSegment>
         <Header align="start" as="h4">{title || name}</Header>
         <SubHeader align="start" as="h5">{description || name}</SubHeader>

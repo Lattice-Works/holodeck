@@ -4,6 +4,7 @@
 
 import { Map, fromJS } from 'immutable';
 import { Models } from 'lattice';
+import { ReduxConstants } from 'lattice-utils';
 import { matchPath } from 'react-router';
 import { RequestStates } from 'redux-reqseq';
 import type { SequenceAction } from 'redux-reqseq';
@@ -18,12 +19,13 @@ import {
 } from './ExploreActions';
 
 import { ReduxActions } from '../../core/redux';
-import { ERROR, REQUEST_STATE } from '../../core/redux/constants';
+import { ERROR } from '../../core/redux/constants';
 import { Routes, RoutingActions } from '../../core/router';
 import type { RoutingAction } from '../../core/router/RoutingActions';
 
 const { EntitySetBuilder } = Models;
 const { GO_TO_ROUTE } = RoutingActions;
+const { REQUEST_STATE } = ReduxConstants;
 const { RESET_REQUEST_STATE } = ReduxActions;
 
 const RS_INITIAL_STATE = {

@@ -3,6 +3,7 @@
  */
 
 import { Map, Set, fromJS } from 'immutable';
+import { ReduxConstants } from 'lattice-utils';
 import { RequestStates } from 'redux-reqseq';
 import type { SequenceAction } from 'redux-reqseq';
 
@@ -10,9 +11,9 @@ import { FETCH_ENTITY_SET_DATA, fetchEntitySetData } from './DataActions';
 import { getEntityKeyId } from './DataUtils';
 
 import { ReduxActions } from '../redux';
-import { REQUEST_STATE } from '../redux/constants';
 
 const { RESET_REQUEST_STATE } = ReduxActions;
+const { REQUEST_STATE } = ReduxConstants;
 
 const INITIAL_STATE :Map = fromJS({
   [FETCH_ENTITY_SET_DATA]: Map(),

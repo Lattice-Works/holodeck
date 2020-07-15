@@ -4,21 +4,23 @@
 
 import React from 'react';
 
+import { faListAlt } from '@fortawesome/pro-light-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Models } from 'lattice';
-import { AppContentWrapper, AppNavigationWrapper, Colors } from 'lattice-ui-kit';
-import { Logger, ValidationUtils } from 'lattice-utils';
+import { AppContentWrapper, AppNavigationWrapper } from 'lattice-ui-kit';
+import { LangUtils, Logger, ValidationUtils } from 'lattice-utils';
 import { Redirect, Route, Switch } from 'react-router';
 import { NavLink } from 'react-router-dom';
 
 import EntitySetMetaContainer from './EntitySetMetaContainer';
-import EntitySetOverviewContainer from './EntitySetOverviewContainer';
 import EntitySetSearchContainer from './EntitySetSearchContainer';
 
+import { Header } from '../../components';
 import { Routes } from '../../core/router';
 import { Errors } from '../../utils';
 
-const { WHITE } = Colors;
 const { EntitySet } = Models;
+const { isNonEmptyString } = LangUtils;
 const { isValidUUID } = ValidationUtils;
 
 const {
@@ -57,8 +59,20 @@ const EntitySetContainer = ({ entitySet, entitySetId } :Props) => {
 
     return (
       <>
-        <EntitySetOverviewContainer entitySet={entitySet} />
-        <AppContentWrapper bgColor={WHITE} padding="0">
+        <AppContentWrapper bgColor="white" borderless>
+          <div>
+            <Header as="h2">
+              <FontAwesomeIcon fixedWidth icon={faListAlt} size="sm" style={{ marginRight: '20px' }} />
+              <span>{entitySet.title || entitySet.name}</span>
+            </Header>
+          </div>
+          {
+            isNonEmptyString(entitySet.description) && (
+              <div>{entitySet.description}</div>
+            )
+          }
+        </AppContentWrapper>
+        <AppContentWrapper bgColor="white" padding="0">
           <AppNavigationWrapper borderless>
             <NavLink exact strict to={aboutPath}>About</NavLink>
             <NavLink to={searchPath}>Search</NavLink>

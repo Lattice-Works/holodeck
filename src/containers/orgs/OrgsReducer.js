@@ -5,29 +5,37 @@
 import { Map, fromJS } from 'immutable';
 import { Models } from 'lattice';
 import { DataSetsApiActions, OrganizationsApiActions } from 'lattice-sagas';
-import { Logger } from 'lattice-utils';
+import { Logger, ReduxConstants } from 'lattice-utils';
 import { matchPath } from 'react-router';
 import { RequestStates } from 'redux-reqseq';
 import type { OrganizationObject } from 'lattice';
 import type { SequenceAction } from 'redux-reqseq';
 
 import { ReduxActions } from '../../core/redux';
-import { REQUEST_STATE } from '../../core/redux/constants';
 import { Routes, RoutingActions } from '../../core/router';
 import type { RoutingAction } from '../../core/router/RoutingActions';
 
 const LOG = new Logger('OrgsReducer');
 
 const { OrganizationBuilder } = Models;
-const { GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS, getOrganizationDataSetsWithColumns } = DataSetsApiActions;
+const {
+  GET_ORGANIZATION_DATA_SET_DATA,
+  GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS,
+  getOrganizationDataSetData,
+  getOrganizationDataSetsWithColumns,
+} = DataSetsApiActions;
 const { GET_ALL_ORGANIZATIONS, getAllOrganizations } = OrganizationsApiActions;
 
 const { RESET_REQUEST_STATE } = ReduxActions;
+const { REQUEST_STATE } = ReduxConstants;
 const { GO_TO_ROUTE } = RoutingActions;
 
 const INITIAL_STATE :Map = fromJS({
   [GET_ALL_ORGANIZATIONS]: { [REQUEST_STATE]: RequestStates.STANDBY },
+  [GET_ORGANIZATION_DATA_SET_DATA]: { [REQUEST_STATE]: RequestStates.STANDBY },
   [GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS]: { [REQUEST_STATE]: RequestStates.STANDBY },
+  atlasDataSets: Map(),
+  atlasDataSetData: Map(),
   organizationsMap: Map(),
   selectedAtlasDataSet: undefined,
 });
@@ -38,8 +46,8 @@ export default function reducer(state :Map = INITIAL_STATE, action :Object) {
 
     case GO_TO_ROUTE: {
       const routingAction :RoutingAction = action;
-      if (matchPath(routingAction.route, Routes.ATLAS_DATA_SET) && routingAction.state.dataSet) {
-        return state.set('selectedAtlasDataSet', routingAction.state.dataSet);
+      if (matchPath(routingAction.route, Routes.ATLAS_DATA_SET) && routingAction.state.atlasDataSet) {
+        return state.set('selectedAtlasDataSet', routingAction.state.atlasDataSet);
       }
       return state;
     }
@@ -81,6 +89,27 @@ export default function reducer(state :Map = INITIAL_STATE, action :Object) {
           .set('organizationsMap', Map())
           .setIn([GET_ALL_ORGANIZATIONS, REQUEST_STATE], RequestStates.FAILURE),
         FINALLY: () => state.deleteIn([GET_ALL_ORGANIZATIONS, seqAction.id]),
+      });
+    }
+
+    case getOrganizationDataSetData.case(action.type): {
+      const seqAction :SequenceAction = action;
+      return getOrganizationDataSetData.reducer(state, action, {
+        REQUEST: () => state
+          .setIn([GET_ORGANIZATION_DATA_SET_DATA, REQUEST_STATE], RequestStates.PENDING)
+          .setIn([GET_ORGANIZATION_DATA_SET_DATA, seqAction.id], seqAction),
+        SUCCESS: () => {
+          if (state.hasIn([GET_ORGANIZATION_DATA_SET_DATA, seqAction.id])) {
+            const storedSeqAction = state.getIn([GET_ORGANIZATION_DATA_SET_DATA, seqAction.id]);
+            const { dataSetId: atlasDataSetId, organizationId } = storedSeqAction.value;
+            return state
+              .setIn(['atlasDataSetData', organizationId, atlasDataSetId], fromJS(seqAction.value))
+              .setIn([GET_ORGANIZATION_DATA_SET_DATA, REQUEST_STATE], RequestStates.SUCCESS);
+          }
+          return state;
+        },
+        FAILURE: () => state.setIn([GET_ORGANIZATION_DATA_SET_DATA, REQUEST_STATE], RequestStates.FAILURE),
+        FINALLY: () => state.deleteIn([GET_ORGANIZATION_DATA_SET_DATA, seqAction.id]),
       });
     }
 
