@@ -32,25 +32,27 @@ const Error = styled.div`
 type Props = {
   children ?:Node;
   error :?SagaError;
-  message :?string;
+  // message :?string;
 };
 
-const BasicErrorComponent = ({ children, error, message } :Props) => {
+const BasicErrorComponent = ({ children, error } :Props) => {
 
-  let errorMessage = message;
+  let errorMessage = children;
   if (error && (error.status === 401 || error.status === 403)) {
-    errorMessage = 'You are not authorized to view this page.';
+    errorMessage = (
+      <span>Sorry, you are not authorized to view this page.</span>
+    );
   }
 
   if (!errorMessage) {
-    errorMessage = 'Sorry, something went wrong. Please try again.';
+    errorMessage = (
+      <span>Sorry, something went wrong. Please try again.</span>
+    );
   }
 
   return (
     <Error>
-      {
-        children || <span>{errorMessage}</span>
-      }
+      {errorMessage}
     </Error>
   );
 };
@@ -58,7 +60,7 @@ const BasicErrorComponent = ({ children, error, message } :Props) => {
 BasicErrorComponent.defaultProps = {
   children: undefined,
   error: undefined,
-  message: undefined,
+  // message: undefined,
 };
 
 export default BasicErrorComponent;

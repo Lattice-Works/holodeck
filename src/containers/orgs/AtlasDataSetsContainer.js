@@ -16,10 +16,10 @@ import { BasicErrorComponent, SimpleAtlasDataSetCard } from '../../components';
 import { ReduxActions } from '../../core/redux';
 import { REDUCERS } from '../../core/redux/constants';
 
-const { GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS } = DataSetsApiActions;
+const { GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS, getOrganizationDataSetsWithColumns } = DataSetsApiActions;
 
-const { resetRequestState } = ReduxActions;
 const { ORGS } = REDUCERS;
+const { resetRequestState } = ReduxActions;
 
 type Props = {
   organizationId :UUID;
@@ -29,8 +29,13 @@ const AtlasDataSetsContainer = ({ organizationId } :Props) => {
 
   const dispatch = useDispatch();
 
-  // const getAtlasDataSetsRS :?RequestState = useRequestState([ORGS, GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS]);
+  // const matchAtlasDataSets :boolean = !!useRouteMatch({ exact: true, path: Routes.ATLAS_DATA_SETS });
+  const getAtlasDataSetsRS :?RequestState = useRequestState([ORGS, GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS]);
   const atlasDataSets :List = useSelector((s) => s.getIn([ORGS, 'atlasDataSets', organizationId], List()));
+
+  useEffect(() => {
+    dispatch(getOrganizationDataSetsWithColumns(organizationId));
+  }, [dispatch, organizationId]);
 
   useEffect(() => () => (
     dispatch(resetRequestState([GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS]))
@@ -38,20 +43,18 @@ const AtlasDataSetsContainer = ({ organizationId } :Props) => {
 
   return (
     <AppContentWrapper>
-      {/*
-        getAtlasDataSetsRS === RequestStates.FAILURE && (
-          <BasicErrorComponent>
-            Sorry, something went wrong. Please try again.
-          </BasicErrorComponent>
-        )
-      */}
-      {/*
+      {
         getAtlasDataSetsRS === RequestStates.PENDING && (
           <Spinner size="2x" />
         )
-      */}
+      }
       {
-        atlasDataSets && !atlasDataSets.isEmpty() && (
+        getAtlasDataSetsRS === RequestStates.FAILURE && (
+          <BasicErrorComponent />
+        )
+      }
+      {
+        getAtlasDataSetsRS === RequestStates.SUCCESS && atlasDataSets && !atlasDataSets.isEmpty() && (
           <CardStack>
             {
               atlasDataSets.map((atlasDataSet :Map) => (

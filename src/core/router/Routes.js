@@ -20,7 +20,6 @@ const ROOT :'/' = '/';
 
 const EXPLORE :'/explore' = '/explore';
 const LOGIN :'/login' = '/login';
-const ORGANIZATIONS :'/orgs' = '/orgs';
 
 // $FlowFixMe - ignoring flow because I prefer the code hints to show the value
 const ENTITY_SET :'/explore/entitySets/:entitySetId' = `${EXPLORE}/entitySets/${ESID_PARAM}`;
@@ -33,13 +32,13 @@ const ENTITY_DATA :'/explore/entityData/:entitySetId/:entityKeyId' = `${EXPLORE}
   + `/${EKID_PARAM}`;
 
 // $FlowFixMe - ignoring flow because I prefer the code hints to show the value
-const ORGANIZATION :'/orgs/:organizationId' = `${ORGANIZATIONS}/${ORG_ID_PARAM}`;
+const ORG :'/explore/orgs/:organizationId' = `${EXPLORE}/orgs/${ORG_ID_PARAM}`;
 // $FlowFixMe - ignoring flow because I prefer the code hints to show the value
-const ATLAS_DATA_SETS :'/orgs/:organizationId/dataSets' = `${ORGANIZATION}/dataSets`;
+const ATLAS_DATA_SETS :'/explore/orgs/:organizationId/dataSets' = `${ORG}/dataSets`;
 // $FlowFixMe - ignoring flow because I prefer the code hints to show the value
-const ATLAS_DATA_SET :'/orgs/:organizationId/dataSets/:atlasDataSetId' = `${ATLAS_DATA_SETS}/${ADSID_PARAM}`;
+const ATLAS_DATA_SET :'/explore/orgs/:organizationId/dataSets/:atlasDataSetId' = `${ATLAS_DATA_SETS}/${ADSID_PARAM}`;
 // $FlowFixMe - ignoring flow because I prefer the code hints to show the value
-const ATLAS_DATA_SET_VIEW :'/orgs/:organizationId/dataSets/:atlasDataSetId/view' = `${ATLAS_DATA_SET}/view`;
+const ATLAS_DATA_SET_VIEW :'/explore/orgs/:organizationId/dataSets/:atlasDataSetId/view' = `${ATLAS_DATA_SET}/view`;
 
 export {
   ATLAS_DATA_SET,
@@ -50,7 +49,6 @@ export {
   ENTITY_SET_SEARCH,
   EXPLORE,
   LOGIN,
-  ORGANIZATION,
-  ORGANIZATIONS,
+  ORG,
   ROOT,
 };

@@ -9,25 +9,22 @@ import { DataSetsApiActions } from 'lattice-sagas';
 import {
   AppContentWrapper,
   Card,
-  CardSegment,
-  PaginationToolbar,
-  SearchButton,
-  SearchInput,
   Spinner,
   Table,
 } from 'lattice-ui-kit';
+import { useRequestState } from 'lattice-utils';
 import { useDispatch, useSelector } from 'react-redux';
+import { RequestStates } from 'redux-reqseq';
+import type { RequestState } from 'redux-reqseq';
 
-import {
-  BasicErrorComponent,
-  EntityDataRow,
-  SpinnerOverlay,
-  TableCardSegment,
-} from '../../components';
+import { BasicErrorComponent, TableCardSegment } from '../../components';
+import { ReduxActions } from '../../core/redux';
 import { REDUCERS } from '../../core/redux/constants';
 
-const { getOrganizationDataSetData } = DataSetsApiActions;
+const { GET_ORGANIZATION_DATA_SET_DATA, getOrganizationDataSetData } = DataSetsApiActions;
+
 const { ORGS } = REDUCERS;
+const { resetRequestState } = ReduxActions;
 
 type Props = {
   atlasDataSet :Map;
@@ -39,6 +36,7 @@ const AtlasDataSetViewDataContainer = ({ atlasDataSet, atlasDataSetId, organizat
 
   const dispatch = useDispatch();
 
+  const getOrganizationDataSetDataRS :?RequestState = useRequestState([ORGS, GET_ORGANIZATION_DATA_SET_DATA]);
   const data :Map = useSelector((s) => s.getIn([ORGS, 'atlasDataSetData', organizationId, atlasDataSetId], Map()));
 
   useEffect(() => {
@@ -50,6 +48,10 @@ const AtlasDataSetViewDataContainer = ({ atlasDataSet, atlasDataSetId, organizat
       })
     );
   }, [dispatch, organizationId, atlasDataSetId]);
+
+  useEffect(() => () => (
+    dispatch(resetRequestState([GET_ORGANIZATION_DATA_SET_DATA]))
+  ), []);
 
   // OPTIMIZE: no need to compute this on every render
   const tableHeaders = atlasDataSet
@@ -75,13 +77,27 @@ const AtlasDataSetViewDataContainer = ({ atlasDataSet, atlasDataSetId, organizat
 
   return (
     <AppContentWrapper>
-      <Card>
-        <TableCardSegment borderless noWrap>
-          <Table
-              data={tableData}
-              headers={tableHeaders} />
-        </TableCardSegment>
-      </Card>
+      {
+        getOrganizationDataSetDataRS === RequestStates.PENDING && (
+          <Spinner size="2x" />
+        )
+      }
+      {
+        getOrganizationDataSetDataRS === RequestStates.FAILURE && (
+          <BasicErrorComponent />
+        )
+      }
+      {
+        getOrganizationDataSetDataRS === RequestStates.SUCCESS && !tableData.isEmpty() && (
+          <Card>
+            <TableCardSegment borderless noWrap>
+              <Table
+                  data={tableData}
+                  headers={tableHeaders} />
+            </TableCardSegment>
+          </Card>
+        )
+      }
     </AppContentWrapper>
   );
 };

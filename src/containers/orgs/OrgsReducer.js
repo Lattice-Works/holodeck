@@ -2,7 +2,7 @@
  * @flow
  */
 
-import { Map, fromJS } from 'immutable';
+import { List, Map, fromJS } from 'immutable';
 import { Models } from 'lattice';
 import { DataSetsApiActions, OrganizationsApiActions } from 'lattice-sagas';
 import { Logger, ReduxConstants } from 'lattice-utils';
@@ -24,7 +24,12 @@ const {
   getOrganizationDataSetData,
   getOrganizationDataSetsWithColumns,
 } = DataSetsApiActions;
-const { GET_ALL_ORGANIZATIONS, getAllOrganizations } = OrganizationsApiActions;
+const {
+  GET_ALL_ORGANIZATIONS,
+  GET_ORGANIZATION,
+  getAllOrganizations,
+  getOrganization,
+} = OrganizationsApiActions;
 
 const { RESET_REQUEST_STATE } = ReduxActions;
 const { REQUEST_STATE } = ReduxConstants;
@@ -34,10 +39,9 @@ const INITIAL_STATE :Map = fromJS({
   [GET_ALL_ORGANIZATIONS]: { [REQUEST_STATE]: RequestStates.STANDBY },
   [GET_ORGANIZATION_DATA_SET_DATA]: { [REQUEST_STATE]: RequestStates.STANDBY },
   [GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS]: { [REQUEST_STATE]: RequestStates.STANDBY },
-  atlasDataSets: Map(),
   atlasDataSetData: Map(),
-  organizationsMap: Map(),
-  selectedAtlasDataSet: undefined,
+  atlasDataSets: Map(),
+  organizations: Map(),
 });
 
 export default function reducer(state :Map = INITIAL_STATE, action :Object) {
@@ -82,13 +86,33 @@ export default function reducer(state :Map = INITIAL_STATE, action :Object) {
           });
 
           return state
-            .set('organizationsMap', organizations.asImmutable())
+            .set('organizations', organizations.asImmutable())
             .setIn([GET_ALL_ORGANIZATIONS, REQUEST_STATE], RequestStates.SUCCESS);
         },
         FAILURE: () => state
-          .set('organizationsMap', Map())
+          .set('organizations', Map())
           .setIn([GET_ALL_ORGANIZATIONS, REQUEST_STATE], RequestStates.FAILURE),
         FINALLY: () => state.deleteIn([GET_ALL_ORGANIZATIONS, seqAction.id]),
+      });
+    }
+
+    case getOrganization.case(action.type): {
+      const seqAction :SequenceAction = action;
+      return getOrganization.reducer(state, action, {
+        REQUEST: () => state
+          .setIn([GET_ORGANIZATION, REQUEST_STATE], RequestStates.PENDING)
+          .setIn([GET_ORGANIZATION, seqAction.id], seqAction),
+        SUCCESS: () => {
+          if (state.hasIn([GET_ORGANIZATION, seqAction.id])) {
+            const organization = (new OrganizationBuilder(seqAction.value)).build();
+            return state
+              .setIn(['organizations', organization.id], organization)
+              .setIn([GET_ORGANIZATION, REQUEST_STATE], RequestStates.SUCCESS);
+          }
+          return state;
+        },
+        FAILURE: () => state.setIn([GET_ORGANIZATION, REQUEST_STATE], RequestStates.FAILURE),
+        FINALLY: () => state.deleteIn([GET_ORGANIZATION, seqAction.id]),
       });
     }
 
@@ -122,14 +146,23 @@ export default function reducer(state :Map = INITIAL_STATE, action :Object) {
         SUCCESS: () => {
           if (state.hasIn([GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS, seqAction.id])) {
             const storedSeqAction = state.getIn([GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS, seqAction.id]);
-            const organizationId = storedSeqAction.value;
+            const organizationId :UUID = storedSeqAction.value;
             return state
               .setIn(['atlasDataSets', organizationId], fromJS(seqAction.value))
               .setIn([GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS, REQUEST_STATE], RequestStates.SUCCESS);
           }
           return state;
         },
-        FAILURE: () => state.setIn([GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS, REQUEST_STATE], RequestStates.FAILURE),
+        FAILURE: () => {
+          if (state.hasIn([GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS, seqAction.id])) {
+            const storedSeqAction = state.getIn([GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS, seqAction.id]);
+            const organizationId :UUID = storedSeqAction.value;
+            return state
+              .setIn(['atlasDataSets', organizationId], List())
+              .setIn([GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS, REQUEST_STATE], RequestStates.FAILURE);
+          }
+          return state;
+        },
         FINALLY: () => state.deleteIn([GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS, seqAction.id]),
       });
     }

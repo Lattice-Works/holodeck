@@ -20,16 +20,6 @@ const {
 
 const { EDM } = REDUCERS;
 
-const selectEntitySet = (idOrName :UUID | string) => (state :Map) :?EntitySet => {
-  if (state.hasIn([EDM, 'entitySetsIndexMap', idOrName])) {
-    const index :number = state.getIn([EDM, 'entitySetsIndexMap', idOrName]);
-    if (state.hasIn([EDM, 'entitySets', index])) {
-      return state.getIn([EDM, 'entitySets', index]);
-    }
-  }
-  return undefined;
-};
-
 type IdsOrNames =
   | UUID[]
   | string[]
@@ -53,9 +43,9 @@ const useEntitySets = (idsOrNames :?IdsOrNames) :{ [UUID] :EntitySet } => (
 
     const entitySetsMap = {};
     idsOrNames.forEach((idOrName) => {
-      const entitySetIndex :number = state.getIn(['edm', 'entitySetsIndexMap', idOrName], -1);
+      const entitySetIndex :number = state.getIn([EDM, 'entitySetsIndexMap', idOrName], -1);
       if (entitySetIndex >= 0) {
-        const entitySet :?EntitySet = state.getIn(['edm', 'entitySets', entitySetIndex]);
+        const entitySet :?EntitySet = state.getIn([EDM, 'entitySets', entitySetIndex]);
         if (entitySet && entitySet.id) {
           entitySetsMap[entitySet.id] = entitySet;
         }
@@ -72,19 +62,19 @@ const useEntityTypePropertyTypes = (idOrFQN :?UUID | FQN) :PropertyType[] => (
 
     if (isValidUUID(idOrFQN) || FQN.isValid(idOrFQN)) {
 
-      const entityTypeIndex :?number = state.getIn(['edm', 'entityTypesIndexMap', idOrFQN], -1);
+      const entityTypeIndex :?number = state.getIn([EDM, 'entityTypesIndexMap', idOrFQN], -1);
       if (entityTypeIndex === -1) {
         return [];
       }
 
-      const entityType :?EntityType = state.getIn(['edm', 'entityTypes', entityTypeIndex]);
+      const entityType :?EntityType = state.getIn([EDM, 'entityTypes', entityTypeIndex]);
       if (!entityType || !entityType.properties) {
         return [];
       }
 
       return entityType.properties.map((propertyTypeId :UUID) => {
-        const propertyTypeIndex :number = state.getIn(['edm', 'propertyTypesIndexMap', propertyTypeId]);
-        return state.getIn(['edm', 'propertyTypes', propertyTypeIndex]);
+        const propertyTypeIndex :number = state.getIn([EDM, 'propertyTypesIndexMap', propertyTypeId]);
+        return state.getIn([EDM, 'propertyTypes', propertyTypeIndex]);
       });
     }
 
@@ -93,7 +83,6 @@ const useEntityTypePropertyTypes = (idOrFQN :?UUID | FQN) :PropertyType[] => (
 );
 
 export {
-  selectEntitySet,
   useEntitySets,
   useEntityTypePropertyTypes,
 };
