@@ -4,6 +4,7 @@
 
 import { List, Map, getIn } from 'immutable';
 import { Models } from 'lattice';
+import type { UUID } from 'lattice';
 
 import { REDUCERS } from './constants';
 

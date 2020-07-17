@@ -13,6 +13,7 @@ import { AppContentWrapper, AppNavigationWrapper, Breadcrumbs } from 'lattice-ui
 import { LangUtils } from 'lattice-utils';
 import { Route, Switch } from 'react-router';
 import { NavLink } from 'react-router-dom';
+import type { UUID } from 'lattice';
 
 import AtlasDataSetMetaContainer from './AtlasDataSetMetaContainer';
 import AtlasDataSetViewDataContainer from './AtlasDataSetViewDataContainer';

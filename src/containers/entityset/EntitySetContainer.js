@@ -11,6 +11,7 @@ import { AppContentWrapper, AppNavigationWrapper } from 'lattice-ui-kit';
 import { LangUtils, Logger, ValidationUtils } from 'lattice-utils';
 import { Redirect, Route, Switch } from 'react-router';
 import { NavLink } from 'react-router-dom';
+import type { UUID } from 'lattice';
 
 import EntitySetMetaContainer from './EntitySetMetaContainer';
 import EntitySetSearchContainer from './EntitySetSearchContainer';

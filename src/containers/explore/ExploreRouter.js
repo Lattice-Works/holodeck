@@ -21,6 +21,7 @@ import {
   useRouteMatch,
 } from 'react-router';
 import { RequestStates } from 'redux-reqseq';
+import type { UUID } from 'lattice';
 import type { RequestState } from 'redux-reqseq';
 
 import ExploreContainer from './ExploreContainer';
@@ -44,6 +45,7 @@ import { SearchActions } from '../../core/search';
 import { EntityDataContainer } from '../entitydata';
 import { EntitySetContainer } from '../entityset';
 import { AtlasDataSetContainer, OrgContainer } from '../orgs';
+import type { SagaError } from '../../types';
 
 const { EntitySet, Organization } = Models;
 const { reduceRequestStates } = ReduxUtils;

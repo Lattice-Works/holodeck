@@ -21,13 +21,14 @@ import {
 import { useRequestState } from 'lattice-utils';
 import { useDispatch } from 'react-redux';
 import { RequestStates } from 'redux-reqseq';
+import type { UUID } from 'lattice';
 import type { RequestState } from 'redux-reqseq';
 
 import {
   EntityDataRow,
+  Header,
   SpinnerOverlay,
   TableCardSegment,
-  Header,
 } from '../../components';
 import { DataActions, DataUtils } from '../../core/data';
 import { EDMUtils } from '../../core/edm';

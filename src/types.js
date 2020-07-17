@@ -2,15 +2,18 @@
  * @flow
  */
 
-declare type UUID = string;
-
-declare type SagaError = {
+type SagaError = {
   message :string;
   status :number;
   statusText :string;
 };
 
-declare type SelectOption = {
+type SelectOption = {
   label :string;
   value :string;
+};
+
+export type {
+  SagaError,
+  SelectOption,
 };

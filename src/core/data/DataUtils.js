@@ -8,6 +8,7 @@ import {
   Set,
 } from 'immutable';
 import { useSelector } from 'react-redux';
+import type { UUID } from 'lattice';
 
 import { REDUCERS } from '../redux/constants';
 

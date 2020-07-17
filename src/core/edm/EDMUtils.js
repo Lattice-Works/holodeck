@@ -6,6 +6,7 @@ import { Map, Set, isCollection } from 'immutable';
 import { Models } from 'lattice';
 import { LangUtils, ValidationUtils } from 'lattice-utils';
 import { useSelector } from 'react-redux';
+import type { UUID } from 'lattice';
 
 import { REDUCERS } from '../redux/constants';
 

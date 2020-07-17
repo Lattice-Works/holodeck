@@ -5,6 +5,7 @@
 import { Map, Set, fromJS } from 'immutable';
 import { DataUtils, ReduxConstants } from 'lattice-utils';
 import { RequestStates } from 'redux-reqseq';
+import type { UUID } from 'lattice';
 import type { SequenceAction } from 'redux-reqseq';
 
 import {

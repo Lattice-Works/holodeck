@@ -11,6 +11,7 @@ import { AppContentWrapper, AppNavigationWrapper } from 'lattice-ui-kit';
 import { LangUtils } from 'lattice-utils';
 import { Route, Switch } from 'react-router';
 import { NavLink } from 'react-router-dom';
+import type { UUID } from 'lattice';
 
 import AtlasDataSetsContainer from './AtlasDataSetsContainer';
 

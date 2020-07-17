@@ -7,6 +7,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { Cell, Colors, StyleUtils } from 'lattice-ui-kit';
 import { DataUtils, useGoToRoute } from 'lattice-utils';
+import type { UUID } from 'lattice';
 
 import { Routes } from '../../core/router';
 

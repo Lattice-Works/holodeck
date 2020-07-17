@@ -11,6 +11,7 @@ import { Logger, ValidationUtils } from 'lattice-utils';
 import { useSelector } from 'react-redux';
 import { Redirect } from 'react-router';
 import { NavLink } from 'react-router-dom';
+import type { UUID } from 'lattice';
 
 import EntityNeighborsContainer from './EntityNeighborsContainer';
 

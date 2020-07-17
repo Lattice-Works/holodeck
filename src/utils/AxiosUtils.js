@@ -5,6 +5,8 @@
 import _get from 'lodash/get';
 import type { $AxiosError } from 'axios';
 
+import type { SagaError } from '../types';
+
 function toSagaError(error :any) :SagaError {
 
   const axiosError :$AxiosError<*> = error;
