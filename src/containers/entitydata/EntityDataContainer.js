@@ -58,7 +58,7 @@ const EntityDataContainer = ({
     return (
       <>
         <AppContentWrapper bgColor={WHITE}>
-          <Header>{entitySet.title}</Header>
+          <Header as="h2">{entitySet.title}</Header>
           <br />
           <EntityDataGrid data={entityData} propertyTypes={propertyTypes} />
         </AppContentWrapper>

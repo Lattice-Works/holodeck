@@ -19,10 +19,8 @@ const LOG = new Logger('OrgsReducer');
 
 const { OrganizationBuilder } = Models;
 const {
-  GET_ORGANIZATION_DATA_SET_DATA,
-  GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS,
-  getOrganizationDataSetData,
-  getOrganizationDataSetsWithColumns,
+  GET_ORGANIZATION_DATA_SETS,
+  getOrganizationDataSets,
 } = DataSetsApiActions;
 const {
   GET_ALL_ORGANIZATIONS,
@@ -37,9 +35,7 @@ const { GO_TO_ROUTE } = RoutingActions;
 
 const INITIAL_STATE :Map = fromJS({
   [GET_ALL_ORGANIZATIONS]: { [REQUEST_STATE]: RequestStates.STANDBY },
-  [GET_ORGANIZATION_DATA_SET_DATA]: { [REQUEST_STATE]: RequestStates.STANDBY },
-  [GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS]: { [REQUEST_STATE]: RequestStates.STANDBY },
-  atlasDataSetData: Map(),
+  [GET_ORGANIZATION_DATA_SETS]: { [REQUEST_STATE]: RequestStates.STANDBY },
   atlasDataSets: Map(),
   organizations: Map(),
 });
@@ -116,54 +112,33 @@ export default function reducer(state :Map = INITIAL_STATE, action :Object) {
       });
     }
 
-    case getOrganizationDataSetData.case(action.type): {
+    case getOrganizationDataSets.case(action.type): {
       const seqAction :SequenceAction = action;
-      return getOrganizationDataSetData.reducer(state, action, {
+      return getOrganizationDataSets.reducer(state, action, {
         REQUEST: () => state
-          .setIn([GET_ORGANIZATION_DATA_SET_DATA, REQUEST_STATE], RequestStates.PENDING)
-          .setIn([GET_ORGANIZATION_DATA_SET_DATA, seqAction.id], seqAction),
+          .setIn([GET_ORGANIZATION_DATA_SETS, REQUEST_STATE], RequestStates.PENDING)
+          .setIn([GET_ORGANIZATION_DATA_SETS, seqAction.id], seqAction),
         SUCCESS: () => {
-          if (state.hasIn([GET_ORGANIZATION_DATA_SET_DATA, seqAction.id])) {
-            const storedSeqAction = state.getIn([GET_ORGANIZATION_DATA_SET_DATA, seqAction.id]);
-            const { dataSetId: atlasDataSetId, organizationId } = storedSeqAction.value;
-            return state
-              .setIn(['atlasDataSetData', organizationId, atlasDataSetId], fromJS(seqAction.value))
-              .setIn([GET_ORGANIZATION_DATA_SET_DATA, REQUEST_STATE], RequestStates.SUCCESS);
-          }
-          return state;
-        },
-        FAILURE: () => state.setIn([GET_ORGANIZATION_DATA_SET_DATA, REQUEST_STATE], RequestStates.FAILURE),
-        FINALLY: () => state.deleteIn([GET_ORGANIZATION_DATA_SET_DATA, seqAction.id]),
-      });
-    }
-
-    case getOrganizationDataSetsWithColumns.case(action.type): {
-      const seqAction :SequenceAction = action;
-      return getOrganizationDataSetsWithColumns.reducer(state, action, {
-        REQUEST: () => state
-          .setIn([GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS, REQUEST_STATE], RequestStates.PENDING)
-          .setIn([GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS, seqAction.id], seqAction),
-        SUCCESS: () => {
-          if (state.hasIn([GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS, seqAction.id])) {
-            const storedSeqAction = state.getIn([GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS, seqAction.id]);
-            const organizationId :UUID = storedSeqAction.value;
+          if (state.hasIn([GET_ORGANIZATION_DATA_SETS, seqAction.id])) {
+            const storedSeqAction = state.getIn([GET_ORGANIZATION_DATA_SETS, seqAction.id]);
+            const { organizationId } = storedSeqAction.value;
             return state
               .setIn(['atlasDataSets', organizationId], fromJS(seqAction.value))
-              .setIn([GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS, REQUEST_STATE], RequestStates.SUCCESS);
+              .setIn([GET_ORGANIZATION_DATA_SETS, REQUEST_STATE], RequestStates.SUCCESS);
           }
           return state;
         },
         FAILURE: () => {
-          if (state.hasIn([GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS, seqAction.id])) {
-            const storedSeqAction = state.getIn([GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS, seqAction.id]);
-            const organizationId :UUID = storedSeqAction.value;
+          if (state.hasIn([GET_ORGANIZATION_DATA_SETS, seqAction.id])) {
+            const storedSeqAction = state.getIn([GET_ORGANIZATION_DATA_SETS, seqAction.id]);
+            const { organizationId } = storedSeqAction.value;
             return state
               .setIn(['atlasDataSets', organizationId], List())
-              .setIn([GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS, REQUEST_STATE], RequestStates.FAILURE);
+              .setIn([GET_ORGANIZATION_DATA_SETS, REQUEST_STATE], RequestStates.FAILURE);
           }
           return state;
         },
-        FINALLY: () => state.deleteIn([GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS, seqAction.id]),
+        FINALLY: () => state.deleteIn([GET_ORGANIZATION_DATA_SETS, seqAction.id]),
       });
     }
 

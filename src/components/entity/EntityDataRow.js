@@ -6,12 +6,12 @@ import React from 'react';
 
 import styled from 'styled-components';
 import { Cell, Colors, StyleUtils } from 'lattice-ui-kit';
-import { useGoToRoute } from 'lattice-utils';
+import { DataUtils, useGoToRoute } from 'lattice-utils';
 
-import { DataUtils } from '../../core/data';
 import { Routes } from '../../core/router';
 
 const { NEUTRALS } = Colors;
+const { getEntityKeyId } = DataUtils;
 
 const StyledTableRow = styled.tr`
   background-color: transparent;
@@ -27,7 +27,7 @@ type Props = {
 
 const EntityDataRow = ({ data, entitySetId, headers } :Props) => {
 
-  const entityKeyId :UUID = (DataUtils.getEntityKeyId(data) :any);
+  const entityKeyId :UUID = (getEntityKeyId(data) :any);
 
   const cells = headers.map((header) => (
     <Cell key={`${entityKeyId}_cell_${header.key}`}>{data[header.key]}</Cell>

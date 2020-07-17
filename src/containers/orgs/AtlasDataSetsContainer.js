@@ -16,7 +16,7 @@ import { BasicErrorComponent, SimpleAtlasDataSetCard } from '../../components';
 import { ReduxActions } from '../../core/redux';
 import { REDUCERS } from '../../core/redux/constants';
 
-const { GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS, getOrganizationDataSetsWithColumns } = DataSetsApiActions;
+const { GET_ORGANIZATION_DATA_SETS, getOrganizationDataSets } = DataSetsApiActions;
 
 const { ORGS } = REDUCERS;
 const { resetRequestState } = ReduxActions;
@@ -30,15 +30,15 @@ const AtlasDataSetsContainer = ({ organizationId } :Props) => {
   const dispatch = useDispatch();
 
   // const matchAtlasDataSets :boolean = !!useRouteMatch({ exact: true, path: Routes.ATLAS_DATA_SETS });
-  const getAtlasDataSetsRS :?RequestState = useRequestState([ORGS, GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS]);
+  const getAtlasDataSetsRS :?RequestState = useRequestState([ORGS, GET_ORGANIZATION_DATA_SETS]);
   const atlasDataSets :List = useSelector((s) => s.getIn([ORGS, 'atlasDataSets', organizationId], List()));
 
   useEffect(() => {
-    dispatch(getOrganizationDataSetsWithColumns(organizationId));
+    dispatch(getOrganizationDataSets({ organizationId }));
   }, [dispatch, organizationId]);
 
   useEffect(() => () => (
-    dispatch(resetRequestState([GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS]))
+    dispatch(resetRequestState([GET_ORGANIZATION_DATA_SETS]))
   ), []);
 
   return (

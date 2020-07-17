@@ -5,7 +5,6 @@
 import React, { useEffect } from 'react';
 
 import { List, Map } from 'immutable';
-import { DataSetsApiActions } from 'lattice-sagas';
 import {
   AppContentWrapper,
   Card,
@@ -18,12 +17,13 @@ import { RequestStates } from 'redux-reqseq';
 import type { RequestState } from 'redux-reqseq';
 
 import { BasicErrorComponent, TableCardSegment } from '../../components';
+import { DataActions } from '../../core/data';
 import { ReduxActions } from '../../core/redux';
 import { REDUCERS } from '../../core/redux/constants';
 
-const { GET_ORGANIZATION_DATA_SET_DATA, getOrganizationDataSetData } = DataSetsApiActions;
+const { FETCH_ATLAS_DATA_SET_DATA, fetchAtlasDataSetData } = DataActions;
 
-const { ORGS } = REDUCERS;
+const { DATA } = REDUCERS;
 const { resetRequestState } = ReduxActions;
 
 type Props = {
@@ -36,22 +36,21 @@ const AtlasDataSetViewDataContainer = ({ atlasDataSet, atlasDataSetId, organizat
 
   const dispatch = useDispatch();
 
-  const getOrganizationDataSetDataRS :?RequestState = useRequestState([ORGS, GET_ORGANIZATION_DATA_SET_DATA]);
-  const data :Map = useSelector((s) => s.getIn([ORGS, 'atlasDataSetData', organizationId, atlasDataSetId], Map()));
+  const fetchAtlasDataSetDataRS :?RequestState = useRequestState([DATA, FETCH_ATLAS_DATA_SET_DATA, atlasDataSetId]);
+  const data :Map = useSelector((s :Map) => s.getIn([DATA, 'data', organizationId, atlasDataSetId], Map()));
 
   useEffect(() => {
-    dispatch(
-      getOrganizationDataSetData({
-        organizationId,
-        count: 100,
-        dataSetId: atlasDataSetId,
-      })
-    );
+    dispatch(fetchAtlasDataSetData({ atlasDataSetId, organizationId }));
   }, [dispatch, organizationId, atlasDataSetId]);
 
   useEffect(() => () => (
-    dispatch(resetRequestState([GET_ORGANIZATION_DATA_SET_DATA]))
+    dispatch(resetRequestState([FETCH_ATLAS_DATA_SET_DATA]))
   ), []);
+
+  // OPTIMIZE: no need to compute this on every render
+  const tableData = data
+    .map((row) => row.set('id', row.hashCode())) // LUK table needs 'id'
+    .toJS(); // TODO: avoid .toJS()
 
   // OPTIMIZE: no need to compute this on every render
   const tableHeaders = atlasDataSet
@@ -61,34 +60,22 @@ const AtlasDataSetViewDataContainer = ({ atlasDataSet, atlasDataSetId, organizat
       label: `${column.get('title') || column.get('name')}${column.get('primaryKey') ? ' (PK)' : ''}`,
       sortable: false,
     }))
-    .toJS();
-
-  // OPTIMIZE: no need to compute this on every render
-  const tableData = List()
-    .withMutations((list :List) => {
-      data.forEach((columnValues :List, columnId :UUID) => {
-        columnValues.forEach((value :any, rowIndex :number) => {
-          list.update(rowIndex, (row :Map = Map()) => row.set(columnId, value));
-        });
-      });
-    })
-    .map((row) => row.set('id', row.hashCode())) // LUK table needs 'id'
-    .toJS();
+    .toJS(); // TODO: avoid .toJS()
 
   return (
     <AppContentWrapper>
       {
-        getOrganizationDataSetDataRS === RequestStates.PENDING && (
+        fetchAtlasDataSetDataRS === RequestStates.PENDING && (
           <Spinner size="2x" />
         )
       }
       {
-        getOrganizationDataSetDataRS === RequestStates.FAILURE && (
+        fetchAtlasDataSetDataRS === RequestStates.FAILURE && (
           <BasicErrorComponent />
         )
       }
       {
-        getOrganizationDataSetDataRS === RequestStates.SUCCESS && !tableData.isEmpty() && (
+        fetchAtlasDataSetDataRS === RequestStates.SUCCESS && (
           <Card>
             <TableCardSegment borderless noWrap>
               <Table

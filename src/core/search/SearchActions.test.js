@@ -6,11 +6,11 @@ import { testShouldExportActionTypes, testShouldExportRequestSequences } from '.
 
 const ACTION_TYPES = Set([
   'SEARCH_ENTITY_SETS',
-]).sort().toJS();
+]).toJS();
 
 const REQSEQ_NAMES = Set([
   'searchEntitySets',
-]).sort().toJS();
+]).toJS();
 
 describe('SearchActions', () => {
 

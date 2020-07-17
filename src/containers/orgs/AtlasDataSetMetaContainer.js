@@ -4,21 +4,13 @@
 
 import React from 'react';
 
-import { List, Map, getIn } from 'immutable';
+import { List, Map } from 'immutable';
 import {
   AppContentWrapper,
   Card,
   CardSegment,
   Table,
 } from 'lattice-ui-kit';
-import { useSelector } from 'react-redux';
-import { Redirect } from 'react-router';
-
-import { Header, SubHeader } from '../../components';
-import { REDUCERS } from '../../core/redux/constants';
-import { Routes } from '../../core/router';
-
-const { ORGS } = REDUCERS;
 
 const TABLE_HEADERS = [
   {
@@ -46,12 +38,15 @@ type Props = {
 const AtlasDataSetMetaContainer = ({ atlasDataSet } :Props) => {
 
   // OPTIMIZE: no need to compute this on every render
-  const data = atlasDataSet.get('columns', List()).map((column) => ({
-    columnName: column.get('name'),
-    datatype: column.get('datatype'),
-    description: column.get('description'),
-    id: column.get('id'),
-  }));
+  const data = atlasDataSet
+    .get('columns', List())
+    .map((column) => ({
+      columnName: column.get('name'),
+      datatype: column.get('datatype'),
+      description: column.get('description'),
+      id: column.get('id'),
+    }))
+    .toJS(); // TODO: avoid .toJS()
 
   return (
     <AppContentWrapper>
@@ -62,7 +57,7 @@ const AtlasDataSetMetaContainer = ({ atlasDataSet } :Props) => {
               headers={TABLE_HEADERS}
               paginated
               rowsPerPageOptions={ROWS_PER_PAGE}
-              totalRows={data.count()} />
+              totalRows={data.length} />
         </CardSegment>
       </Card>
     </AppContentWrapper>

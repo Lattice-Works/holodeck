@@ -15,6 +15,8 @@ import { Models } from 'lattice';
 import {
   DataApiActions,
   DataApiSagas,
+  DataSetsApiActions,
+  DataSetsApiSagas,
   EntitySetsApiActions,
   EntitySetsApiSagas,
   OrganizationsApiActions,
@@ -54,6 +56,8 @@ const {
 
 const { getEntityData } = DataApiActions;
 const { getEntityDataWorker } = DataApiSagas;
+const { getOrganizationDataSet } = DataSetsApiActions;
+const { getOrganizationDataSetWorker } = DataSetsApiSagas;
 const {
   getEntitySet,
   getEntitySets,
@@ -90,10 +94,18 @@ function* exploreAtlasDataSetWorker(action :SequenceAction) :Saga<*> {
       organizationId :UUID;
     } = action.value;
 
-    const atlasDataSet :?Map = yield select(selectAtlasDataSet(organizationId, atlasDataSetId));
+    let atlasDataSet :?Map = yield select(selectAtlasDataSet(organizationId, atlasDataSetId));
+
+    // TODO: expire stored data
     if (!atlasDataSet) {
-      // TODO: DataSetsApi.getOrganizationDataSet()
-      throw new Error();
+
+      const response :WorkerResponse = yield call(
+        getOrganizationDataSetWorker,
+        getOrganizationDataSet({ dataSetId: atlasDataSetId, organizationId }),
+      );
+      if (response.error) throw response.error;
+
+      atlasDataSet = response.data;
     }
     yield put(exploreAtlasDataSet.success(action.id, atlasDataSet));
   }

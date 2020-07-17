@@ -96,7 +96,7 @@ const EntitySetSearchContainer = ({ entitySet } :Props) => {
   // OPTIMIZE: no need to compute this on every render
   const tableData = searchResults
     .map((entity :Map) => entity.set('id', entity.getIn([OPENLATTICE_ID_FQN, 0])))
-    .toJS();
+    .toJS(); // TODO: avoid .toJS()
 
   const dispatchSearch = (params ?:{ page :number, start :number } = {}) => {
     if (isNonEmptyString(query)) {

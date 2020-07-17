@@ -6,11 +6,11 @@ import { testShouldExportActionTypes, testShouldExportRequestSequences } from '.
 
 const ACTION_TYPES = Set([
   'INITIALIZE_APPLICATION',
-]).sort().toJS();
+]).toJS();
 
 const REQSEQ_NAMES = Set([
   'initializeApplication',
-]).sort().toJS();
+]).toJS();
 
 describe('AppActions', () => {
 

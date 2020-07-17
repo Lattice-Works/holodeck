@@ -10,6 +10,7 @@ import {
   EntitySetsApiSagas,
   OrganizationsApiSagas,
 } from 'lattice-sagas';
+import type { Saga } from '@redux-saga/core';
 
 import { AppSagas } from '../../containers/app';
 import { ExploreSagas } from '../../containers/explore';
@@ -18,7 +19,7 @@ import { EDMSagas } from '../edm';
 import { RoutingSagas } from '../router';
 import { SearchSagas } from '../search';
 
-export default function* sagas() :Generator<*, *, *> {
+export default function* sagas() :Saga<*> {
 
   yield all([
     // "lattice-auth" sagas
@@ -32,7 +33,7 @@ export default function* sagas() :Generator<*, *, *> {
     fork(DataApiSagas.getEntityDataWatcher),
     fork(DataApiSagas.getEntitySetDataWatcher),
     fork(DataSetsApiSagas.getOrganizationDataSetDataWatcher),
-    fork(DataSetsApiSagas.getOrganizationDataSetsWithColumnsWatcher),
+    fork(DataSetsApiSagas.getOrganizationDataSetsWatcher),
     fork(EntitySetsApiSagas.getEntitySetWatcher),
     fork(OrganizationsApiSagas.getOrganizationWatcher),
 
@@ -40,6 +41,7 @@ export default function* sagas() :Generator<*, *, *> {
     fork(AppSagas.initializeApplicationWatcher),
 
     // DataSagas
+    fork(DataSagas.fetchAtlasDataSetDataWatcher),
     fork(DataSagas.fetchEntitySetDataWatcher),
 
     // EDMSagas
