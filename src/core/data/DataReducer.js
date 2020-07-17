@@ -3,7 +3,6 @@
  */
 
 import { Map, Set, fromJS } from 'immutable';
-import { Models } from 'lattice';
 import { DataUtils, ReduxConstants } from 'lattice-utils';
 import { RequestStates } from 'redux-reqseq';
 import type { SequenceAction } from 'redux-reqseq';
@@ -17,7 +16,6 @@ import {
 
 import { ReduxActions } from '../redux';
 
-const { EntitySet } = Models;
 const { getEntityKeyId } = DataUtils;
 const { RESET_REQUEST_STATE } = ReduxActions;
 const { REQUEST_STATE } = ReduxConstants;
@@ -25,10 +23,8 @@ const { REQUEST_STATE } = ReduxConstants;
 const INITIAL_STATE :Map = fromJS({
   [FETCH_ATLAS_DATA_SET_DATA]: Map(),
   [FETCH_ENTITY_SET_DATA]: Map(),
-  // data map structure:
-  //   [orgId, entitySetId, entityKeyId]: entity data
-  //   [orgId, atlasDataSetId]: atlas data set data
-  data: Map(),
+  atlasDataSetData: Map(),
+  entitySetData: Map(),
 });
 
 export default function reducer(state :Map = INITIAL_STATE, action :Object) {
@@ -53,20 +49,13 @@ export default function reducer(state :Map = INITIAL_STATE, action :Object) {
             .setIn([FETCH_ATLAS_DATA_SET_DATA, seqAction.id], seqAction);
         },
         SUCCESS: () => {
-
           if (state.hasIn([FETCH_ATLAS_DATA_SET_DATA, seqAction.id])) {
-
             const storedSeqAction = state.getIn([FETCH_ATLAS_DATA_SET_DATA, seqAction.id]);
-            const { atlasDataSetId, organizationId } :{
-              atlasDataSetId :UUID;
-              organizationId :UUID;
-            } = storedSeqAction.value;
-
+            const { atlasDataSetId } :{ atlasDataSetId :UUID } = storedSeqAction.value;
             return state
-              .setIn(['data', organizationId, atlasDataSetId], fromJS(seqAction.value))
+              .setIn(['atlasDataSetData', atlasDataSetId], fromJS(seqAction.value))
               .setIn([FETCH_ATLAS_DATA_SET_DATA, atlasDataSetId, REQUEST_STATE], RequestStates.SUCCESS);
           }
-
           return state;
         },
         FAILURE: () => {
@@ -87,9 +76,9 @@ export default function reducer(state :Map = INITIAL_STATE, action :Object) {
       const seqAction :SequenceAction = action;
       return fetchEntitySetData.reducer(state, seqAction, {
         REQUEST: () => {
-          const { entitySet } = seqAction.value;
+          const { entitySetId } = seqAction.value;
           return state
-            .setIn([FETCH_ENTITY_SET_DATA, entitySet.id, REQUEST_STATE], RequestStates.PENDING)
+            .setIn([FETCH_ENTITY_SET_DATA, entitySetId, REQUEST_STATE], RequestStates.PENDING)
             .setIn([FETCH_ENTITY_SET_DATA, seqAction.id], seqAction);
         },
         SUCCESS: () => {
@@ -97,22 +86,22 @@ export default function reducer(state :Map = INITIAL_STATE, action :Object) {
           if (state.hasIn([FETCH_ENTITY_SET_DATA, seqAction.id])) {
 
             const storedSeqAction = state.getIn([FETCH_ENTITY_SET_DATA, seqAction.id]);
-            const { entityKeyIds, entitySet } :{
+            const { entityKeyIds, entitySetId } :{
               entityKeyIds :Set<UUID>;
-              entitySet :EntitySet;
+              entitySetId :UUID;
             } = storedSeqAction.value;
 
-            let data :Map = state.get('data');
+            let entitySetData :Map = state.get('entitySetData');
             fromJS(seqAction.value).forEach((entityData :Map) => {
               const entityKeyId :?UUID = getEntityKeyId(entityData);
               if (entityKeyIds.has(entityKeyId)) {
-                data = data.setIn([entitySet.organizationId, entitySet.id, entityKeyId], entityData);
+                entitySetData = entitySetData.setIn([entitySetId, entityKeyId], entityData);
               }
             });
 
             return state
-              .set('data', data)
-              .setIn([FETCH_ENTITY_SET_DATA, entitySet.id, REQUEST_STATE], RequestStates.SUCCESS);
+              .set('entitySetData', entitySetData)
+              .setIn([FETCH_ENTITY_SET_DATA, entitySetId, REQUEST_STATE], RequestStates.SUCCESS);
           }
 
           return state;
@@ -121,8 +110,8 @@ export default function reducer(state :Map = INITIAL_STATE, action :Object) {
 
           if (state.hasIn([FETCH_ENTITY_SET_DATA, seqAction.id])) {
             const storedSeqAction = state.getIn([FETCH_ENTITY_SET_DATA, seqAction.id]);
-            const { entitySet } = storedSeqAction.value;
-            return state.setIn([FETCH_ENTITY_SET_DATA, entitySet.id, REQUEST_STATE], RequestStates.FAILURE);
+            const { entitySetId } :{ entitySetId :UUID } = storedSeqAction.value;
+            return state.setIn([FETCH_ENTITY_SET_DATA, entitySetId, REQUEST_STATE], RequestStates.FAILURE);
           }
 
           return state;

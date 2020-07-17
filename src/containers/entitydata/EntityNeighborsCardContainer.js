@@ -89,7 +89,7 @@ const EntityNeighborsCardContainer = ({ entitySet, neighbors } :Props) => {
   }));
 
   // OPTIMIZE: no need to compute this on every render
-  const entitySetData :Map = useEntitySetData(entitySet, entityKeyIds);
+  const entitySetData :Map = useEntitySetData(entitySetId, entityKeyIds);
 
   useEffect(() => {
     if (fetchEntitySetDataRS === RequestStates.SUCCESS) {
@@ -108,7 +108,7 @@ const EntityNeighborsCardContainer = ({ entitySet, neighbors } :Props) => {
   useEffect(() => {
     dispatch(
       fetchEntitySetData({
-        entitySet,
+        entitySetId,
         entityKeyIds: Set(entityKeyIds),
       })
     );

@@ -37,7 +37,7 @@ const AtlasDataSetViewDataContainer = ({ atlasDataSet, atlasDataSetId, organizat
   const dispatch = useDispatch();
 
   const fetchAtlasDataSetDataRS :?RequestState = useRequestState([DATA, FETCH_ATLAS_DATA_SET_DATA, atlasDataSetId]);
-  const data :Map = useSelector((s :Map) => s.getIn([DATA, 'data', organizationId, atlasDataSetId], Map()));
+  const data :Map = useSelector((s :Map) => s.getIn([DATA, 'atlasDataSetData', atlasDataSetId], Map()));
 
   useEffect(() => {
     dispatch(fetchAtlasDataSetData({ atlasDataSetId, organizationId }));
