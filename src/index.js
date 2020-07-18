@@ -22,7 +22,7 @@ declare var __AUTH0_CLIENT_ID__ :string;
 declare var __AUTH0_DOMAIN__ :string;
 declare var __ENV_DEV__ :boolean;
 
-const { NEUTRALS } = Colors;
+const { NEUTRAL } = Colors;
 const { AuthRoute, AuthUtils } = LatticeAuth;
 
 /* eslint-disable */
@@ -39,8 +39,8 @@ const GlobalStyle = createGlobalStyle`
 
   html,
   body {
-    background-color: ${NEUTRALS[7]};
-    color: ${NEUTRALS[0]};
+    background-color: ${NEUTRAL.N00};
+    color: ${NEUTRAL.N700};
     font-family: 'Inter', sans-serif;
     height: 100%;
     line-height: 1.5;
