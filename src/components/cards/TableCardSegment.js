@@ -1,11 +1,11 @@
 import styled from 'styled-components';
 import { CardSegment, Colors } from 'lattice-ui-kit';
 
-const { NEUTRALS } = Colors;
+const { NEUTRAL } = Colors;
 
 const TableCardSegment = styled(CardSegment)`
   > div {
-    border: 1px solid ${NEUTRALS[4]};
+    border: 1px solid ${NEUTRAL.N100};
     border-radius: 3px;
     overflow: scroll;
   }

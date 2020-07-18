@@ -12,7 +12,6 @@ import {
   Card,
   CardSegment,
   PaginationToolbar,
-  SearchButton,
   SearchInput,
   Spinner,
   Table,
@@ -25,6 +24,7 @@ import type { RequestState } from 'redux-reqseq';
 import {
   BasicErrorComponent,
   EntityDataRow,
+  SearchButton,
   SpinnerOverlay,
   TableCardSegment,
 } from '../../components';
