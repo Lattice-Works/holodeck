@@ -5,11 +5,11 @@
 import React, { useMemo, useState } from 'react';
 
 import styled from 'styled-components';
-import { faChevronCircleDown, faChevronCircleUp } from '@fortawesome/pro-light-svg-icons';
+import { faChevronCircleDown } from '@fortawesome/pro-light-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Map, Set } from 'immutable';
 import { Models } from 'lattice';
-import { CardStack, IconButton, Spinner } from 'lattice-ui-kit';
+import { CardStack, Spinner } from 'lattice-ui-kit';
 import { useRequestState } from 'lattice-utils';
 import { RequestStates } from 'redux-reqseq';
 import type { UUID } from 'lattice';
@@ -17,7 +17,7 @@ import type { RequestState } from 'redux-reqseq';
 
 import EntityNeighborsCardContainer from './EntityNeighborsCardContainer';
 
-import { Header } from '../../components';
+import { FlipButton, Header } from '../../components';
 import { EDMUtils } from '../../core/edm';
 import { REDUCERS } from '../../core/redux/constants';
 import { ExploreActions } from '../explore';
@@ -46,18 +46,11 @@ const SectionHeader = styled.div`
   justify-content: space-between;
 `;
 
-const ChevronDownIcon = (
-  <FontAwesomeIcon fixedWidth icon={faChevronCircleDown} size="2x" />
-);
-
-const ChevronUpIcon = (
-  <FontAwesomeIcon fixedWidth icon={faChevronCircleUp} size="2x" />
-);
-
-const ChevronButton = styled(IconButton).attrs(({ isOpen }) => ({
-  icon: isOpen ? ChevronUpIcon : ChevronDownIcon,
-}))`
-  padding: 4px;
+const HeaderSectionButton = styled(FlipButton)`
+  > button {
+    background-color: transparent;
+    padding: 4px;
+  }
 `;
 
 type Props = {
@@ -108,10 +101,12 @@ const EntityNeighborsContainer = ({ neighbors } :Props) => {
           <AssociationSection key={associationEntitySet.id}>
             <SectionHeader>
               <Header as="h2">{associationEntitySet.title}</Header>
-              <ChevronButton
-                  isOpen={visibleSections.get(associationEntitySet.id)}
+              <HeaderSectionButton
+                  flip={visibleSections.get(associationEntitySet.id)}
                   data-entity-set-id={associationEntitySet.id}
-                  onClick={handleOnClick} />
+                  onClick={handleOnClick}>
+                <FontAwesomeIcon fixedWidth icon={faChevronCircleDown} size="2x" />
+              </HeaderSectionButton>
             </SectionHeader>
             {
               visibleSections.get(associationEntitySet.id) && (

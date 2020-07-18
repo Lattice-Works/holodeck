@@ -6,6 +6,8 @@ import React, { useState } from 'react';
 
 import _includes from 'lodash/includes';
 import styled from 'styled-components';
+import { faChevronDown } from '@fortawesome/pro-regular-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { List } from 'immutable';
 import { Models, Types } from 'lattice';
 import {
@@ -25,7 +27,7 @@ import type { RequestState } from 'redux-reqseq';
 
 import {
   BasicErrorComponent,
-  ChevronButton,
+  FlipButton,
   NoSearchResultsCardSegment,
   SearchButton,
   SimpleEntitySetCard,
@@ -135,7 +137,9 @@ const ExploreContainer = () => {
           <div>
             <SearchOptionsControl onClick={toggleSearchOptions}>
               <span>Filter Search Results</span>
-              <ChevronButton isPointingUp={isOpen} onClick={toggleSearchOptions} />
+              <FlipButton flip={isOpen} onClick={toggleSearchOptions}>
+                <FontAwesomeIcon fixedWidth icon={faChevronDown} />
+              </FlipButton>
             </SearchOptionsControl>
             <Collapse in={isOpen}>
               <SearchOptionsGrid>
