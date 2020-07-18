@@ -14,6 +14,7 @@ import {
   LatticeLuxonUtils,
   MuiPickersUtilsProvider,
   Spinner,
+  StylesProvider,
   ThemeProvider,
   lightTheme,
 } from 'lattice-ui-kit';
@@ -66,38 +67,40 @@ const AppContainer = () => {
   return (
     <ThemeProvider theme={lightTheme}>
       <MuiPickersUtilsProvider utils={LatticeLuxonUtils}>
-        <AppContainerWrapper>
-          <AppHeaderWrapper appIcon={OpenLatticeIcon} appTitle="Regallery" logout={logout} user={user}>
-            <AppNavigationWrapper>
-              <NavLink to={Routes.ROOT} />
-              <NavLink to={Routes.EXPLORE}>Explore</NavLink>
-            </AppNavigationWrapper>
-          </AppHeaderWrapper>
-          {
-            initAppRS === RequestStates.PENDING && (
-              <AppContentWrapper>
-                <Spinner size="2x" />
-              </AppContentWrapper>
-            )
-          }
-          {
-            initAppRS === RequestStates.FAILURE && (
-              <AppContentWrapper>
-                <BasicErrorComponent>
-                  Sorry, the application failed to initialize. Please try refreshing the page, or contact support.
-                </BasicErrorComponent>
-              </AppContentWrapper>
-            )
-          }
-          {
-            initAppRS === RequestStates.SUCCESS && (
-              <Switch>
-                <Route path={Routes.EXPLORE} component={ExploreRouter} />
-                <Redirect to={Routes.EXPLORE} />
-              </Switch>
-            )
-          }
-        </AppContainerWrapper>
+        <StylesProvider injectFirst>
+          <AppContainerWrapper>
+            <AppHeaderWrapper appIcon={OpenLatticeIcon} appTitle="Regallery" logout={logout} user={user}>
+              <AppNavigationWrapper>
+                <NavLink to={Routes.ROOT} />
+                <NavLink to={Routes.EXPLORE}>Explore</NavLink>
+              </AppNavigationWrapper>
+            </AppHeaderWrapper>
+            {
+              initAppRS === RequestStates.PENDING && (
+                <AppContentWrapper>
+                  <Spinner size="2x" />
+                </AppContentWrapper>
+              )
+            }
+            {
+              initAppRS === RequestStates.FAILURE && (
+                <AppContentWrapper>
+                  <BasicErrorComponent>
+                    Sorry, the application failed to initialize. Please try refreshing the page, or contact support.
+                  </BasicErrorComponent>
+                </AppContentWrapper>
+              )
+            }
+            {
+              initAppRS === RequestStates.SUCCESS && (
+                <Switch>
+                  <Route path={Routes.EXPLORE} component={ExploreRouter} />
+                  <Redirect to={Routes.EXPLORE} />
+                </Switch>
+              )
+            }
+          </AppContainerWrapper>
+        </StylesProvider>
       </MuiPickersUtilsProvider>
     </ThemeProvider>
   );
