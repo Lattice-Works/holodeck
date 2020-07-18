@@ -5,7 +5,7 @@
 import styled, { css } from 'styled-components';
 import { Colors } from 'lattice-ui-kit';
 
-const { NEUTRALS } = Colors;
+const { NEUTRAL } = Colors;
 
 const FONT_SIZE = {
   h1: '36px',
@@ -52,7 +52,7 @@ const getComputedStyles = ({ align = 'center', as = 'h1' } :Props) => (
 
 const Header = styled.h1`
   align-items: center;
-  color: ${NEUTRALS[0]};
+  color: ${NEUTRAL.N700};
   display: flex;
   margin: 0;
   padding: 0;
