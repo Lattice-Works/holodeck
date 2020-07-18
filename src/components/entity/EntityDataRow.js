@@ -11,12 +11,12 @@ import type { UUID } from 'lattice';
 
 import { Routes } from '../../core/router';
 
-const { NEUTRALS } = Colors;
+const { NEUTRAL } = Colors;
 const { getEntityKeyId } = DataUtils;
 
 const StyledTableRow = styled.tr`
   background-color: transparent;
-  border-bottom: 1px solid ${NEUTRALS[4]};
+  border-bottom: 1px solid ${NEUTRAL.N100};
   ${StyleUtils.getHoverStyles};
 `;
 

@@ -11,12 +11,12 @@ import { Colors } from 'lattice-ui-kit';
 
 import { BasicErrorComponent } from '../errors';
 
-const { NEUTRALS } = Colors;
+const { NEUTRAL } = Colors;
 
 const DEFAULT_MESSAGE = 'Make sure you are a member of an organization and have permissions.';
 
 const NoSearchResults = styled.span`
-  color: ${NEUTRALS[1]};
+  color: ${NEUTRAL.N500};
 `;
 
 type Props = {

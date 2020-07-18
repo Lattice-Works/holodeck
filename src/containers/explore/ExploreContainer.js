@@ -6,6 +6,8 @@ import React, { useState } from 'react';
 
 import _includes from 'lodash/includes';
 import styled from 'styled-components';
+import { faChevronDown } from '@fortawesome/pro-regular-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { List } from 'immutable';
 import { Models, Types } from 'lattice';
 import {
@@ -15,7 +17,6 @@ import {
   Collapse,
   Label,
   PaginationToolbar,
-  SearchButton,
   SearchInput,
   Spinner,
 } from 'lattice-ui-kit';
@@ -26,8 +27,9 @@ import type { RequestState } from 'redux-reqseq';
 
 import {
   BasicErrorComponent,
-  ChevronButton,
+  FlipButton,
   NoSearchResultsCardSegment,
+  SearchButton,
   SimpleEntitySetCard,
 } from '../../components';
 import {
@@ -52,16 +54,11 @@ const SearchSection = styled.section`
 `;
 
 const SearchGrid = styled.div`
-  align-items: flex-start;
   display: grid;
   flex: 1;
   grid-auto-flow: column;
   grid-gap: 10px;
   grid-template-columns: 1fr auto;
-
-  button {
-    line-height: 1.5;
-  }
 `;
 
 const SearchResultCardStack = styled(CardStack)`
@@ -73,11 +70,14 @@ const SearchOptionsControl = styled.div`
   display: flex;
   font-size: 14px;
   font-weight: 600;
-  justify-content: space-between;
   margin-top: 20px;
 
   &:hover {
     cursor: pointer;
+  }
+
+  > span {
+    margin-right: 10px;
   }
 `;
 
@@ -131,17 +131,15 @@ const ExploreContainer = () => {
           <form>
             <SearchGrid>
               <SearchInput onChange={setQuery} value={query} />
-              <SearchButton
-                  isLoading={searchRS === RequestStates.PENDING}
-                  mode="primary"
-                  onClick={handleOnClickSearch}
-                  type="submit" />
+              <SearchButton isPending={searchRS === RequestStates.PENDING} onClick={handleOnClickSearch} />
             </SearchGrid>
           </form>
           <div>
             <SearchOptionsControl onClick={toggleSearchOptions}>
               <span>Filter Search Results</span>
-              <ChevronButton isOpen={isOpen} onClick={toggleSearchOptions} size="sm" />
+              <FlipButton flip={isOpen} onClick={toggleSearchOptions}>
+                <FontAwesomeIcon fixedWidth icon={faChevronDown} />
+              </FlipButton>
             </SearchOptionsControl>
             <Collapse in={isOpen}>
               <SearchOptionsGrid>

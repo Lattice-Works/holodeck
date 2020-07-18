@@ -5,7 +5,7 @@
 import styled, { css } from 'styled-components';
 import { Colors } from 'lattice-ui-kit';
 
-const { NEUTRALS } = Colors;
+const { NEUTRAL } = Colors;
 
 const FONT_SIZE = {
   h4: '18px',
@@ -42,9 +42,9 @@ const getComputedStyles = ({ align = 'center', as = 'h4' } :Props) => (
   `
 );
 
-const Header = styled.h4`
+const SubHeader = styled.h4`
   align-items: center;
-  color: ${NEUTRALS[1]};
+  color: ${NEUTRAL.N500};
   display: flex;
   font-weight: normal;
   margin: 0;
@@ -54,4 +54,4 @@ const Header = styled.h4`
   ${getComputedStyles}
 `;
 
-export default Header;
+export default SubHeader;

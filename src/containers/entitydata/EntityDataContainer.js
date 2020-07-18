@@ -6,7 +6,7 @@ import React from 'react';
 
 import { Map } from 'immutable';
 import { Models } from 'lattice';
-import { AppContentWrapper, AppNavigationWrapper, Colors } from 'lattice-ui-kit';
+import { AppContentWrapper, AppNavigationWrapper } from 'lattice-ui-kit';
 import { Logger, ValidationUtils } from 'lattice-utils';
 import { useSelector } from 'react-redux';
 import { Redirect } from 'react-router';
@@ -21,7 +21,6 @@ import { REDUCERS } from '../../core/redux/constants';
 import { Routes } from '../../core/router';
 import { Errors } from '../../utils';
 
-const { WHITE } = Colors;
 const { EntitySet, PropertyType } = Models;
 const { isValidUUID } = ValidationUtils;
 
@@ -58,12 +57,12 @@ const EntityDataContainer = ({
   if (entityData && entitySet) {
     return (
       <>
-        <AppContentWrapper bgColor={WHITE}>
+        <AppContentWrapper bgColor="white">
           <Header as="h2">{entitySet.title}</Header>
           <br />
           <EntityDataGrid data={entityData} propertyTypes={propertyTypes} />
         </AppContentWrapper>
-        <AppContentWrapper bgColor={WHITE} padding="0">
+        <AppContentWrapper bgColor="white" padding="0">
           <AppNavigationWrapper borderless>
             <NavLink to="#">Associated Data</NavLink>
           </AppNavigationWrapper>
