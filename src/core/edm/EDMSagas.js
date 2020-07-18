@@ -15,6 +15,8 @@ import {
   EntitySetsApiSagas,
 } from 'lattice-sagas';
 import { LangUtils, Logger } from 'lattice-utils';
+import type { Saga } from '@redux-saga/core';
+import type { UUID } from 'lattice';
 import type { SequenceAction } from 'redux-reqseq';
 
 import {
@@ -38,7 +40,7 @@ const { getAllEntitySetsWorker, getPropertyTypeMetaDataForEntitySetsWorker } = E
  *
  */
 
-function* getEntityDataModelTypesWorker(action :SequenceAction) :Generator<*, *, *> {
+function* getEntityDataModelTypesWorker(action :SequenceAction) :Saga<*> {
 
   const workerResponse :Object = {};
 
@@ -74,7 +76,7 @@ function* getEntityDataModelTypesWorker(action :SequenceAction) :Generator<*, *,
   return workerResponse;
 }
 
-function* getEntityDataModelTypesWatcher() :Generator<*, *, *> {
+function* getEntityDataModelTypesWatcher() :Saga<*> {
 
   yield takeEvery(GET_EDM_TYPES, getEntityDataModelTypesWorker);
 }
@@ -85,7 +87,7 @@ function* getEntityDataModelTypesWatcher() :Generator<*, *, *> {
  *
  */
 
-function* getEntitySetsWithMetaDataWorker(action :SequenceAction) :Generator<*, *, *> {
+function* getEntitySetsWithMetaDataWorker(action :SequenceAction) :Saga<*> {
 
   const workerResponse :Object = {};
 
@@ -122,7 +124,7 @@ function* getEntitySetsWithMetaDataWorker(action :SequenceAction) :Generator<*, 
   return workerResponse;
 }
 
-function* getEntitySetsWithMetaDataWatcher() :Generator<*, *, *> {
+function* getEntitySetsWithMetaDataWatcher() :Saga<*> {
 
   yield takeEvery(GET_ENTITY_SETS_WITH_METADATA, getEntitySetsWithMetaDataWorker);
 }

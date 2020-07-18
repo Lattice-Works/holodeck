@@ -10,16 +10,17 @@ import { AppContentWrapper, CardStack, Spinner } from 'lattice-ui-kit';
 import { useRequestState } from 'lattice-utils';
 import { useDispatch, useSelector } from 'react-redux';
 import { RequestStates } from 'redux-reqseq';
+import type { UUID } from 'lattice';
 import type { RequestState } from 'redux-reqseq';
 
 import { BasicErrorComponent, SimpleAtlasDataSetCard } from '../../components';
 import { ReduxActions } from '../../core/redux';
 import { REDUCERS } from '../../core/redux/constants';
 
-const { GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS, getOrganizationDataSetsWithColumns } = DataSetsApiActions;
+const { GET_ORGANIZATION_DATA_SETS, getOrganizationDataSets } = DataSetsApiActions;
 
-const { resetRequestState } = ReduxActions;
 const { ORGS } = REDUCERS;
+const { resetRequestState } = ReduxActions;
 
 type Props = {
   organizationId :UUID;
@@ -27,42 +28,40 @@ type Props = {
 
 const AtlasDataSetsContainer = ({ organizationId } :Props) => {
 
-  const getAtlasDataSetsRS :?RequestState = useRequestState([ORGS, GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS]);
+  const dispatch = useDispatch();
+
+  // const matchAtlasDataSets :boolean = !!useRouteMatch({ exact: true, path: Routes.ATLAS_DATA_SETS });
+  const getAtlasDataSetsRS :?RequestState = useRequestState([ORGS, GET_ORGANIZATION_DATA_SETS]);
   const atlasDataSets :List = useSelector((s) => s.getIn([ORGS, 'atlasDataSets', organizationId], List()));
 
-  const dispatch = useDispatch();
   useEffect(() => {
-    if (!atlasDataSets || atlasDataSets.isEmpty()) {
-      dispatch(getOrganizationDataSetsWithColumns(organizationId));
-    }
-  }, [atlasDataSets, dispatch, organizationId]);
+    dispatch(getOrganizationDataSets({ organizationId }));
+  }, [dispatch, organizationId]);
 
   useEffect(() => () => (
-    dispatch(resetRequestState([GET_ORGANIZATION_DATA_SETS_WITH_COLUMNS]))
+    dispatch(resetRequestState([GET_ORGANIZATION_DATA_SETS]))
   ), []);
 
   return (
     <AppContentWrapper>
-      {
-        getAtlasDataSetsRS === RequestStates.FAILURE && (
-          <BasicErrorComponent>
-            Sorry, something went wrong. Please try again.
-          </BasicErrorComponent>
-        )
-      }
       {
         getAtlasDataSetsRS === RequestStates.PENDING && (
           <Spinner size="2x" />
         )
       }
       {
-        atlasDataSets && !atlasDataSets.isEmpty() && (
+        getAtlasDataSetsRS === RequestStates.FAILURE && (
+          <BasicErrorComponent />
+        )
+      }
+      {
+        getAtlasDataSetsRS === RequestStates.SUCCESS && atlasDataSets && !atlasDataSets.isEmpty() && (
           <CardStack>
             {
-              atlasDataSets.map((dataSet :Map) => (
+              atlasDataSets.map((atlasDataSet :Map) => (
                 <SimpleAtlasDataSetCard
-                    key={getIn(dataSet, ['table', 'id'])}
-                    dataSet={dataSet}
+                    atlasDataSet={atlasDataSet}
+                    key={getIn(atlasDataSet, ['table', 'id'])}
                     organizationId={organizationId} />
               ))
             }

@@ -6,8 +6,11 @@ import React, { useEffect, useState } from 'react';
 
 import styled from 'styled-components';
 import { Select } from 'lattice-ui-kit';
+import type { UUID } from 'lattice';
 
 import { useOrgSelectOptions } from './utils';
+
+import type { SelectOption } from '../../types';
 
 const OrgSelect = styled.div`
   flex: 1;

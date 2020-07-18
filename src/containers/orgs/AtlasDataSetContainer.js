@@ -4,81 +4,102 @@
 
 import React from 'react';
 
-import { List, Map, getIn } from 'immutable';
-import {
-  AppContentWrapper,
-  Card,
-  CardSegment,
-  Table,
-} from 'lattice-ui-kit';
-import { useSelector } from 'react-redux';
-import { Redirect } from 'react-router';
+import styled from 'styled-components';
+import { faListAlt } from '@fortawesome/pro-light-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Map, getIn } from 'immutable';
+import { Models } from 'lattice';
+import { AppContentWrapper, AppNavigationWrapper, Breadcrumbs } from 'lattice-ui-kit';
+import { LangUtils } from 'lattice-utils';
+import { Route, Switch } from 'react-router';
+import { NavLink } from 'react-router-dom';
+import type { UUID } from 'lattice';
 
-import { Header, SubHeader } from '../../components';
-import { REDUCERS } from '../../core/redux/constants';
+import AtlasDataSetMetaContainer from './AtlasDataSetMetaContainer';
+import AtlasDataSetViewDataContainer from './AtlasDataSetViewDataContainer';
+
+import { CrumbItem, CrumbLink, Header } from '../../components';
 import { Routes } from '../../core/router';
 
-const { ORGS } = REDUCERS;
+const { Organization } = Models;
+const { isNonEmptyString } = LangUtils;
 
-const TABLE_HEADERS = [
-  {
-    key: 'columnName',
-    label: 'COLUMN NAME',
-  },
-  {
-    key: 'description',
-    label: 'DESCRIPTION',
-  },
-  {
-    key: 'datatype',
-    label: 'DATA TYPE',
-  },
-];
-
-const ROWS_PER_PAGE = [25, 50, 75, 100];
+const CrumbsWrapper = styled.div`
+  margin-bottom: 16px;
+`;
 
 type Props = {
+  atlasDataSet :Map;
+  atlasDataSetId :UUID;
+  organization :Organization;
   organizationId :UUID;
 };
 
-const AtlasDataSetsContainer = ({ organizationId } :Props) => {
+const AtlasDataSetContainer = ({
+  atlasDataSet,
+  atlasDataSetId,
+  organization,
+  organizationId,
+} :Props) => {
 
-  const atlasDataSet :?Map = useSelector((s) => s.getIn([ORGS, 'selectedAtlasDataSet'], Map()));
+  const orgPath = Routes.ORG.replace(Routes.ORG_ID_PARAM, organizationId);
+
+  const aboutPath = Routes.ATLAS_DATA_SET
+    .replace(Routes.ORG_ID_PARAM, organizationId)
+    .replace(Routes.ADSID_PARAM, atlasDataSetId);
+
+  const viewDataPath = Routes.ATLAS_DATA_SET_VIEW
+    .replace(Routes.ORG_ID_PARAM, organizationId)
+    .replace(Routes.ADSID_PARAM, atlasDataSetId);
 
   const description :string = getIn(atlasDataSet, ['table', 'description']);
   const name :string = getIn(atlasDataSet, ['table', 'name']);
   const title :string = getIn(atlasDataSet, ['table', 'title']);
 
-  if (!atlasDataSet) {
-    return (
-      <Redirect to={Routes.ATLAS_DATA_SETS.replace(Routes.ORG_ID_PARAM, organizationId)} />
-    );
-  }
+  const renderAtlasDataSetMetaContainer = () => (
+    <AtlasDataSetMetaContainer atlasDataSet={atlasDataSet} />
+  );
 
-  // OPTIMIZE: no need to compute this on every render
-  const data = atlasDataSet.get('columns', List()).map((column) => ({
-    columnName: column.get('name'),
-    datatype: column.get('datatype'),
-    description: column.get('description'),
-    id: column.get('id'),
-  }));
+  const renderAtlasDataSetViewDataContainer = () => (
+    <AtlasDataSetViewDataContainer
+        atlasDataSet={atlasDataSet}
+        atlasDataSetId={atlasDataSetId}
+        organizationId={organizationId} />
+  );
 
   return (
-    <AppContentWrapper>
-      <Card>
-        <CardSegment>
-          <Header align="start" as="h4">{title || name}</Header>
-          <SubHeader align="start" as="h5">{description || name}</SubHeader>
-          <Table
-              data={data}
-              headers={TABLE_HEADERS}
-              paginated
-              rowsPerPageOptions={ROWS_PER_PAGE}
-              totalRows={data.count()} />
-        </CardSegment>
-      </Card>
-    </AppContentWrapper>
+    <>
+      <AppContentWrapper bgColor="white" borderless>
+        <CrumbsWrapper>
+          <Breadcrumbs>
+            <CrumbLink to={orgPath}>{organization.title || 'Organization'}</CrumbLink>
+            <CrumbItem>{title || name}</CrumbItem>
+          </Breadcrumbs>
+        </CrumbsWrapper>
+        <div>
+          <Header as="h2">
+            <FontAwesomeIcon fixedWidth icon={faListAlt} size="sm" style={{ marginRight: '20px' }} />
+            <span>{title || name}</span>
+          </Header>
+        </div>
+        {
+          isNonEmptyString(description) && (
+            <div>{description}</div>
+          )
+        }
+      </AppContentWrapper>
+      <AppContentWrapper bgColor="white" padding="0">
+        <AppNavigationWrapper borderless>
+          <NavLink exact strict to={aboutPath}>About</NavLink>
+          <NavLink to={viewDataPath}>View Data</NavLink>
+        </AppNavigationWrapper>
+      </AppContentWrapper>
+      <Switch>
+        <Route exact path={Routes.ATLAS_DATA_SET} render={renderAtlasDataSetMetaContainer} />
+        <Route exact path={Routes.ATLAS_DATA_SET_VIEW} render={renderAtlasDataSetViewDataContainer} />
+      </Switch>
+    </>
   );
 };
 
-export default AtlasDataSetsContainer;
+export default AtlasDataSetContainer;

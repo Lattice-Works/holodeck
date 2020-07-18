@@ -7,6 +7,7 @@ import React from 'react';
 import { Models } from 'lattice';
 import { Card, CardSegment } from 'lattice-ui-kit';
 import { useGoToRoute } from 'lattice-utils';
+import type { UUID } from 'lattice';
 
 import { Routes } from '../../core/router';
 import { Header, SubHeader } from '../headers';

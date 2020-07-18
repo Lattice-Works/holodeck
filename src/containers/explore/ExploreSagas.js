@@ -10,39 +10,55 @@ import {
   select,
   takeEvery,
 } from '@redux-saga/core/effects';
-import { Set, fromJS } from 'immutable';
+import { Map, Set, fromJS } from 'immutable';
 import { Models } from 'lattice';
 import {
   DataApiActions,
   DataApiSagas,
+  DataSetsApiActions,
+  DataSetsApiSagas,
   EntitySetsApiActions,
   EntitySetsApiSagas,
+  OrganizationsApiActions,
+  OrganizationsApiSagas,
   SearchApiActions,
   SearchApiSagas,
 } from 'lattice-sagas';
 import { Logger } from 'lattice-utils';
 import type { Saga } from '@redux-saga/core';
+import type { UUID } from 'lattice';
 import type { WorkerResponse } from 'lattice-sagas';
 import type { SequenceAction } from 'redux-reqseq';
 
 import {
+  EXPLORE_ATLAS_DATA_SET,
   EXPLORE_ENTITY_DATA,
   EXPLORE_ENTITY_NEIGHBORS,
   EXPLORE_ENTITY_SET,
+  EXPLORE_ORGANIZATION,
+  exploreAtlasDataSet,
   exploreEntityData,
   exploreEntityNeighbors,
   exploreEntitySet,
+  exploreOrganization,
 } from './ExploreActions';
 
-import { EDMUtils } from '../../core/edm';
+import { ReduxUtils } from '../../core/redux';
 import { AxiosUtils } from '../../utils';
 
 const LOG = new Logger('EntityDataSagas');
 
-const { EntitySet, EntitySetBuilder } = Models;
+const {
+  EntitySet,
+  EntitySetBuilder,
+  Organization,
+  OrganizationBuilder,
+} = Models;
 
 const { getEntityData } = DataApiActions;
 const { getEntityDataWorker } = DataApiSagas;
+const { getOrganizationDataSet } = DataSetsApiActions;
+const { getOrganizationDataSetWorker } = DataSetsApiSagas;
 const {
   getEntitySet,
   getEntitySets,
@@ -53,10 +69,60 @@ const {
   getEntitySetsWorker,
   getPropertyTypeMetaDataForEntitySetWorker,
 } = EntitySetsApiSagas;
+const { getOrganization } = OrganizationsApiActions;
+const { getOrganizationWorker } = OrganizationsApiSagas;
 const { searchEntityNeighborsWithFilter } = SearchApiActions;
 const { searchEntityNeighborsWithFilterWorker } = SearchApiSagas;
 
-const { selectEntitySet } = EDMUtils;
+const { selectAtlasDataSet, selectEntitySet, selectOrganization } = ReduxUtils;
+
+/*
+ *
+ * ExploreActions.exploreAtlasDataSet
+ *
+ */
+
+function* exploreAtlasDataSetWorker(action :SequenceAction) :Saga<*> {
+
+  try {
+    yield put(exploreAtlasDataSet.request(action.id, action.value));
+
+    const {
+      atlasDataSetId,
+      organizationId,
+    } :{
+      atlasDataSetId :UUID;
+      organizationId :UUID;
+    } = action.value;
+
+    let atlasDataSet :?Map = yield select(selectAtlasDataSet(organizationId, atlasDataSetId));
+
+    // TODO: expire stored data
+    if (!atlasDataSet) {
+
+      const response :WorkerResponse = yield call(
+        getOrganizationDataSetWorker,
+        getOrganizationDataSet({ dataSetId: atlasDataSetId, organizationId }),
+      );
+      if (response.error) throw response.error;
+
+      atlasDataSet = response.data;
+    }
+    yield put(exploreAtlasDataSet.success(action.id, atlasDataSet));
+  }
+  catch (error) {
+    LOG.error(action.type, error);
+    yield put(exploreAtlasDataSet.failure(action.id, AxiosUtils.toSagaError(error)));
+  }
+  finally {
+    yield put(exploreAtlasDataSet.finally(action.id));
+  }
+}
+
+function* exploreAtlasDataSetWatcher() :Saga<*> {
+
+  yield takeEvery(EXPLORE_ATLAS_DATA_SET, exploreAtlasDataSetWorker);
+}
 
 /*
  *
@@ -181,7 +247,7 @@ function* exploreEntitySetWorker(action :SequenceAction) :Saga<*> {
       entitySet = (new EntitySetBuilder(responses[0].data)).build();
     }
 
-    yield put(exploreEntitySet.success(action.id, { entitySet }));
+    yield put(exploreEntitySet.success(action.id, entitySet));
   }
   catch (error) {
     LOG.error(action.type, error);
@@ -197,11 +263,52 @@ function* exploreEntitySetWatcher() :Saga<*> {
   yield takeEvery(EXPLORE_ENTITY_SET, exploreEntitySetWorker);
 }
 
+/*
+ *
+ * ExploreActions.exploreOrganization
+ *
+ */
+
+function* exploreOrganizationWorker(action :SequenceAction) :Saga<*> {
+
+  try {
+    yield put(exploreOrganization.request(action.id, action.value));
+
+    const organizationId :UUID = action.value;
+    let organization :?Organization = yield select(selectOrganization(organizationId));
+
+    // TODO: expire stored data
+    if (!organization) {
+      const response :WorkerResponse = yield call(getOrganizationWorker, getOrganization(organizationId));
+      if (response.error) throw response.error;
+      organization = (new OrganizationBuilder(response.data)).build();
+    }
+
+    yield put(exploreOrganization.success(action.id, organization));
+  }
+  catch (error) {
+    LOG.error(action.type, error);
+    yield put(exploreOrganization.failure(action.id, AxiosUtils.toSagaError(error)));
+  }
+  finally {
+    yield put(exploreOrganization.finally(action.id));
+  }
+}
+
+function* exploreOrganizationWatcher() :Saga<*> {
+
+  yield takeEvery(EXPLORE_ORGANIZATION, exploreOrganizationWorker);
+}
+
 export {
+  exploreAtlasDataSetWatcher,
+  exploreAtlasDataSetWorker,
   exploreEntityDataWatcher,
   exploreEntityDataWorker,
   exploreEntityNeighborsWatcher,
   exploreEntityNeighborsWorker,
   exploreEntitySetWatcher,
   exploreEntitySetWorker,
+  exploreOrganizationWatcher,
+  exploreOrganizationWorker,
 };

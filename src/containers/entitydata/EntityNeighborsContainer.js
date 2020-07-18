@@ -12,6 +12,7 @@ import { Models } from 'lattice';
 import { CardStack, IconButton, Spinner } from 'lattice-ui-kit';
 import { useRequestState } from 'lattice-utils';
 import { RequestStates } from 'redux-reqseq';
+import type { UUID } from 'lattice';
 import type { RequestState } from 'redux-reqseq';
 
 import EntityNeighborsCardContainer from './EntityNeighborsCardContainer';

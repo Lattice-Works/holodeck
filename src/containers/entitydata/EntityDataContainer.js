@@ -11,6 +11,7 @@ import { Logger, ValidationUtils } from 'lattice-utils';
 import { useSelector } from 'react-redux';
 import { Redirect } from 'react-router';
 import { NavLink } from 'react-router-dom';
+import type { UUID } from 'lattice';
 
 import EntityNeighborsContainer from './EntityNeighborsContainer';
 
@@ -58,7 +59,7 @@ const EntityDataContainer = ({
     return (
       <>
         <AppContentWrapper bgColor={WHITE}>
-          <Header>{entitySet.title}</Header>
+          <Header as="h2">{entitySet.title}</Header>
           <br />
           <EntityDataGrid data={entityData} propertyTypes={propertyTypes} />
         </AppContentWrapper>

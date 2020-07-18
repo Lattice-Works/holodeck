@@ -7,7 +7,7 @@ import { testShouldExportActionTypes, testShouldExportRequestSequences } from '.
 const ACTION_TYPES = OrderedSet([
   'GET_EDM_TYPES',
   'GET_ENTITY_SETS_WITH_METADATA',
-]).sort().toJS();
+]).toJS();
 
 const REQSEQ_NAMES = OrderedSet([
   'getEntityDataModelTypes',

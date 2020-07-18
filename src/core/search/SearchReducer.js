@@ -3,6 +3,7 @@
  */
 
 import { List, Map, fromJS } from 'immutable';
+import { ReduxConstants } from 'lattice-utils';
 import { RequestStates } from 'redux-reqseq';
 import type { SequenceAction } from 'redux-reqseq';
 
@@ -18,9 +19,10 @@ import {
   HITS,
   PAGE,
   QUERY,
-  REQUEST_STATE,
   TOTAL_HITS,
 } from '../redux/constants';
+
+const { REQUEST_STATE } = ReduxConstants;
 
 const SEARCH_INITIAL_STATE = fromJS({
   [REQUEST_STATE]: RequestStates.STANDBY,

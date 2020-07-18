@@ -5,6 +5,7 @@
 import { put, takeEvery } from '@redux-saga/core/effects';
 import { push } from 'connected-react-router';
 import { Logger } from 'lattice-utils';
+import type { Saga } from '@redux-saga/core';
 
 import {
   GO_TO_ROOT,
@@ -25,7 +26,7 @@ const { ERR_INVALID_ROUTE } = Errors;
  *
  */
 
-function* goToRouteWorker(action :RoutingAction) :Generator<*, *, *> {
+function* goToRouteWorker(action :RoutingAction) :Saga<*> {
 
   const { route, state = {} } = action;
   if (route === null || route === undefined || !route.startsWith('/', 0)) {
@@ -40,7 +41,7 @@ function* goToRouteWorker(action :RoutingAction) :Generator<*, *, *> {
   yield put(push({ state: JSON.stringify(state), pathname: route }));
 }
 
-function* goToRouteWatcher() :Generator<*, *, *> {
+function* goToRouteWatcher() :Saga<*> {
 
   yield takeEvery(GO_TO_ROUTE, goToRouteWorker);
 }
@@ -51,7 +52,7 @@ function* goToRouteWatcher() :Generator<*, *, *> {
  *
  */
 
-function* goToRootWatcher() :Generator<*, *, *> {
+function* goToRootWatcher() :Saga<*> {
 
   yield takeEvery(GO_TO_ROOT, goToRouteWorker);
 }

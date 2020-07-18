@@ -7,6 +7,7 @@ import { Models } from 'lattice';
 import { useSelector } from 'react-redux';
 
 import { REDUCERS } from '../../../core/redux/constants';
+import type { SelectOption } from '../../../types';
 
 const { Organization } = Models;
 
