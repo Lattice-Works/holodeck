@@ -18,7 +18,12 @@ import type { UUID } from 'lattice';
 import AtlasDataSetMetaContainer from './AtlasDataSetMetaContainer';
 import AtlasDataSetViewDataContainer from './AtlasDataSetViewDataContainer';
 
-import { CrumbItem, CrumbLink, Header } from '../../components';
+import {
+  CrumbItem,
+  CrumbLink,
+  CrumbSeparator,
+  Header,
+} from '../../components';
 import { Routes } from '../../core/router';
 
 const { Organization } = Models;
@@ -71,7 +76,7 @@ const AtlasDataSetContainer = ({
     <>
       <AppContentWrapper bgColor="white" borderless>
         <CrumbsWrapper>
-          <Breadcrumbs>
+          <Breadcrumbs separator={<CrumbSeparator size="xs" />}>
             <CrumbLink to={orgPath}>{organization.title || 'Organization'}</CrumbLink>
             <CrumbItem>{title || name}</CrumbItem>
           </Breadcrumbs>
