@@ -4,6 +4,7 @@
 
 import React from 'react';
 
+import styled from 'styled-components';
 import { Map } from 'immutable';
 import { Models } from 'lattice';
 import { AppContentWrapper, AppNavigationWrapper } from 'lattice-ui-kit';
@@ -27,6 +28,12 @@ const { isValidUUID } = ValidationUtils;
 const { EXPLORE } = REDUCERS;
 const { ERR_INVALID_UUID, ERR_UNEXPECTED_STATE } = Errors;
 const { useEntityTypePropertyTypes } = EDMUtils;
+
+const NavContentWrapper = styled(AppContentWrapper)`
+  > div {
+    padding: 0;
+  }
+`;
 
 type Props = {
   entityData :Object;
@@ -62,11 +69,11 @@ const EntityDataContainer = ({
           <br />
           <EntityDataGrid data={entityData} propertyTypes={propertyTypes} />
         </AppContentWrapper>
-        <AppContentWrapper bgColor="white" padding="0">
+        <NavContentWrapper bgColor="white">
           <AppNavigationWrapper borderless>
             <NavLink to="#">Associated Data</NavLink>
           </AppNavigationWrapper>
-        </AppContentWrapper>
+        </NavContentWrapper>
         <AppContentWrapper>
           <EntityNeighborsContainer entityKeyId={entityKeyId} neighbors={neighbors} />
         </AppContentWrapper>

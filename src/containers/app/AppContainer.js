@@ -69,7 +69,7 @@ const AppContainer = () => {
       <MuiPickersUtilsProvider utils={LatticeLuxonUtils}>
         <StylesProvider injectFirst>
           <AppContainerWrapper>
-            <AppHeaderWrapper appIcon={OpenLatticeIconSVG} appTitle="Regallery" logout={logout} user={user}>
+            <AppHeaderWrapper appIcon={OpenLatticeIconSVG} appTitle="Atlas" logout={logout} user={user}>
               <AppNavigationWrapper>
                 <NavLink to={Routes.ROOT} />
                 <NavLink to={Routes.EXPLORE}>Explore</NavLink>

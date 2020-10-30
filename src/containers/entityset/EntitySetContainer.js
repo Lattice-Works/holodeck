@@ -4,6 +4,7 @@
 
 import React from 'react';
 
+import styled from 'styled-components';
 import { faListAlt } from '@fortawesome/pro-light-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Models } from 'lattice';
@@ -28,6 +29,12 @@ const {
   ERR_INVALID_UUID,
   ERR_UNEXPECTED_STATE,
 } = Errors;
+
+const NavContentWrapper = styled(AppContentWrapper)`
+  > div {
+    padding: 0;
+  }
+`;
 
 type Props = {
   entitySet :EntitySet;
@@ -73,12 +80,12 @@ const EntitySetContainer = ({ entitySet, entitySetId } :Props) => {
             )
           }
         </AppContentWrapper>
-        <AppContentWrapper bgColor="white" padding="0">
+        <NavContentWrapper bgColor="white">
           <AppNavigationWrapper borderless>
             <NavLink exact strict to={aboutPath}>About</NavLink>
             <NavLink to={searchPath}>Search</NavLink>
           </AppNavigationWrapper>
-        </AppContentWrapper>
+        </NavContentWrapper>
         <Switch>
           <Route exact path={Routes.ENTITY_SET} render={renderEntitySetMetaContainer} />
           <Route exact path={Routes.ENTITY_SET_SEARCH} render={renderEntitySetSearchContainer} />

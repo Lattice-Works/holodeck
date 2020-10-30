@@ -29,6 +29,12 @@ import { Routes } from '../../core/router';
 const { Organization } = Models;
 const { isNonEmptyString } = LangUtils;
 
+const NavContentWrapper = styled(AppContentWrapper)`
+  > div {
+    padding: 0;
+  }
+`;
+
 const CrumbsWrapper = styled.div`
   margin-bottom: 16px;
 `;
@@ -93,12 +99,12 @@ const AtlasDataSetContainer = ({
           )
         }
       </AppContentWrapper>
-      <AppContentWrapper bgColor="white" padding="0">
+      <NavContentWrapper bgColor="white">
         <AppNavigationWrapper borderless>
           <NavLink exact strict to={aboutPath}>About</NavLink>
           <NavLink to={viewDataPath}>View Data</NavLink>
         </AppNavigationWrapper>
-      </AppContentWrapper>
+      </NavContentWrapper>
       <Switch>
         <Route exact path={Routes.ATLAS_DATA_SET} render={renderAtlasDataSetMetaContainer} />
         <Route exact path={Routes.ATLAS_DATA_SET_VIEW} render={renderAtlasDataSetViewDataContainer} />

@@ -4,6 +4,7 @@
 
 import React from 'react';
 
+import styled from 'styled-components';
 import { faLandmark } from '@fortawesome/pro-light-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Models } from 'lattice';
@@ -20,6 +21,12 @@ import { Routes } from '../../core/router';
 
 const { Organization } = Models;
 const { isNonEmptyString } = LangUtils;
+
+const NavContentWrapper = styled(AppContentWrapper)`
+  > div {
+    padding: 0;
+  }
+`;
 
 type Props = {
   organization :Organization;
@@ -49,11 +56,11 @@ const OrgContainer = ({ organization, organizationId } :Props) => {
           )
         }
       </AppContentWrapper>
-      <AppContentWrapper bgColor="white" padding="0">
+      <NavContentWrapper bgColor="white">
         <AppNavigationWrapper borderless>
           <NavLink exact to={atlasDataSetsPath}>Atlas Data Sets</NavLink>
         </AppNavigationWrapper>
-      </AppContentWrapper>
+      </NavContentWrapper>
       <Switch>
         <Route exact path={Routes.ATLAS_DATA_SETS} render={renderAtlasDataSetsContainer} />
       </Switch>
