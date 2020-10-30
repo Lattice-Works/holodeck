@@ -41,6 +41,7 @@ const {
 
 const INITIAL_STATE :Map<*, *> = fromJS({
   [GET_EDM_TYPES]: { [REQUEST_STATE]: RequestStates.STANDBY },
+  [GET_ENTITY_SETS]: { [REQUEST_STATE]: RequestStates.STANDBY },
   [GET_ENTITY_SETS_WITH_METADATA]: { [REQUEST_STATE]: RequestStates.STANDBY },
   [GET_ENTITY_SET]: { [REQUEST_STATE]: RequestStates.STANDBY },
   entitySets: List(),

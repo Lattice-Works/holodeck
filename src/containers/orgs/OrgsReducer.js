@@ -35,6 +35,7 @@ const { GO_TO_ROUTE } = RoutingActions;
 
 const INITIAL_STATE :Map = fromJS({
   [GET_ALL_ORGANIZATIONS]: { [REQUEST_STATE]: RequestStates.STANDBY },
+  [GET_ORGANIZATION]: { [REQUEST_STATE]: RequestStates.STANDBY },
   [GET_ORGANIZATION_DATA_SETS]: { [REQUEST_STATE]: RequestStates.STANDBY },
   atlasDataSets: Map(),
   organizations: Map(),
