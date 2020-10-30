@@ -10,7 +10,7 @@ const CrumbLink = styled(Link)`
   font-size: 12px;
   font-weight: 500;
   text-decoration: none;
-  text-transform: uppercase;
+  text-transform: ${({ toUpperCase = false }) => (toUpperCase ? 'uppercase' : 'none')};
 
   :hover {
     text-decoration: underline;

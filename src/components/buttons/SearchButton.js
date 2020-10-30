@@ -5,28 +5,16 @@
 import React from 'react';
 
 import { faSearch } from '@fortawesome/pro-regular-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Button, Spinner } from 'lattice-ui-kit';
 
-type Props = {
-  isPending ?:boolean;
-  onClick :(event :SyntheticEvent<HTMLButtonElement>) => void;
-};
+import BaseButton from './BaseButton';
+import type { ButtonProps } from './BaseButton';
 
-// 2020-07-17 NOTE: using "disabled" prop instead of "isLoading" because of a margin bug in LUK
-const SearchButton = ({ isPending, onClick } :Props) => (
-  <Button color="primary" disabled={isPending} onClick={onClick} type="submit">
-    {
-      isPending && <Spinner />
-    }
-    {
-      !isPending && <FontAwesomeIcon fixedWidth icon={faSearch} />
-    }
-  </Button>
+const SearchButton = ({ children, ...props } :ButtonProps) => (
+  /* eslint-disable react/jsx-props-no-spreading */
+  <BaseButton {...props} icon={faSearch}>
+    {children}
+  </BaseButton>
+  /* eslint-enable */
 );
-
-SearchButton.defaultProps = {
-  isPending: false,
-};
 
 export default SearchButton;
