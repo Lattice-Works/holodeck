@@ -2,9 +2,14 @@
  * @flow
  */
 
-import { List, Map, fromJS } from 'immutable';
+import {
+  List,
+  Map,
+  fromJS,
+  get,
+} from 'immutable';
 import { Models } from 'lattice';
-import { EntitySetsApiActions } from 'lattice-sagas';
+import { DataSetsApiActions, EntitySetsApiActions, SearchApiActions } from 'lattice-sagas';
 import { Logger, ReduxConstants } from 'lattice-utils';
 import { RequestStates } from 'redux-reqseq';
 import type {
@@ -33,17 +38,30 @@ const {
 } = Models;
 
 const {
+  GET_ORGANIZATION_DATA_SETS,
+  getOrganizationDataSets,
+} = DataSetsApiActions;
+
+const {
   GET_ENTITY_SET,
   GET_ENTITY_SETS,
   getEntitySet,
   getEntitySets,
 } = EntitySetsApiActions;
 
+const {
+  SEARCH_ENTITY_SET_METADATA,
+  searchEntitySetMetaData,
+} = SearchApiActions;
+
 const INITIAL_STATE :Map<*, *> = fromJS({
   [GET_EDM_TYPES]: { [REQUEST_STATE]: RequestStates.STANDBY },
   [GET_ENTITY_SETS]: { [REQUEST_STATE]: RequestStates.STANDBY },
   [GET_ENTITY_SETS_WITH_METADATA]: { [REQUEST_STATE]: RequestStates.STANDBY },
   [GET_ENTITY_SET]: { [REQUEST_STATE]: RequestStates.STANDBY },
+  [GET_ORGANIZATION_DATA_SETS]: { [REQUEST_STATE]: RequestStates.STANDBY },
+  [SEARCH_ENTITY_SET_METADATA]: { [REQUEST_STATE]: RequestStates.STANDBY },
+  atlasDataSets: Map(),
   entitySets: List(),
   entitySetsIndexMap: Map(),
   entitySetsMetaData: Map(),
@@ -234,6 +252,79 @@ export default function reducer(state :Map<*, *> = INITIAL_STATE, action :Object
           .setIn([GET_ENTITY_SETS_WITH_METADATA, REQUEST_STATE], RequestStates.FAILURE),
         FINALLY: () => state
           .deleteIn([GET_ENTITY_SETS_WITH_METADATA, seqAction.id]),
+      });
+    }
+
+    // NOTE: THIS IS ALL TEMPORARY
+    // NOTE: THIS IS ALL TEMPORARY
+    // NOTE: THIS IS ALL TEMPORARY
+
+    case getOrganizationDataSets.case(action.type): {
+      return getOrganizationDataSets.reducer(state, action, {
+        REQUEST: () => state
+          .setIn([GET_ORGANIZATION_DATA_SETS, REQUEST_STATE], RequestStates.PENDING)
+          .setIn([GET_ORGANIZATION_DATA_SETS, action.id], action),
+        SUCCESS: () => {
+          if (state.hasIn([GET_ORGANIZATION_DATA_SETS, action.id])) {
+            const atlasDataSets :Map = state.get('atlasDataSets')
+              .withMutations((mutableMap :Map) => {
+                action.value.forEach((dataSet :Object) => mutableMap.set(dataSet.table.id, fromJS(dataSet)));
+              });
+            return state
+              .set('atlasDataSets', atlasDataSets)
+              .setIn([GET_ORGANIZATION_DATA_SETS, REQUEST_STATE], RequestStates.SUCCESS);
+          }
+          return state;
+        },
+        FAILURE: () => {
+          if (state.hasIn([GET_ORGANIZATION_DATA_SETS, action.id])) {
+            return state.setIn([GET_ORGANIZATION_DATA_SETS, REQUEST_STATE], RequestStates.FAILURE);
+          }
+          return state;
+        },
+        FINALLY: () => state.deleteIn([GET_ORGANIZATION_DATA_SETS, action.id]),
+      });
+    }
+
+    case searchEntitySetMetaData.case(action.type): {
+      return searchEntitySetMetaData.reducer(state, action, {
+        REQUEST: () => state
+          .setIn([SEARCH_ENTITY_SET_METADATA, REQUEST_STATE], RequestStates.PENDING)
+          .setIn([SEARCH_ENTITY_SET_METADATA, action.id], action),
+        SUCCESS: () => {
+          if (state.hasIn([SEARCH_ENTITY_SET_METADATA, action.id])) {
+
+            let entitySets :List<EntitySet> = state.get('entitySets');
+            let entitySetsIndexMap :Map = state.get('entitySetsIndexMap');
+
+            get(action.value, 'hits', []).forEach((hit) => {
+              const entitySet :EntitySet = (new EntitySetBuilder(hit.entitySet)).build();
+              if (entitySetsIndexMap.has(entitySet.id)) {
+                entitySets = entitySets.update(entitySetsIndexMap.get(entitySet.id), () => entitySet);
+              }
+              else {
+                entitySets = entitySets.push(entitySet);
+                const entitySetIndex :number = entitySets.count() - 1;
+                entitySetsIndexMap = entitySetsIndexMap
+                  .set(entitySet.id, entitySetIndex)
+                  .set(entitySet.name, entitySetIndex);
+              }
+            });
+
+            return state
+              .set('entitySets', entitySets)
+              .set('entitySetsIndexMap', entitySetsIndexMap)
+              .setIn([SEARCH_ENTITY_SET_METADATA, REQUEST_STATE], RequestStates.SUCCESS);
+          }
+          return state;
+        },
+        FAILURE: () => {
+          if (state.hasIn([SEARCH_ENTITY_SET_METADATA, action.id])) {
+            return state.setIn([SEARCH_ENTITY_SET_METADATA, REQUEST_STATE], RequestStates.FAILURE);
+          }
+          return state;
+        },
+        FINALLY: () => state.deleteIn([SEARCH_ENTITY_SET_METADATA, action.id]),
       });
     }
 
