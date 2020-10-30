@@ -27,7 +27,7 @@ import type { RequestState } from 'redux-reqseq';
 
 import { INITIALIZE_APPLICATION, initializeApplication } from './AppActions';
 
-import OpenLatticeIcon from '../../assets/images/ol-icon.png';
+import { OpenLatticeIconSVG } from '../../assets/svg/icons';
 import { BasicErrorComponent } from '../../components';
 import { REDUCERS } from '../../core/redux/constants';
 import { Routes } from '../../core/router';
@@ -69,7 +69,7 @@ const AppContainer = () => {
       <MuiPickersUtilsProvider utils={LatticeLuxonUtils}>
         <StylesProvider injectFirst>
           <AppContainerWrapper>
-            <AppHeaderWrapper appIcon={OpenLatticeIcon} appTitle="Regallery" logout={logout} user={user}>
+            <AppHeaderWrapper appIcon={OpenLatticeIconSVG} appTitle="Regallery" logout={logout} user={user}>
               <AppNavigationWrapper>
                 <NavLink to={Routes.ROOT} />
                 <NavLink to={Routes.EXPLORE}>Explore</NavLink>
