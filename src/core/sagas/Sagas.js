@@ -61,5 +61,6 @@ export default function* sagas() :Saga<*> {
     // SearchSagas
     fork(SearchSagas.searchEntitySetWatcher),
     fork(SearchSagas.searchEntitySetsWatcher),
+    fork(SearchSagas.searchOrgDataSetsWatcher),
   ]);
 }

@@ -11,8 +11,10 @@ import {
   CLEAR_SEARCH_STATE,
   SEARCH_ENTITY_SET,
   SEARCH_ENTITY_SETS,
+  SEARCH_ORG_DATA_SETS,
   searchEntitySet,
   searchEntitySets,
+  searchOrgDataSets,
 } from './SearchActions';
 
 import {
@@ -35,6 +37,7 @@ const SEARCH_INITIAL_STATE = fromJS({
 const INITIAL_STATE :Map = fromJS({
   [SEARCH_ENTITY_SET]: SEARCH_INITIAL_STATE,
   [SEARCH_ENTITY_SETS]: SEARCH_INITIAL_STATE,
+  [SEARCH_ORG_DATA_SETS]: SEARCH_INITIAL_STATE,
 });
 
 export default function reducer(state :Map = INITIAL_STATE, action :Object) {
@@ -99,6 +102,33 @@ export default function reducer(state :Map = INITIAL_STATE, action :Object) {
           .set(TOTAL_HITS, 0)
           .setIn([SEARCH_ENTITY_SETS, REQUEST_STATE], RequestStates.FAILURE),
         FINALLY: () => state.deleteIn([SEARCH_ENTITY_SETS, seqAction.id]),
+      });
+    }
+
+    case searchOrgDataSets.case(action.type): {
+      const seqAction :SequenceAction = action;
+      return searchOrgDataSets.reducer(state, action, {
+        REQUEST: () => state
+          .setIn([SEARCH_ORG_DATA_SETS, REQUEST_STATE], RequestStates.PENDING)
+          .setIn([SEARCH_ORG_DATA_SETS, seqAction.id], seqAction),
+        SUCCESS: () => {
+          const storedSeqAction :SequenceAction = state.getIn([SEARCH_ORG_DATA_SETS, seqAction.id]);
+          if (storedSeqAction) {
+            const { page, query } = storedSeqAction.value;
+            return state
+              .setIn([SEARCH_ORG_DATA_SETS, REQUEST_STATE], RequestStates.SUCCESS)
+              .setIn([SEARCH_ORG_DATA_SETS, PAGE], page)
+              .setIn([SEARCH_ORG_DATA_SETS, QUERY], query)
+              .setIn([SEARCH_ORG_DATA_SETS, HITS], seqAction.value[HITS])
+              .setIn([SEARCH_ORG_DATA_SETS, TOTAL_HITS], seqAction.value[TOTAL_HITS]);
+          }
+          return state;
+        },
+        FAILURE: () => state
+          .set(HITS, List())
+          .set(TOTAL_HITS, 0)
+          .setIn([SEARCH_ORG_DATA_SETS, REQUEST_STATE], RequestStates.FAILURE),
+        FINALLY: () => state.deleteIn([SEARCH_ORG_DATA_SETS, seqAction.id]),
       });
     }
 

@@ -5,8 +5,13 @@
 import { call, put, takeEvery } from '@redux-saga/core/effects';
 import { List, fromJS } from 'immutable';
 import { Models } from 'lattice';
-import { SearchApiActions, SearchApiSagas } from 'lattice-sagas';
-import { Logger } from 'lattice-utils';
+import {
+  EntitySetsApiActions,
+  EntitySetsApiSagas,
+  SearchApiActions,
+  SearchApiSagas,
+} from 'lattice-sagas';
+import { DataUtils, Logger, ValidationUtils } from 'lattice-utils';
 import type { Saga } from '@redux-saga/core';
 import type { EntitySetObject, PropertyTypeObject } from 'lattice';
 import type { WorkerResponse } from 'lattice-sagas';
@@ -15,8 +20,10 @@ import type { SequenceAction } from 'redux-reqseq';
 import {
   SEARCH_ENTITY_SET,
   SEARCH_ENTITY_SETS,
+  SEARCH_ORG_DATA_SETS,
   searchEntitySet,
   searchEntitySets,
+  searchOrgDataSets,
 } from './SearchActions';
 import { MAX_HITS_10, MAX_HITS_20 } from './constants';
 
@@ -28,7 +35,11 @@ type SearchEntitySetsHit = {
 };
 
 const { EntitySet, EntitySetBuilder } = Models;
+const { getPropertyValue } = DataUtils;
+const { isValidUUID } = ValidationUtils;
 
+const { getEntitySets } = EntitySetsApiActions;
+const { getEntitySetsWorker } = EntitySetsApiSagas;
 const { searchEntitySetData, searchEntitySetMetaData } = SearchApiActions;
 const { searchEntitySetDataWorker, searchEntitySetMetaDataWorker } = SearchApiSagas;
 
@@ -38,7 +49,9 @@ const { searchEntitySetDataWorker, searchEntitySetMetaDataWorker } = SearchApiSa
  *
  */
 
-function* searchEntitySetWorker(action :SequenceAction) :Saga<*> {
+function* searchEntitySetWorker(action :SequenceAction) :Saga<WorkerResponse> {
+
+  let workerResponse :WorkerResponse;
 
   try {
     yield put(searchEntitySet.request(action.id, action.value));
@@ -70,15 +83,26 @@ function* searchEntitySetWorker(action :SequenceAction) :Saga<*> {
 
     const hits = fromJS(response.data.hits || []);
     const totalHits = response.data.numHits || 0;
+
+    workerResponse = {
+      data: {
+        hits: response.data.hits || [],
+        totalHits: response.data.numHits || 0,
+      }
+    };
+
     yield put(searchEntitySet.success(action.id, { hits, totalHits }));
   }
   catch (error) {
+    workerResponse = { error };
     LOG.error(action.type, error);
     yield put(searchEntitySet.failure(action.id, error));
   }
   finally {
     yield put(searchEntitySet.finally(action.id));
   }
+
+  return workerResponse;
 }
 
 function* searchEntitySetWatcher() :Saga<*> {
@@ -148,9 +172,49 @@ function* searchEntitySetsWatcher() :Saga<*> {
   yield takeEvery(SEARCH_ENTITY_SETS, searchEntitySetsWorker);
 }
 
+/*
+ *
+ * SearchActions.searchOrgDataSets
+ *
+ */
+
+function* searchOrgDataSetsWorker(action :SequenceAction) :Saga<*> {
+
+  try {
+    yield put(searchOrgDataSets.request(action.id, action.value));
+
+    const response :WorkerResponse = yield call(searchEntitySetWorker, searchEntitySet(action.value));
+    if (response.error) throw response.error;
+
+    const entitySetIds = response.data.hits
+      .map((hit) => getPropertyValue(hit, ['ol.id', 0]))
+      .filter((id) => isValidUUID(id));
+    yield call(getEntitySetsWorker, getEntitySets(entitySetIds));
+
+    yield put(searchOrgDataSets.success(action.id, {
+      hits: entitySetIds,
+      totalHits: response.data.totalHits
+    }));
+  }
+  catch (error) {
+    LOG.error(action.type, error);
+    yield put(searchOrgDataSets.failure(action.id, error));
+  }
+  finally {
+    yield put(searchOrgDataSets.finally(action.id));
+  }
+}
+
+function* searchOrgDataSetsWatcher() :Saga<*> {
+
+  yield takeEvery(SEARCH_ORG_DATA_SETS, searchOrgDataSetsWorker);
+}
+
 export {
   searchEntitySetWatcher,
   searchEntitySetWorker,
   searchEntitySetsWatcher,
   searchEntitySetsWorker,
+  searchOrgDataSetsWatcher,
+  searchOrgDataSetsWorker,
 };

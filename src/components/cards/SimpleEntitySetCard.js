@@ -5,12 +5,11 @@
 import React from 'react';
 
 import { Models } from 'lattice';
-import { Card, CardSegment } from 'lattice-ui-kit';
+import { Card, CardSegment, Typography } from 'lattice-ui-kit';
 import { useGoToRoute } from 'lattice-utils';
 import type { UUID } from 'lattice';
 
 import { Routes } from '../../core/router';
-import { Header, SubHeader } from '../headers';
 
 const { EntitySet } = Models;
 
@@ -29,8 +28,8 @@ const SimpleEntitySetCard = ({ entitySet } :Props) => {
   return (
     <Card id={entitySetId} onClick={goToEntitySet}>
       <CardSegment>
-        <Header align="start" as="h4">{entitySet.title || entitySet.name}</Header>
-        <SubHeader align="start" as="h5">{entitySet.description || entitySet.name}</SubHeader>
+        <Typography gutterBottom variant="h3">{entitySet.title || entitySet.name}</Typography>
+        <Typography>{entitySet.description || entitySet.name}</Typography>
       </CardSegment>
     </Card>
   );
