@@ -26,7 +26,6 @@ import {
 import { EDM, SEARCH } from '../../core/redux/constants';
 import {
   selectAtlasDataSets,
-  selectSearchHits,
   selectSearchPage,
   selectSearchQuery,
   selectSearchTotalHits,
