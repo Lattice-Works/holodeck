@@ -39,16 +39,12 @@ const GlobalStyle = createGlobalStyle`
 
   html,
   body {
-    background-color: ${NEUTRAL.N00};
+    background-color: white;
     color: ${NEUTRAL.N700};
     font-family: 'Inter', sans-serif;
     height: 100%;
     line-height: 1.5;
     width: 100%;
-  }
-
-  input {
-    line-height: 1.5;
   }
 
   * {
