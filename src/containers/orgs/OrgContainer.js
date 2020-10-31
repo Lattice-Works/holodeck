@@ -91,8 +91,6 @@ const OrgContainer = ({
     }
   };
 
-  console.log(pageDataSets);
-
   if (getAtlasDataSetsRS === RequestStates.PENDING || getAtlasDataSetsRS === RequestStates.STANDBY) {
     return (
       <AppContentWrapper bgColor="white" borderless>
