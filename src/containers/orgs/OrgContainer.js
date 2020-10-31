@@ -2,12 +2,13 @@
  * @flow
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { faLandmark } from '@fortawesome/pro-light-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Map } from 'immutable';
+import { Map, getIn } from 'immutable';
 import { Models } from 'lattice';
+import { DataSetsApiActions } from 'lattice-sagas';
 import { AppContentWrapper, PaginationToolbar, Typography } from 'lattice-ui-kit';
 import { LangUtils, ReduxUtils, useRequestState } from 'lattice-utils';
 import { useDispatch, useSelector } from 'react-redux';
@@ -18,12 +19,13 @@ import type { RequestState } from 'redux-reqseq';
 import SearchDataSetsForm from './SearchDataSetsForm';
 
 import {
-  SimpleEntitySetCard,
+  DataSetSearchResultCard,
   Spinner,
   StackGrid,
 } from '../../components';
-import { SEARCH } from '../../core/redux/constants';
+import { EDM, SEARCH } from '../../core/redux/constants';
 import {
+  selectAtlasDataSets,
   selectSearchHits,
   selectSearchPage,
   selectSearchQuery,
@@ -38,6 +40,7 @@ import {
 const { Organization } = Models;
 const { isNonEmptyString } = LangUtils;
 const { selectEntitySets } = ReduxUtils;
+const { GET_ORGANIZATION_DATA_SETS, getOrganizationDataSets } = DataSetsApiActions;
 
 const MAX_PER_PAGE = 10;
 const SR_DS_META_ESID = '091695e1-a971-40ee-9956-a6a05c5942dd';
@@ -54,14 +57,22 @@ const OrgContainer = ({
 
   const dispatch = useDispatch();
 
+  const getAtlasDataSetsRS :?RequestState = useRequestState([EDM, GET_ORGANIZATION_DATA_SETS]);
   const searchOrgDataSetsRS :?RequestState = useRequestState([SEARCH, SEARCH_ORG_DATA_SETS]);
 
   const searchPage :number = useSelector(selectSearchPage(SEARCH_ORG_DATA_SETS));
   const searchQuery :string = useSelector(selectSearchQuery(SEARCH_ORG_DATA_SETS));
   const searchTotalHits :number = useSelector(selectSearchTotalHits(SEARCH_ORG_DATA_SETS));
-  const searchHits :Set<UUID> = useSelector(selectSearchHits(SEARCH_ORG_DATA_SETS));
+  const atlasDataSetIds :Set<UUID> = useSelector((s) => s.getIn([SEARCH, SEARCH_ORG_DATA_SETS, 'atlasDataSetIds']));
+  const entitySetIds :Set<UUID> = useSelector((s) => s.getIn([SEARCH, SEARCH_ORG_DATA_SETS, 'entitySetIds']));
 
-  const pageEntitySets :Map<UUID, Map> = useSelector(selectEntitySets(searchHits));
+  const atlasDataSets :Map<UUID, Map> = useSelector(selectAtlasDataSets(atlasDataSetIds));
+  const entitySets :Map<UUID, EntitySet> = useSelector(selectEntitySets(entitySetIds));
+  const pageDataSets :Map<UUID, EntitySet | Map> = Map().merge(atlasDataSets).merge(entitySets);
+
+  useEffect(() => {
+    dispatch(getOrganizationDataSets({ organizationId }));
+  }, [dispatch, organizationId]);
 
   const dispatchDataSetSearch = (params :{ page ?:number, query ?:string, start ?:number } = {}) => {
     const { page = 0, query = searchQuery, start = 0 } = params;
@@ -79,6 +90,16 @@ const OrgContainer = ({
       dispatch(clearSearchState(SEARCH_ORG_DATA_SETS));
     }
   };
+
+  console.log(pageDataSets);
+
+  if (getAtlasDataSetsRS === RequestStates.PENDING || getAtlasDataSetsRS === RequestStates.STANDBY) {
+    return (
+      <AppContentWrapper bgColor="white" borderless>
+        <Spinner />
+      </AppContentWrapper>
+    );
+  }
 
   return (
     <>
@@ -114,9 +135,12 @@ const OrgContainer = ({
           }
           {
             searchOrgDataSetsRS === RequestStates.SUCCESS && (
-              pageEntitySets.valueSeq().map((entitySet :EntitySet) => (
-                <SimpleEntitySetCard key={entitySet.id} entitySet={entitySet} />
-              ))
+              pageDataSets.valueSeq().map((dataSet :EntitySet | Map) => {
+                const id :UUID = dataSet.id || getIn(dataSet, ['table', 'id']);
+                return (
+                  <DataSetSearchResultCard key={id} dataSet={dataSet} organizationId={organizationId} />
+                );
+              })
             )
           }
         </StackGrid>

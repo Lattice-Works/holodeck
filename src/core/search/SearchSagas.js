@@ -189,10 +189,17 @@ function* searchOrgDataSetsWorker(action :SequenceAction) :Saga<*> {
     const entitySetIds = response.data.hits
       .map((hit) => getPropertyValue(hit, ['ol.id', 0]))
       .filter((id) => isValidUUID(id));
+
+    const atlasDataSetIds = response.data.hits
+      .filter((hit) => Number.isInteger(getPropertyValue(hit, ['ol.pgoid', 0])))
+      .map((hit) => getPropertyValue(hit, ['ol.id', 0]))
+      .filter((id) => isValidUUID(id));
+
     yield call(getEntitySetsWorker, getEntitySets(entitySetIds));
 
     yield put(searchOrgDataSets.success(action.id, {
-      hits: entitySetIds,
+      atlasDataSetIds,
+      entitySetIds,
       totalHits: response.data.totalHits
     }));
   }

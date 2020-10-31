@@ -2,7 +2,12 @@
  * @flow
  */
 
-import { List, Map, fromJS } from 'immutable';
+import {
+  List,
+  Map,
+  Set,
+  fromJS,
+} from 'immutable';
 import { ReduxConstants } from 'lattice-utils';
 import { RequestStates } from 'redux-reqseq';
 import type { SequenceAction } from 'redux-reqseq';
@@ -37,7 +42,14 @@ const SEARCH_INITIAL_STATE = fromJS({
 const INITIAL_STATE :Map = fromJS({
   [SEARCH_ENTITY_SET]: SEARCH_INITIAL_STATE,
   [SEARCH_ENTITY_SETS]: SEARCH_INITIAL_STATE,
-  [SEARCH_ORG_DATA_SETS]: SEARCH_INITIAL_STATE,
+  [SEARCH_ORG_DATA_SETS]: {
+    [REQUEST_STATE]: RequestStates.STANDBY,
+    [PAGE]: 0,
+    [QUERY]: '',
+    [TOTAL_HITS]: 0,
+    atlasDataSetIds: Set(),
+    entitySetIds: Set(),
+  },
 });
 
 export default function reducer(state :Map = INITIAL_STATE, action :Object) {
@@ -105,6 +117,10 @@ export default function reducer(state :Map = INITIAL_STATE, action :Object) {
       });
     }
 
+    // NOTE: THIS IS ALL TEMPORARY
+    // NOTE: THIS IS ALL TEMPORARY
+    // NOTE: THIS IS ALL TEMPORARY
+
     case searchOrgDataSets.case(action.type): {
       const seqAction :SequenceAction = action;
       return searchOrgDataSets.reducer(state, action, {
@@ -119,13 +135,15 @@ export default function reducer(state :Map = INITIAL_STATE, action :Object) {
               .setIn([SEARCH_ORG_DATA_SETS, REQUEST_STATE], RequestStates.SUCCESS)
               .setIn([SEARCH_ORG_DATA_SETS, PAGE], page)
               .setIn([SEARCH_ORG_DATA_SETS, QUERY], query)
-              .setIn([SEARCH_ORG_DATA_SETS, HITS], seqAction.value[HITS])
+              .setIn([SEARCH_ORG_DATA_SETS, 'atlasDataSetIds'], seqAction.value.atlasDataSetIds)
+              .setIn([SEARCH_ORG_DATA_SETS, 'entitySetIds'], seqAction.value.entitySetIds)
               .setIn([SEARCH_ORG_DATA_SETS, TOTAL_HITS], seqAction.value[TOTAL_HITS]);
           }
           return state;
         },
         FAILURE: () => state
-          .set(HITS, List())
+          .set('atlasDataSetIds', Set())
+          .set('entitySetIds', Set())
           .set(TOTAL_HITS, 0)
           .setIn([SEARCH_ORG_DATA_SETS, REQUEST_STATE], RequestStates.FAILURE),
         FINALLY: () => state.deleteIn([SEARCH_ORG_DATA_SETS, seqAction.id]),
